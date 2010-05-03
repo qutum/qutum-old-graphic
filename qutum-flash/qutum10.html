@@ -1,0 +1,28 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<!--
+//
+// Copyright 2008-2010 Qianyan Cai
+// Under the terms of the GNU General Public License version 3
+//
+-->
+<html>
+<head>
+<meta name=Content-Type content='text/html; charset=UTF-8' http-equiv=Content-Type>
+<title>Qutum 10</title>
+<style>
+html, body { width:100%; height:100%; margin:0; padding:0; overflow:hidden }
+</style>
+<body>
+<embed id=qutum10 src=qutum10.swf width=100% height=100%
+	type=application/x-shockwave-flash pluginspage=http://get.adobe.com/getflashplayer
+	wmode=window allowscriptaccess=always>
+<script>
+onbeforeunload = function ()
+{
+	var unsave = document.getElementById('qutum10').unsaved()
+	if (unsave)
+		return unsave + ' unsaved !'
+}
+</script>
+</body>
+</html>

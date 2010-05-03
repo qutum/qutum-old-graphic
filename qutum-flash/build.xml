@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+//
+// Copyright 2008-2010 Qianyan Cai
+// Under the terms of the GNU General Public License version 3
+//
+-->
+<!-- requirement: add property 'flex.home' to Ant preference in workspace -->
+<project name="qutum-flash" default="all">
+
+	<property name=".version" value="10" />
+
+	<property name=":" value="${path.separator}" />
+	<property name=".source" value="." />
+	<property name=".source.main" value="${.source}/qutum${.version}.as" />
+	<property name=".archive" value="qutum${.version}.swf" />
+	<property name=".lib.player"
+	          value="${flex.home}/frameworks/libs/player/10/playerglobal.swc" />
+
+	<target name=".debug">
+		<property name=".debug" value="-debug=true" />
+	</target>
+
+	<target name="flash">
+		<property name=".debug" value="-debug=false" />
+		<java classpath="${flex.home}/lib" jar="${flex.home}/lib/mxmlc.jar" fork="true">
+			<arg value="-load-config=build.config.xml" />
+			<arg value="-external-library-path=${.lib.player}" />
+			<arg value="${.debug}" />
+			<arg value="${.source.main}" />
+			<arg value="-output=${.archive}" />
+		</java>
+	</target>
+
+	<target name="all" depends="flash" />
+	<target name="debug" depends=".debug,flash" />
+
+</project>
