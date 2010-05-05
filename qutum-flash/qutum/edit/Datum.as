@@ -45,6 +45,7 @@ final class Datum extends Hit
 	const As:Vector.<Wire> = new Vector.<Wire>
 	/** early or later in the zone, [ x-0x400000, x, x+0x400000 ] */
 	var el:int, reEl:int
+	var layer2:Boolean
 
 	/** must run or may run, as agent zoner */
 	var mustRun:Boolean
@@ -135,7 +136,7 @@ final class Datum extends Hit
 				zone.reEl = (el = r - DX | x ? zone.reEl : 0) + 1 // for loading
 		}
 		addTo0(deep)
-		refresh(3)
+		refresh(layer2 ? zone.layer2 ? 1 : 2 : 3)
 		return this
 	}
 
@@ -348,7 +349,7 @@ final class Datum extends Hit
 			{
 				d = r.datumAt(y)
 				if (redetail > 0)
-					if (redetail >= 4)
+					if (redetail >= 4 && !d.layer2)
 						d.redetail = 4
 					else if (redetail <= 2)
 						d.redetail = 1
@@ -579,6 +580,8 @@ final class Datum extends Hit
 			else if (c == 59 && ctrl) // ctrl ;
 				return edit.unities = !edit.unities, edit.refresh = true
 
+		if (layer2)
+			return
 		if (yield)
 			return k == 89 && !ctrl && edit.com.nonyield() // y
 
@@ -603,9 +606,9 @@ final class Datum extends Hit
 				return edit.com.trialVeto(1)
 
 		if (k == 8) // backspace
-			return yield || edit.com.removeBefore()
+			return edit.com.removeBefore()
 		if (k == 46) // delete
-			return yield || edit.com.remove()
+			return edit.com.remove()
 		if (k == 65 || k == 66 || k == 85) // a b u
 			return edit.dragStart(k, c, shift, ctrl)
 	}
@@ -613,7 +616,7 @@ final class Datum extends Hit
 	override function draging(drag:Shape, state:int,
 		k:int, c:int, shift:Boolean, ctrl:Boolean)
 	{
-		if (yield)
+		if (yield || layer2)
 			return state > 0 || edit.dragStop()
 		if (state < 0 && k == 0)
 			dragMode = 0
@@ -746,32 +749,36 @@ final class Datum extends Hit
 		var d:Datum, r:Row, x:int, y:int, n:int, w:Wire
 		if (io && uNext != this)
 			(d = edit.saveUs[unity]) || (edit.saveUs[unity] = this)
-		str.writeByte((tv < 0 ? 1 : tv ? 3 : 0) | (d ? 16 : 0))
-		if (d)
-			d.saveDatum(str, edit.zonest)
-		else
-			edit.saveUcs(str, name)
+		if ( !d.layer2)
+		{
+			str.writeByte((tv < 0 ? 1 : tv ? 3 : 0) | (d ? 16 : 0))
+			if (d)
+				d.saveDatum(str, edit.zonest)
+			else
+				edit.saveUcs(str, name)
+		}
 		if (ox > 0)
 		{
 			for (r = rowAt(IX), x = 0, n = r.numChildren; x < n; x++)
 				if ( !(d = r.datumAt(x)).yield)
-					str.writeByte(3),
+					d.layer2 || Boolean(str.writeByte(3)),
 					d.save(str)
 			for (x = DX; x < ox; x++)
 				for (r = rowAt(x), y = 0, n = r.numChildren; y < n; y++)
 					if ( !(d = r.datumAt(y)).yield)
-						str.writeByte(x > DX && y == 0 ? 16 : 0),
+						d.layer2 || Boolean(str.writeByte(x > DX && y == 0 ? 16 : 0)),
 						d.save(str)
 			for (r = rowAt(ox), x = 0, n = r.numChildren; x < n; x++)
 				if ( !(d = r.datumAt(x)).yield)
-					str.writeByte(1),
+					d.layer2 || Boolean(str.writeByte(1)),
 					d.save(str)
-			for (x = ox + 1; x < numChildren; x++)
-				if ( !(w = wireAt(x)).yield)
-					str.writeByte(4),
-					w.save(str)
+			if ( !d.layer2)
+				for (x = ox + 1; x < numChildren; x++)
+					if ( !(w = wireAt(x)).yield)
+						str.writeByte(4),
+						w.save(str)
 		}
-		str.writeByte(255)
+		d.layer2 || Boolean(str.writeByte(255))
 	}
 
 	function saveDatum(str:IDataOutput, z:Datum, end:int = 0x200000):void
@@ -793,7 +800,7 @@ final class Datum extends Hit
 		else
 			name = edit.loadUcs(str)
 		while ((x = str.readUnsignedByte()) < 255)
-			if (x == 3)
+			if (x == 3 && zone)
 				new Datum(-1).addTo(this, IX,
 					ox < 0 ? 0 : rowAt(IX).numChildren, false).load(str)
 			else if (x == 0)
@@ -801,7 +808,7 @@ final class Datum extends Hit
 					ox <= DX ? 0 : rowAt(ox - 1).numChildren, ox <= DX).load(str)
 			else if (x == 16)
 				new Datum(0).addTo(this, ox < 0 ? DX : ox, 0, true).load(str)
-			else if (x == 1)
+			else if (x == 1 && zone)
 				new Datum(1).addTo(this, ox < 0 ? DX : ox,
 					ox < 0 ? 0 : rowAt(ox).numChildren, false).load(str)
 			else if (x == 4 && ox > 0)
@@ -947,11 +954,13 @@ final class Datum extends Hit
 	private function matchUnity(a:Datum, ad:Datum, mn_:int):Datum
 	{
 		var d:Datum = us[ad.unity], r:int // ad.tv >= 0
-		if ( !d && ( !gene || !ad.tv))
+		if ( !d)
 		{
+			if (gene && ad.tv > 0)
+				return null
 			d = new Datum(ad.io)
 			d.yield = 1
-			d.tv = ad.tv
+			ad.tv > 0 && (d.tv = 1)
 			r = ad.io < 0 ? IX : ox < 0 ? DX : ox
 			d.yR = r, d.yX = ox < 0 ? 0 : rowAt(r).numChildren
 			d.addTo(this, d.yR, d.yX, false)
@@ -960,22 +969,31 @@ final class Datum extends Hit
 			d.mn = mn_ + 1
 			d.us = new Dictionary
 			edit.yields.push(d)
+			if ((d.layer2 = layer2))
+				d.err = 'Yield forbidden here',
+				edit.error = 1
+			return d
 		}
-		else if (d && d.yield < 0)
+		if (d.yield < 0)
 		{
-			if ( !gene || !ad.tv)
-				d.yield = 1,
-				d.setTv(ad.tv),
-				d.mn = mn_ + 1
+			if (gene && ad.tv > 0)
+				return null
+			d.yield = 1
+			ad.tv > 0 && d.setTv(1)
+			d.mn = mn_ + 1
+			if ((d.layer2 = layer2) && !d.err)
+				d.err = 'Yield forbidden here',
+				d.refresh(-1), edit.error = 1
+			return d
 		}
-		else if (d && ad.tv > 0 && d.tv <= 0)
+		if (ad.tv > 0 && d.tv <= 0)
 		{
 			if ( !ad.err)
-				ad.err = "veto must be matched\n  from '"
+				ad.err = "veto must be matched\n  by '"
 					+ name + "' and '" + d.name + "' inside",
 				ad.refresh(-1), edit.error = 1
 		}
-		else if (d && !ad.tv && d.tv > 0)
+		else if ( !ad.tv && d.tv > 0)
 		{
 			if ( !d.err)
 				d.err = "output must not be veto to match\n  '"
@@ -1035,7 +1053,7 @@ final class Datum extends Hit
 				matchWire(oo, a, aoo)
 			}
 			else if (aoo.tv <= 0 && !aoo.err)
-				aoo.err = "output having base must be matched\n  from '"
+				aoo.err = "output having base must be matched\n  by '"
 					+ (this == o ? name + "'" : name + "' and '" + o.name + "' inside"),
 				aoo.refresh(-1), edit.error = 1
 		}

@@ -62,7 +62,18 @@ public final class Edit extends Widget
 		add(key = zonest = new Datum(0))
 		zonest.edit = this
 		zonest.addTo(null, 0, 0, false)
-		load_ && load(load_)
+		Layer2.init(zonest)
+		if (load_)
+			try
+			{
+				load(load_)
+				load_ = null
+			}
+			finally
+			{
+				if (load_)
+					father.removeChild(this)
+			}
 
 		moveX = mouseX, moveY = mouseY
 		event(1)

@@ -32,8 +32,8 @@ public final class Menu extends Bar
 		text(Eventy.LOAD, 'Load', 'Load file', 'F3', 3)
 		text(Eventy.SAVE, 'Save', 'Save file', 'F4', 4)
 		text(Eventy.RUN, 'Run', 'Run', 'F10', 10)
-		undo(), redo()
-		unfocus(), refocus(), nextUnity(), nextBase(), nextAgent()
+		undo(), redo(), unfocus(), refocus()
+		zone(), nextUnity(), nextBase(), nextAgent()
 		unfold(), unfolds(), fold()
 		add(unsave = new Text().selectOn(false)), unsave.leftPrev(12)
 		add(file = new Text().selectMode()), file.leftPrev(8)
@@ -41,7 +41,7 @@ public final class Menu extends Bar
 		stage.addChild(tip = new Text().selectOn(false).color(0xfff8f8, 0))
 		tip.mouseEnabled = tip.visible = false
 		var p:Point = localParent()
-		tip.y = p.y + H + 1, tx = p.x
+		tip.y = p.y + H, tx = p.x
 	}
 
 	function text(name:String, text:String, tip_:String, key:String, fun:int, left:Number = 0)
@@ -106,7 +106,7 @@ public final class Menu extends Bar
 			return keyed(0, 38, false, true)
 		var p:Shape = new Shape, g:flash.display.Graphics = p.graphics
 		Util.line(g, 2, 0x774400), g.moveTo(1, 7), g.lineTo(7, 1), g.lineTo(13, 7)
-		Item(p, unfocus, 'Previous focus', 'Ctrl Up', 8)
+		Item(p, unfocus, 'Previous focus', 'Ctrl Up')
 	}
 
 	private function refocus(e = null)
@@ -116,6 +116,16 @@ public final class Menu extends Bar
 		var p:Shape = new Shape, g:flash.display.Graphics = p.graphics
 		Util.line(g, 2, 0x774400), g.moveTo(1, 1), g.lineTo(7, 7), g.lineTo(13, 1)
 		Item(p, refocus, 'Next focus', 'Ctrl Down')
+	}
+
+	private function zone(e = null)
+	{
+		if (e)
+			return keyed(122, 90)
+		var p:Shape = new Shape, g:flash.display.Graphics = p.graphics
+		Util.line(g, 2, 0), g.drawRect(1, 1, 14, 14)
+		Util.line(g, 1, 0), g.drawRect(4.5, 4.5, 7, 7)
+		Item(p, zone, 'Zone', 'z', 8)
 	}
 
 	private function nextUnity(e = null)
@@ -135,9 +145,9 @@ public final class Menu extends Bar
 			return keyed(91, 219)
 		var p:Shape = new Shape, g:flash.display.Graphics = p.graphics
 		Util.line(g, 2, 0)
-		g.moveTo(1, 1), g.lineTo(1, 9), g.moveTo(12, 1), g.lineTo(12, 9)
-		Util.line(g, 2, 0x66dd)
-		g.moveTo(1, 15), g.lineTo(1, 10), g.lineTo(12, 10), g.lineTo(12, 15)
+		g.moveTo(1, 0), g.lineTo(1, 8), g.moveTo(12, 0), g.lineTo(12, 8)
+		Util.line(g, 1, 0x66dd)
+		g.moveTo(0.5, 15), g.lineTo(0.5, 8.5), g.lineTo(12.5, 8.5), g.lineTo(12.5, 15)
 		Item(p, nextBase, 'Next Base', '[')
 	}
 
@@ -146,8 +156,8 @@ public final class Menu extends Bar
 		if (e)
 			return keyed(93, 221)
 		var p:Shape = new Shape, g:flash.display.Graphics = p.graphics
-		Util.line(g, 2, 0x6600dd)
-		g.moveTo(1, 1), g.lineTo(1, 6), g.lineTo(12, 6), g.lineTo(12, 1)
+		Util.line(g, 1, 0x6600dd)
+		g.moveTo(0.5, 0), g.lineTo(0.5, 6.5), g.lineTo(12, 6.5), g.lineTo(12, 0)
 		Util.line(g, 2, 0)
 		g.moveTo(1, 15), g.lineTo(1, 7), g.moveTo(12, 15), g.lineTo(12, 7)
 		Item(p, nextAgent, 'Next Agent', ']')

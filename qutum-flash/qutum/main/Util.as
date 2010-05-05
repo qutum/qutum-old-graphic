@@ -28,7 +28,7 @@ public final class Util
 		var t:Timer = new Timer(delay, count)
 		var _:Function = args ? function () { on.apply(null, args) } : on
 		t.addEventListener(TimerEvent.TIMER, _)
-		now && _(null)
+		now && _()
 		t.start()
 		return t
 	}

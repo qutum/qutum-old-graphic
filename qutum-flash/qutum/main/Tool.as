@@ -35,7 +35,7 @@ public final class Tool extends Bar
 		stage.addChild(tip = new Text().selectOn(false).color(0xfff8f8, 0))
 		tip.mouseEnabled = tip.visible = false
 		var p:Point = localParent()
-		tip.x = p.x + W + 1, ty = p.y
+		tip.x = p.x + W, ty = p.y
 	}
 
 	override function background(e = null)
