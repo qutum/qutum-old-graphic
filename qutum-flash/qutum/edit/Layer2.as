@@ -31,7 +31,11 @@ final class Layer2
 	static function init(zonest:Datum):void
 	{
 		var i:Datum = input(zonest, 0, 'in')
-		output(i, 0, 'data'), output(i, 1, 'next')
+		output(i, 0, 'data')
+		var n:Datum = output(i, 1, 'next')
+		var nn:Datum = output(n, 0, 'next')
+		nn.unityTo(n)
+		n.agent(new Wire, nn, false)
 		i.refresh(3)
 
 		var math:Datum = input(zonest, 1, 'math')
@@ -40,13 +44,14 @@ final class Layer2
 		for (var b:int = 0; b <= 31; b++)
 			output(m1, b, 'b' + b)
 		var add:Datum = output(Int, 1, '+')
-		input(add, 0, 'a'), input(add, 1, 'b')
+		input(add, 0, 'a'), input(add, 1, 'b'), output(add, 0, 'sum')
 		var sub:Datum = output(Int, 2, '-')
-		input(sub, 0, 'a'), input(sub, 1, 'b')
+		input(sub, 0, 'a'), input(sub, 1, 'b'), output(sub, 0, 'difference')
 		var mul:Datum = output(Int, 3, '*')
-		input(mul, 0, 'a'), input(mul, 1, 'b')
+		input(mul, 0, 'a'), input(mul, 1, 'b'), output(mul, 0, 'product')
 		var div:Datum = output(Int, 4, '/')
 		input(div, 0, 'a'), input(div, 1, 'b')
+		output(div, 0, 'quotient'), output(div, 1, 'remainder')
 	}
 }
 }

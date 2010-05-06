@@ -317,9 +317,9 @@ final class Wire extends Hit
 	/** no unity check */
 	private function error1():String
 	{
-		if (base.zv > 0)
+		if (base.tv > 0 || base.zv)
 			return 'base must not be veto or inside'
-		if (agent.zv > 0)
+		if (agent.tv > 0 || agent.zv)
 			return 'agent must not be veto or inside'
 		var bz:Datum = base.bzer, az:Datum = agent.azer, a:Datum, z:Datum
 		if (base != zone && bz != zb)
@@ -331,7 +331,7 @@ final class Wire extends Hit
 		if ( !zone.gene)
 			if (agent.io <= 0)
 				return 'wire inside agent must have output agent'
-			else if ( !base.io)
+			else if (base != zone && !base.io)
 				return 'wire inside agent must have input or output base'
 		for (a = az.zone; a != zone; a = a.zone)
 			if (a.io < 0)

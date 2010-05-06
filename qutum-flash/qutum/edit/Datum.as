@@ -35,7 +35,7 @@ final class Datum extends Hit
 	var gene:Boolean
 	/** >0 trial <0 veto 0 neither */
 	var tv:int
-	/** self or zoner is veto */
+	/** zoner is veto */
 	var zv:Boolean
 	/** innermost non output zoner or this, as base zoner */
 	var bzer:Datum
@@ -43,6 +43,8 @@ final class Datum extends Hit
 	var azer:Datum
 	const bs:Vector.<Wire> = new Vector.<Wire>
 	const As:Vector.<Wire> = new Vector.<Wire>
+	/** cycle base */
+	var cycle:Datum
 	/** early or later in the zone, [ x-0x400000, x, x+0x400000 ] */
 	var el:int, reEl:int
 	var layer2:Boolean
@@ -52,7 +54,7 @@ final class Datum extends Hit
 	var yield:int, yR:int, yX:int, unyR:int, unyX:int
 	var us:Dictionary
 	const bbs:Vector.<Wiring> = new Vector.<Wiring>
-	/** the maximum deep of outermost bases */
+	/** the maximum deep of all outermost bases */
 	var base0:int
 	/** match iteration */
 	var mn:int
@@ -120,7 +122,6 @@ final class Datum extends Hit
 			edit = z.edit
 			zone = z
 			deep = z.deep + 1
-			zv = zone.zv
 			if (io < 0)
 				bzer = this,
 				azer = zone.io < 0 ? zone.azer : zone,
@@ -853,7 +854,8 @@ final class Datum extends Hit
 	{
 		if (gene != (gene = io >= 0 && ( !zone || zone.gene && bs.length == 0)))
 			refresh(-1)
-		zv = tv > 0 || zone && zone.zv
+		zv = zone && (zone.tv > 0 || zone.zv)
+		cycle = null
 		var d:Datum, w:Wire
 		if (ox > 0)
 		{
@@ -877,6 +879,15 @@ final class Datum extends Hit
 		for (x = bs.length - 1; x >= 0; x--)
 			if ( !(bw = bs[x]).err && !bw.yield)
 			{
+				if (bw.base == bw.zone)
+					if (cycle)
+					{
+						bw.err = 'only one cycle allowed for each agent'
+						edit.refresh = bw.refresh = true, edit.error = 1
+						continue
+					}
+					else
+						cycle = bw.base
 				w = new Wiring
 				bbs.push(w)
 				w.b = bw.base
@@ -954,10 +965,26 @@ final class Datum extends Hit
 	private function matchUnity(a:Datum, ad:Datum, mn_:int):Datum
 	{
 		var d:Datum = us[ad.unity], r:int // ad.tv >= 0
-		if ( !d)
+		if (d && d.yield >= 0)
 		{
-			if (gene && ad.tv > 0)
-				return null
+			if (d.tv <= 0 && ad.tv > 0 && !ad.err)
+				ad.err = "veto must be matched\n  by '"
+					+ name + "' and '" + d.name + "' inside",
+				ad.refresh(-1), edit.error = 1
+			else if (d.tv > 0 && !ad.tv && !d.err)
+				d.err = "output must not be veto to match\n  '"
+					+ a.name + "' and '" + ad.name + "' inside",
+				d.refresh(-1), edit.error = 1
+			return d
+		}		
+		if (ad.tv > 0 && (gene || layer2))
+			return null
+		if (d) // d.yield < 0
+			d.yield = 1,
+			ad.tv > 0 && d.setTv(1),
+			d.mn = mn_ + 1
+		else
+		{
 			d = new Datum(ad.io)
 			d.yield = 1
 			ad.tv > 0 && (d.tv = 1)
@@ -969,37 +996,10 @@ final class Datum extends Hit
 			d.mn = mn_ + 1
 			d.us = new Dictionary
 			edit.yields.push(d)
-			if ((d.layer2 = layer2))
-				d.err = 'Yield forbidden here',
-				edit.error = 1
-			return d
 		}
-		if (d.yield < 0)
-		{
-			if (gene && ad.tv > 0)
-				return null
-			d.yield = 1
-			ad.tv > 0 && d.setTv(1)
-			d.mn = mn_ + 1
-			if ((d.layer2 = layer2) && !d.err)
-				d.err = 'Yield forbidden here',
-				d.refresh(-1), edit.error = 1
-			return d
-		}
-		if (ad.tv > 0 && d.tv <= 0)
-		{
-			if ( !ad.err)
-				ad.err = "veto must be matched\n  by '"
-					+ name + "' and '" + d.name + "' inside",
-				ad.refresh(-1), edit.error = 1
-		}
-		else if ( !ad.tv && d.tv > 0)
-		{
-			if ( !d.err)
-				d.err = "output must not be veto to match\n  '"
-					+ a.name + "' and '" + ad.name + "' inside",
-				d.refresh(-1), edit.error = 1
-		}
+		if ((d.layer2 = layer2) && !d.err)
+			d.err = 'Yield forbidden here',
+			d.refresh(-1), edit.error = 1
 		return d
 	}
 
@@ -1088,18 +1088,21 @@ final class Datum extends Hit
 	private function error4():String
 	{
 		mustRun = tv == 0
-		if (zv && zone && zone.zv)
+		if (zv)
 			return io < 0 ? 'input must not be inside veto' :
 				io ? 'output must not be inside veto' : 'datum must not be inside veto'
 		if (zone && !zone.gene)
 			if ( !io)
 				return 'agent can only have input and output inside'
 			else if ( !name && !tv)
-				return 'non trial nor veto inside agent must have name'
+				return 'non veto inside agent must have name'
 		if (tv && gene)
 			return 'gene must not be trial or veto'
-		if (tv < 0 && !azer.gene && !azer.zone.gene)
-			return "agent zoner or zoner's zone of trial must be gene"
+		if (tv < 0)
+			if (cycle)
+				return 'cycle agent must not be trial'
+			else if ( !azer.gene && !azer.zone.gene)
+				return "agent zoner or zoner's zone of trial must be gene"
 		if (tv > 0)
 			if (io <= 0)
 				return 'veto must be output'
