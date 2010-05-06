@@ -744,14 +744,16 @@ final class Datum extends Hit
 		g.moveTo(8.5, -8.5), g.lineTo(-7.5, 7.5)
 	}
 
-	function save(str:IDataOutput):void
+	function save(str:IDataOutput, byte:int):void
 	{
 		els()
 		var d:Datum, r:Row, x:int, y:int, n:int, w:Wire
 		if (io && uNext != this)
 			(d = edit.saveUs[unity]) || (edit.saveUs[unity] = this)
-		if ( !d.layer2)
+		if ( !layer2)
 		{
+			if (zone)
+				str.writeByte(byte)
 			str.writeByte((tv < 0 ? 1 : tv ? 3 : 0) | (d ? 16 : 0))
 			if (d)
 				d.saveDatum(str, edit.zonest)
@@ -762,24 +764,22 @@ final class Datum extends Hit
 		{
 			for (r = rowAt(IX), x = 0, n = r.numChildren; x < n; x++)
 				if ( !(d = r.datumAt(x)).yield)
-					d.layer2 || Boolean(str.writeByte(3)),
-					d.save(str)
+					d.save(str, 3)
 			for (x = DX; x < ox; x++)
 				for (r = rowAt(x), y = 0, n = r.numChildren; y < n; y++)
 					if ( !(d = r.datumAt(y)).yield)
-						d.layer2 || Boolean(str.writeByte(x > DX && y == 0 ? 16 : 0)),
-						d.save(str)
+						d.save(str, x > DX && y == 0 ? 16 : 0)
 			for (r = rowAt(ox), x = 0, n = r.numChildren; x < n; x++)
 				if ( !(d = r.datumAt(x)).yield)
-					d.layer2 || Boolean(str.writeByte(1)),
-					d.save(str)
-			if ( !d.layer2)
+					d.save(str, 1)
+			if ( !layer2)
 				for (x = ox + 1; x < numChildren; x++)
 					if ( !(w = wireAt(x)).yield)
 						str.writeByte(4),
 						w.save(str)
 		}
-		d.layer2 || Boolean(str.writeByte(255))
+		if ( !layer2)
+			str.writeByte(255)
 	}
 
 	function saveDatum(str:IDataOutput, z:Datum, end:int = 0x200000):void
@@ -809,7 +809,7 @@ final class Datum extends Hit
 					ox <= DX ? 0 : rowAt(ox - 1).numChildren, ox <= DX).load(str)
 			else if (x == 16)
 				new Datum(0).addTo(this, ox < 0 ? DX : ox, 0, true).load(str)
-			else if (x == 1 && zone)
+			else if (x == 1)
 				new Datum(1).addTo(this, ox < 0 ? DX : ox,
 					ox < 0 ? 0 : rowAt(ox).numChildren, false).load(str)
 			else if (x == 4 && ox > 0)
@@ -981,7 +981,7 @@ final class Datum extends Hit
 			return null
 		if (d) // d.yield < 0
 			d.yield = 1,
-			ad.tv > 0 && d.setTv(1),
+			ad.tv > 0 && Boolean(d.setTv(1)),
 			d.mn = mn_ + 1
 		else
 		{
@@ -1047,9 +1047,14 @@ final class Datum extends Hit
 						edit.refresh = w.refresh = true, edit.error = 1
 				}
 				if ( !n && !oo.err)
-					oo.err = "output must have base to match\n  '"
-						+ a.name + "' and '" + aoo.name + "' inside",
-					oo.refresh(-1), edit.error = 1
+					for each (aw in aoo.bbs)
+						if (aw.b != oo)
+						{
+							oo.err = "output must have base to match\n  '"
+								+ a.name + "' and '" + aoo.name + "' inside"
+							oo.refresh(-1), edit.error = 1
+							break
+						}
 				matchWire(oo, a, aoo)
 			}
 			else if (aoo.tv <= 0 && !aoo.err)
@@ -1117,7 +1122,7 @@ final class Datum extends Hit
 				return 'input inside input having no base must not have base'
 			else if ( !bs.length && zone.zone && zone.gene)
 				return "gene's input must have base"
-		var r:Row, w:Wire, x:int
+		var r:Row, w:Wire, x:int, n:int
 		Must: if (mustRun)
 		{
 			mustRun = false
@@ -1126,10 +1131,12 @@ final class Datum extends Hit
 					if ( !r.datumAt(x).mustRun)
 						break Must
 			mustRun = true
+			n = 0
 			for each (w in bs)
-				if ( !w.err && (w.base == w.zone || w.base.bzer.io || w.base.bzer.mustRun))
-					break Must
-			mustRun = bs.length == 0
+				if ( !w.err)
+					if (n++, w.base == w.zone || w.base.bzer.io || w.base.bzer.mustRun)
+						break Must
+			mustRun = n == 0
 		}
 		if (io > 0 && tv <= 0 && !mustRun)
 			return mustRun = true, 'output must run : not be trial,\

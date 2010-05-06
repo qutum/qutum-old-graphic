@@ -325,7 +325,7 @@ public final class Edit extends Widget
 		str.writeByte(81) // Q
 		str.writeByte(10) // 10
 		saveUs = new Dictionary
-		zonest.save(str)
+		zonest.save(str, 0)
 		saveUs = null
 	}
 
