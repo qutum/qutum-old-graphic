@@ -929,9 +929,9 @@ final class Datum extends Hit
 			return false
 		var _:Boolean = false, r:Row, x:int, n:int, d:Datum, ad:Datum, w:Wire
 		for (r = a.rowAt(IX), x = 0, n = r.numChildren; x < n; x++)
-			if ((ad = r.datumAt(x)).tv <= 0 && ad.name && ad.yield >= 0)
-				d = matchUnity(a, ad, mn_),
-				(ad.match(d, mn_) || d.mn > mn_) && (_ = true)
+			if ((ad = r.datumAt(x)).name && ad.yield >= 0)
+				if ((d = matchUnity(a, ad, mn_)) && !d.err)
+					(ad.match(d, mn_) || d.mn > mn_) && (_ = true)
 		for (r = a.rowAt(a.ox), x = 0, n = r.numChildren; x < n; x++)
 			if ((ad = r.datumAt(x)).tv >= 0 && ad.name && ad.yield >= 0)
 			{
@@ -954,7 +954,6 @@ final class Datum extends Hit
 		return _
 	}
 
-	/** @param ad tv >= 0 */
 	private function matchUnity(a:Datum, ad:Datum, mn_:int):Datum
 	{
 		var d:Datum = us[ad.unity], z:Datum, err:String
@@ -964,8 +963,9 @@ final class Datum extends Hit
 				ad.err = "veto must be matched\n  by '"
 					+ name + "' and '" + d.name + "' inside",
 				ad.refresh(-1), edit.error = 1
-			else if (d.tv > 0 && !ad.tv && !d.err)
-				d.err = "output must not be veto to match\n  '"
+			else if (d.tv > 0 && ad.tv <= 0 && !d.err)
+				d.err = (d.io < 0 ? "input must not be veto to match\n  '"
+					: "output must not be veto to match\n  '")
 					+ a.name + "' and '" + ad.name + "' inside",
 				d.refresh(-1), edit.error = 1
 			return d
@@ -1097,7 +1097,7 @@ final class Datum extends Hit
 
 	private function error4():String
 	{
-		mustRun = tv == 0
+		mustRun = tv >= 0
 		if (zv)
 			return io < 0 ? 'input must not be inside veto' :
 				io ? 'output must not be inside veto' : 'datum must not be inside veto'
@@ -1105,7 +1105,7 @@ final class Datum extends Hit
 			if ( !io)
 				return 'agent can only have input and output inside'
 			else if ( !name && !tv)
-				return 'non trial nor veto inside agent must have name'
+				return 'non trial inside agent must have name'
 		if (tv && gene)
 			return 'gene must not be trial or veto'
 		if (tv < 0)
@@ -1114,8 +1114,8 @@ final class Datum extends Hit
 			else if ( !azer.gene && !azer.zone.gene)
 				return "agent zoner or zoner's zone of trial must be gene"
 		if (tv > 0)
-			if (io <= 0)
-				return 'veto must be output'
+			if ( !io)
+				return 'veto must be input or output'
 			else if ( !name)
 				return 'veto must have name'
 			else if (zone && zone.gene)
