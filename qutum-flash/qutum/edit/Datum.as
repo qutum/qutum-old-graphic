@@ -201,7 +201,7 @@ final class Datum extends Hit
 			if (v)
 				d.setName(v)
 			else
-				return // empty unity name
+				throw 'empty unity name'
 		setName(v)
 	}
 
@@ -982,7 +982,7 @@ final class Datum extends Hit
 			}
 		if (d) // d.yield < 0
 			d.yield = 1,
-			d.setTv(ad.tv),
+			d.setTv(ad.tv > 0 ? 1 : 0),
 			d.mn = mn_ + 1
 		else
 		{
@@ -1104,7 +1104,7 @@ final class Datum extends Hit
 			if ( !io)
 				return 'agent can only have input and output inside'
 			else if ( !name && !tv)
-				return 'non veto inside agent must have name'
+				return 'non trial nor veto inside agent must have name'
 		if (tv && gene)
 			return 'gene must not be trial or veto'
 		if (tv < 0)
