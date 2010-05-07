@@ -258,11 +258,11 @@ final class Command
 			if (redo)
 				z.rowAt(kr).removeChildAt(kx), z.rowAt(r).addChildAt(key, x),
 				Boolean(empty && (z.ox--, z.removeChildAt(kr))),
-				z.reEl = 1, z.refresh(-1), edit.keyin(key, r, x)
+				z.refresh(-1), edit.keyin(key, r, x)
 			else
 				Boolean(empty && (z.ox++, z.addChildAt(new Row, kr))),
 				z.rowAt(r).removeChildAt(x), z.rowAt(kr).addChildAt(key, kx),
-				z.reEl = 1, z.refresh(-1), edit.keyin(key, kr, kx)
+				z.refresh(-1), edit.keyin(key, kr, kx)
 		})
 	}
 
@@ -278,11 +278,11 @@ final class Command
 				empty ? z.addChildAt(z.removeChildAt(kr), r)
 					: (z.ox++,
 					z.rowAt(kr).removeChildAt(kx), z.addChildAt(new Row().add(key), r)),
-				z.reEl = 1, z.refresh(-1), edit.keyin(key, r, 0)
+				z.refresh(-1), edit.keyin(key, r, 0)
 			else
 				empty ? z.addChildAt(z.removeChildAt(r), kr)
 					: (z.ox--, z.removeChildAt(r), z.rowAt(kr).addChildAt(key, kx)),
-				z.reEl = 1, z.refresh(-1), edit.keyin(key, kr, kx)
+				z.refresh(-1), edit.keyin(key, kr, kx)
 		})
 	}
 
@@ -326,13 +326,11 @@ final class Command
 			if (redo)
 				for (z = key; (zz = z).yield; )
 					z.yield = 0,
-					z.refresh(-1),
-					(z = z.zone).reEl = 1
+					z.refresh(-1)
 			else
 				for (z = key; z != zz; )
 					z.yield = 1,
-					z.refresh(-1),
-					(z = z.zone).reEl = 1
+					z.refresh(-1)
 			edit.keyin(key, kr, kx)
 		})
 	}
@@ -426,24 +424,20 @@ final class Command
 				key.yield = 0
 				for (bz = key.base; (bzz = bz).yield; )
 					bz.yield = 0,
-					bz.refresh(-1),
-					(bz = bz.zone).reEl = 1
+					bz.refresh(-1)
 				for (az = key.agent; (azz = az).yield; )
 					az.yield = 0,
-					az.refresh(-1),
-					(az = az.zone).reEl = 1
+					az.refresh(-1)
 			}
 			else
 			{
 				key.yield = 1
 				for (bz = key.base; bz != bzz; )
 					bz.yield = 1,
-					bz.refresh(-1),
-					(bz = bz.zone).reEl = 1
+					bz.refresh(-1)
 				for (az = key.agent; az != azz; )
 					az.yield = 1,
-					az.refresh(-1),
-					(az = az.zone).reEl = 1
+					az.refresh(-1)
 			}
 			edit.keyin(key)
 			edit.refresh = key.refresh = true

@@ -21,6 +21,7 @@ import flash.utils.IDataOutput;
 import qutum.main.Eventy;
 import qutum.main.Info;
 import qutum.main.Text;
+import qutum.main.Util;
 import qutum.main.Widget;
 
 
@@ -360,23 +361,30 @@ public final class Edit extends Widget
 		return String.fromCharCode.apply(null, s)
 	}
 
-//	var compiling:int
 	function compile():void
 	{
 		var t:Number = new Date().time
-		fatal = true
+//		fatal = true
 		trace(t % 999 + '\tcompile')
 		yields = []
 		zonest.compile1()
 		zonest.compile2()
-		while (zonest.compile3(zonest.mn))
-//		while (compiling++ < 100 ? zonest.compile3(zonest.mn) : trace('>100'))
-			;
-		yields.push(null)
-		zonest.compile4()
-		trace('\tdone ', new Date().time - t, 'ms')
-		keyRx(-1, -1)
-		fatal = false
+		compiling()
+//		while (zonest.compile3(zonest.mn))
+	}
+
+	function compiling(e = null):void
+	{
+		if (zonest.mn < 20 ? zonest.compile3(zonest.mn) : trace('>100'))
+			Util.timer(compiling, 1000, false, 1)
+		else
+		{
+			yields.push(null)
+			zonest.compile4()
+			trace('\tdone ')//, new Date().time - t, 'ms')
+			keyRx(-1, -1)
+			fatal = false
+		}
 	}
 }
 }

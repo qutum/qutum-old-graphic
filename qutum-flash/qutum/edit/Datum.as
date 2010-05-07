@@ -46,7 +46,7 @@ final class Datum extends Hit
 	/** cycle base */
 	var cycle:Datum
 	/** early or later in the zone, [ x-0x400000, x, x+0x400000 ] */
-	var el:int, reEl:int
+	var el:int
 	var layer2:Boolean
 
 	/** must run or may run, as agent zoner */
@@ -125,16 +125,17 @@ final class Datum extends Hit
 			if (io < 0)
 				bzer = this,
 				azer = zone.io < 0 ? zone.azer : zone,
-				zone.reEl || (zone.reEl = 1) // also for loading
+				el = x - 0x400000 // also for loading
 			else if (io > 0)
 				gene = zone.gene,
 				bzer = zone.io > 0 ? zone.bzer : zone,
 				azer = this,
-				zone.reEl || (zone.reEl = 1) // also for loading
+				el = x + 0x400000 // also for loading
 			else
 				gene = zone.gene,
 				bzer = azer = this,
-				zone.reEl = (el = r - DX | x ? zone.reEl : 0) + 1 // for loading
+				el = r <= DX ? x : // for loading
+					z.rowAt(r - 1).datumAt(z.rowAt(r - 1).numChildren - 1).el + 1
 		}
 		addTo0(deep)
 		refresh(layer2 ? zone.layer2 ? 1 : 2 : 3)
@@ -312,21 +313,6 @@ final class Datum extends Hit
 		namey.background = u && d != this
 		for (; d != this; d = d.uNext)
 			d.namey.background = u
-	}
-
-	function els():void
-	{
-		if (ox < 0 || !reEl)
-			return
-		var x:int, el:int, r:Row, y:int, n:int, d:Datum
-		for (r = rowAt(IX), x = 0, n = r.numChildren, el = -0x400000; x < n; x++)
-			d = r.datumAt(x), d.yield || (d.el = el++)
-		for (r = rowAt(ox), x = 0, n = r.numChildren, el = 0x400000; x < n; x++)
-			d = r.datumAt(x), d.yield || (d.el = el++)
-		for (x = DX, el = 0; x < ox; x++)
-			for (r = rowAt(x), y = 0, n = r.numChildren; y < n; y++)
-				d = r.datumAt(y), d.yield || (d.el = el++)
-		reEl = 0
 	}
 
 	/** 0: no refresh, <0: refresh, 1: refresh to hide, 2: refresh to only this
@@ -746,8 +732,7 @@ final class Datum extends Hit
 
 	function save(str:IDataOutput, byte:int):void
 	{
-		els()
-		var d:Datum, r:Row, x:int, y:int, n:int, w:Wire
+		var d:Datum, r:Row, x:int, y:int, n:int, el:int, w:Wire
 		if (io && uNext != this)
 			(d = edit.saveUs[unity]) || (edit.saveUs[unity] = this)
 		if ( !layer2)
@@ -762,16 +747,16 @@ final class Datum extends Hit
 		}
 		if (ox > 0)
 		{
-			for (r = rowAt(IX), x = 0, n = r.numChildren; x < n; x++)
+			for (r = rowAt(IX), x = 0, n = r.numChildren, el = -0x400000; x < n; x++)
 				if ( !(d = r.datumAt(x)).yield)
-					d.save(str, 3)
-			for (x = DX; x < ox; x++)
+					d.el = el++, d.save(str, 3)
+			for (x = DX, el = 0; x < ox; x++)
 				for (r = rowAt(x), y = 0, n = r.numChildren; y < n; y++)
 					if ( !(d = r.datumAt(y)).yield)
-						d.save(str, x > DX && y == 0 ? 16 : 0)
-			for (r = rowAt(ox), x = 0, n = r.numChildren; x < n; x++)
+						d.el = el++, d.save(str, x > DX && y == 0 ? 16 : 0)
+			for (r = rowAt(ox), x = 0, n = r.numChildren, el = 0x400000; x < n; x++)
 				if ( !(d = r.datumAt(x)).yield)
-					d.save(str, 1)
+					d.el = el++, d.save(str, 1)
 			if ( !layer2)
 				for (x = ox + 1; x < numChildren; x++)
 					if ( !(w = wireAt(x)).yield)
@@ -816,7 +801,6 @@ final class Datum extends Hit
 				new Wire().load(str, this)
 			else
 				throw 'invalid file format'
-		els()
 	}
 
 	function loadDatum(str:IDataInput):Datum
@@ -856,16 +840,22 @@ final class Datum extends Hit
 			refresh(-1)
 		zv = zone && (zone.tv > 0 || zone.zv)
 		cycle = null
-		var d:Datum, w:Wire
+		var d:Datum, r:Row, x:int, y:int, n:int, el:int, w:Wire
 		if (ox > 0)
 		{
-			for (var x:int = IX; x <= ox; x++)
-				for (var r:Row = rowAt(x), y:int = r.numChildren - 1; y >= 0; y--)
-					(d = r.datumAt(y)).yield && (d.yield = -1),
+			for (r = rowAt(IX), x = 0, n = r.numChildren, el = -0x400000; x < n; x++)
+				Boolean((d = r.datumAt(x)).yield ? d.yield = -1 : d.el = el++),
+				d.compile1()
+			for (r = rowAt(ox), x = 0, n = r.numChildren, el = 0x400000; x < n; x++)
+				Boolean((d = r.datumAt(x)).yield ? d.yield = -1 : d.el = el++),
+				d.compile1()
+			for (x = DX, el = 0; x < ox; x++)
+				for (r = rowAt(x), y = 0, n = r.numChildren; y < n; y++)
+					Boolean((d = r.datumAt(y)).yield ? d.yield = -1 : d.el = el++),
 					d.compile1()
-			for (var n:int = numChildren; x < n; x++)
-					(w = wireAt(x)).yield && (w.yield = -1),
-					w.compile1()
+			for (x = numChildren - 1; x > ox; x--)
+				(w = wireAt(x)).yield && (w.yield = -1),
+				w.compile1()
 		}
 		bbs.length = 0
 		err && (err = '', refresh(-1))
@@ -992,7 +982,7 @@ final class Datum extends Hit
 			}
 		if (d) // d.yield < 0
 			d.yield = 1,
-			ad.tv > 0 && Boolean(d.setTv(1)),
+			d.setTv(ad.tv),
 			d.mn = mn_ + 1
 		else
 		{

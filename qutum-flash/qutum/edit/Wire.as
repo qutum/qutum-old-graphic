@@ -327,7 +327,7 @@ final class Wire extends Hit
 			return "base or base zoner's zone must be wire zone"
 		if (az.deep <= zone.deep)
 			return 'agent zoner must be inside wire zone'
-		if (base != zone && (zone.els(), zb.el >= za.el))
+		if (base != zone && zb.el >= za.el)
 			return 'must wire early to later'
 		if ( !zone.gene)
 			if (agent.io <= 0)
