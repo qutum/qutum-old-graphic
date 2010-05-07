@@ -134,8 +134,9 @@ final class Datum extends Hit
 			else
 				gene = zone.gene,
 				bzer = azer = this,
-				el = r <= DX ? x : // for loading
-					z.rowAt(r - 1).datumAt(z.rowAt(r - 1).numChildren - 1).el + 1
+				el = r <= DX ? x // for loading
+					: x ? z.rowAt(r).datumAt(x - 1).el + 1
+					: z.rowAt(r - 1).datumAt(z.rowAt(r - 1).numChildren - 1).el + 1
 		}
 		addTo0(deep)
 		refresh(layer2 ? zone.layer2 ? 1 : 2 : 3)
@@ -818,7 +819,7 @@ final class Datum extends Hit
 		{
 			for (var low:int = DX, high:int = ox - 1; low <= high; )
 			{
-				var mid:int = (low + high) >> 1
+				var mid:int = low + high >>> 1
 				d = (r = rowAt(mid)).datumAt(0)
 				if (x < d.el)
 					high = mid - 1
