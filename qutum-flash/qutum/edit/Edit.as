@@ -376,7 +376,7 @@ public final class Edit extends Widget
 //	function compiling(t:Number):void
 //	{
 //		if (zonest.mn < 20 ? zonest.compile3(zonest.mn) : trace('>100'))
-//			Util.timer(compiling, 1000, false, 1, [ t ])
+//			Util.timer(compiling, 0, false, 1, [ t ])
 //		else
 		{
 			yields.push(null)

@@ -866,19 +866,19 @@ final class Datum extends Hit
 	{
 		us = new Dictionary
 		var r:Row, bw:Wire, w:Wiring, wb:Wiring, wbb:Wiring, ww:Wiring, x:int, y:int, n:int
+		for each (bw in bs)
+			if ( !bw.err && !bw.yield && bw.base == bw.zone)
+				cycle = bw.base
 		base0 = bs.length ? 1 : deep
 		for (x = bs.length - 1; x >= 0; x--)
 			if ( !(bw = bs[x]).err && !bw.yield)
 			{
-				if (bw.base == bw.zone)
-					if (cycle)
-					{
-						bw.err = 'only one cycle allowed for each agent'
-						edit.refresh = bw.refresh = true, edit.error = 1
-						continue
-					}
-					else
-						cycle = bw.base
+				if (cycle && bw.base != cycle)
+				{
+					bw.err = 'only one base allowed for cycle agent'
+					edit.refresh = bw.refresh = true, edit.error = 1
+					continue
+				}
 				w = new Wiring
 				bbs.push(w)
 				w.b = bw.base
@@ -940,7 +940,7 @@ final class Datum extends Hit
 					continue
 				if ( !ad.bs.length)
 					d.match(ad, mn_) && (_ = true)
-				else
+				else if ( !ad.cycle)
 					for each (w in ad.bs)
 						if ( !w.err && w.base.bzer.io < 0 && !w.base.bzer.bs.length)
 						{

@@ -326,11 +326,11 @@ final class Command
 		go(function (redo)
 		{
 			if (redo)
-				for (z = key; (zz = z).yield; )
+				for (z = key; (zz = z).yield; z = z.zone)
 					z.yield = 0,
 					z.refresh(-1)
 			else
-				for (z = key; z != zz; )
+				for (z = key; z != zz; z = z.zone)
 					z.yield = 1,
 					z.refresh(-1)
 			edit.keyin(key, kr, kx)
@@ -424,20 +424,20 @@ final class Command
 			if (redo)
 			{
 				key.yield = 0
-				for (bz = key.base; (bzz = bz).yield; )
+				for (bz = key.base; (bzz = bz).yield; bz = bz.zone)
 					bz.yield = 0,
 					bz.refresh(-1)
-				for (az = key.agent; (azz = az).yield; )
+				for (az = key.agent; (azz = az).yield; az = az.zone)
 					az.yield = 0,
 					az.refresh(-1)
 			}
 			else
 			{
 				key.yield = 1
-				for (bz = key.base; bz != bzz; )
+				for (bz = key.base; bz != bzz; bz = bz.zone)
 					bz.yield = 1,
 					bz.refresh(-1)
-				for (az = key.agent; az != azz; )
+				for (az = key.agent; az != azz; az = az.zone)
 					az.yield = 1,
 					az.refresh(-1)
 			}
