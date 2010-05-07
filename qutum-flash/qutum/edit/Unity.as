@@ -11,5 +11,6 @@ package qutum.edit
 final class Unity
 {
 	var d:Datum
+	var layer2:Boolean
 }
 }

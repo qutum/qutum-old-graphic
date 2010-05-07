@@ -92,14 +92,16 @@ final class Command
 	function name(v:String)
 	{
 		var key:Datum = Datum(edit.key), kr:int = edit.keyR, kx:int = edit.keyX,
-			name:String = key.name
-		if (name != v)
+			ku:Datum = key.uNext, u:Boolean = key != ku,
+			n:String = key.name, un:String = ku.name
+		if (n != v && ( !v || !key.unity || !key.unity.layer2))
 			go(function (redo)
 			{
 				if (redo)
+					u && !v && Boolean(key.unityTo(key)),
 					key.name = v
 				else
-					key.name = name
+					u && !v ? key.unityTo(ku) : key.name = n
 				edit.keyin(key, kr, kx)
 			})
 	}

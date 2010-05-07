@@ -10,48 +10,57 @@ package qutum.edit
 
 final class Layer2
 {
-	private static function input(z:Datum, x:int, name:String):Datum
+	private static function input(z:Datum, nameOrU:Object):Datum
 	{
 		var d:Datum = new Datum(-1)
 		d.layer2 = true
-		d.addTo(z, Datum.IX, x, false)
-		d.name = name
+		d.addTo(z, Datum.IX, z.ox < 0 ? 0 : z.rowAt(Datum.IX).numChildren, false)
+		nameOrU is String ? d.name = String(nameOrU) : d.unityTo(Datum(nameOrU)).layer2 = true
 		return d
 	}
 
-	private static function output(z:Datum, x:int, name:String):Datum
+	private static function output(z:Datum, nameOrU:Object):Datum
 	{
 		var d:Datum = new Datum(1)
 		d.layer2 = true
-		d.addTo(z, Datum.DX, x, false)
-		d.name = name
+		d.addTo(z, Datum.DX, z.ox < 0 ? 0 : z.rowAt(Datum.DX).numChildren, false)
+		nameOrU is String ? d.name = String(nameOrU) : d.unityTo(Datum(nameOrU)).layer2 = true
 		return d
 	}
 
 	static function init(zonest:Datum):void
 	{
-		var i:Datum = input(zonest, 0, 'in')
-		output(i, 0, 'data')
-		var n:Datum = output(i, 1, 'next')
-		var nn:Datum = output(n, 0, 'next')
-		nn.unityTo(n)
-		n.agent(new Wire, nn, false)
-		i.refresh(3)
+		var In:Datum = input(zonest, 'in')
+		output(In, 'data')
+		var next:Datum = output(In, 'next')
+		var next2:Datum = output(next, next)
+		next.agent(new Wire, next2, false)
+		In.refresh(3)
 
-		var math:Datum = input(zonest, 1, 'math')
-		var Int:Datum = output(math, 0, 'int')
-		var m1:Datum = output(Int, 0, '-1')
-		for (var b:int = 0; b <= 31; b++)
-			output(m1, b, 'b' + b)
-		var add:Datum = output(Int, 1, '+')
-		input(add, 0, 'a'), input(add, 1, 'b'), output(add, 0, 'sum')
-		var sub:Datum = output(Int, 2, '-')
-		input(sub, 0, 'a'), input(sub, 1, 'b'), output(sub, 0, 'difference')
-		var mul:Datum = output(Int, 3, '*')
-		input(mul, 0, 'a'), input(mul, 1, 'b'), output(mul, 0, 'product')
-		var div:Datum = output(Int, 4, '/')
-		input(div, 0, 'a'), input(div, 1, 'b')
-		output(div, 0, 'quotient'), output(div, 1, 'remainder')
+		var math:Datum = input(zonest, 'math')
+		var Int:Datum = output(math, 'int')
+		var m1:Datum = output(Int, '-1')
+		for (var bit:int = 0; bit <= 31; bit++)
+			output(m1, 'b' + bit)
+
+		var add:Datum = output(Int, '+')
+		var a:Datum = input(add, 'a'), b:Datum = input(add, 'b'), v:Datum = output(add, 'v')
+		var sub:Datum = output(Int, '-')
+		input(sub, a), input(sub, b), output(sub, v)
+		var mul:Datum = output(Int, '*')
+		input(mul, a), input(mul, b), output(mul, v)
+		var div:Datum = output(Int, '/')
+		input(div, a), input(div, b), output(div, v), output(div, 'remainder')
+		var e:Datum = output(Int, '=')
+		input(e, a), input(e, b), output(e, v)
+		var g:Datum = output(Int, '>')
+		input(g, a), input(g, b), output(g, v)
+		var l:Datum = output(Int, '<')
+		input(l, a), input(l, b), output(l, v)
+		var ge:Datum = output(Int, '>=')
+		input(ge, a), input(ge, b), output(ge, v)
+		var le:Datum = output(Int, '<=')
+		input(le, a), input(le, b), output(le, v)
 	}
 }
 }
