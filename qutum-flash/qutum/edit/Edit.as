@@ -360,6 +360,7 @@ public final class Edit extends Widget
 		return String.fromCharCode.apply(null, s)
 	}
 
+//	var compiling:int
 	function compile():void
 	{
 		var t:Number = new Date().time
@@ -369,6 +370,7 @@ public final class Edit extends Widget
 		zonest.compile1()
 		zonest.compile2()
 		while (zonest.compile3(zonest.mn))
+//		while (compiling++ < 100 ? zonest.compile3(zonest.mn) : trace('>100'))
 			;
 		yields.push(null)
 		zonest.compile4()

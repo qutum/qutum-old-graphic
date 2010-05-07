@@ -221,6 +221,8 @@ final class Wire extends Hit
 				if (base.As[x].visible)
 					return edit.keyin(base.As[x])
 
+		if (zone.layer2)
+			return
 		if (yield)
 			return k == 89 && !ctrl && edit.com.nonyieldWire() // y
 
@@ -233,7 +235,7 @@ final class Wire extends Hit
 	override function draging(drag:Shape, state:int,
 		k:int, c:int, shift:Boolean, ctrl:Boolean)
 	{
-		if (yield)
+		if (yield || zone.layer2)
 			return state > 0 || edit.dragStop()
 		if (state < 0 && k == 0 || k == 65) // a
 			dragMode = 0
@@ -314,7 +316,6 @@ final class Wire extends Hit
 		err && (edit.error = 1)
 	}
 
-	/** no unity check */
 	private function error1():String
 	{
 		if (base.tv > 0 || base.zv)

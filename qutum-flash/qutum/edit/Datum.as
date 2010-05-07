@@ -891,22 +891,23 @@ final class Datum extends Hit
 				w = new Wiring
 				bbs.push(w)
 				w.b = bw.base
-				w.deep0 = bw.zone.deep, w.deep9 = bw.agent.azer.deep - 1
+				w.deep0 = bw.zone.deep, w.deep9 = azer.deep - 1
 				base0 = Math.max(base0, Math.min(w.b.base0,
-					bw.zone == w.b || bw.zb.io < 0 ? bw.zone.deep : bw.zb.deep))
-				for each (wb in w.b.bbs)
-					if (wb.deep0 <= w.deep0)
-					B: {
-						for each (wbb in bbs)
-							if (wbb.b == wb.b)
-								break B // continue
-						ww = new Wiring
-						bbs.push(ww)
-						ww.b = wb.b
-						ww.deep0 = wb.deep0
-						ww.deep9 = wb.deep9 < w.deep0 ? wb.deep9 : w.deep9
-						ww.from = bw
-					}
+					bw.base == bw.zone || bw.zb.io < 0 ? bw.zone.deep : bw.zb.deep))
+				if (bw.base != bw.zone)
+					for each (wb in w.b.bbs)
+						if (wb.deep0 <= w.deep0)
+						B: {
+							for each (wbb in bbs)
+								if (wbb.b == wb.b)
+									break B // continue
+							ww = new Wiring
+							bbs.push(ww)
+							ww.b = wb.b
+							ww.deep0 = wb.deep0
+							ww.deep9 = wb.deep9 < w.deep0 ? wb.deep9 : w.deep9
+							ww.from = bw
+						}
 			}
 //		namey.text = namey.text.replace(/:.*/, '') + ':' + base0
 		if (ox > 0)
@@ -944,7 +945,7 @@ final class Datum extends Hit
 			if ((ad = r.datumAt(x)).tv >= 0 && ad.name && ad.yield >= 0)
 			{
 				d = matchUnity(a, ad, mn_)
-				if (ad.tv)
+				if ( !d || d.err)
 					continue
 				if ( !ad.bs.length)
 					d.match(ad, mn_) && (_ = true)
@@ -962,9 +963,10 @@ final class Datum extends Hit
 		return _
 	}
 
+	/** @param ad tv >= 0 */
 	private function matchUnity(a:Datum, ad:Datum, mn_:int):Datum
 	{
-		var d:Datum = us[ad.unity], r:int // ad.tv >= 0
+		var d:Datum = us[ad.unity], z:Datum, err:String
 		if (d && d.yield >= 0)
 		{
 			if (d.tv <= 0 && ad.tv > 0 && !ad.err)
@@ -979,6 +981,15 @@ final class Datum extends Hit
 		}		
 		if (ad.tv > 0 && (gene || layer2))
 			return null
+		for (z = this; z.io > 0; z = z.zone)
+			if (z.unity == ad.unity)
+			{
+				if (cycle == z.zone)
+					return z // not yield
+				err = 'zone must be cycle agent of zone of\
+  innermost zone of same unity inside base zoner'
+				break
+			}
 		if (d) // d.yield < 0
 			d.yield = 1,
 			ad.tv > 0 && Boolean(d.setTv(1)),
@@ -988,7 +999,7 @@ final class Datum extends Hit
 			d = new Datum(ad.io)
 			d.yield = 1
 			ad.tv > 0 && (d.tv = 1)
-			r = ad.io < 0 ? IX : ox < 0 ? DX : ox
+			var r:int = ad.io < 0 ? IX : ox < 0 ? DX : ox
 			d.yR = r, d.yX = ox < 0 ? 0 : rowAt(r).numChildren
 			d.addTo(this, d.yR, d.yX, false)
 			ad.uNext == ad && Boolean(a.us[ad.unity] = ad)
@@ -997,8 +1008,11 @@ final class Datum extends Hit
 			d.us = new Dictionary
 			edit.yields.push(d)
 		}
-		if ((d.layer2 = layer2) && !d.err)
+		if ((d.layer2 = layer2))
 			d.err = 'Yield forbidden here',
+			d.refresh(-1), edit.error = 1
+		else if (err)
+			d.err = err,
 			d.refresh(-1), edit.error = 1
 		return d
 	}
@@ -1023,8 +1037,8 @@ final class Datum extends Hit
 				n = 0
 				for each (bw in oo.bbs)
 				W: {
-					if (bw.from && bw.from.err || deep < bw.deep0 || deep > bw.deep9
-						|| (deep == bw.deep0 && bw.b.io >= 0 && bw.b.base0 <= deep))
+					if (bw.from && bw.from.err || deep < bw.deep0 || deep > bw.deep9 ||
+						deep == bw.deep0 && bw.b != this && bw.b.io >= 0 && bw.b.base0 <= deep)
 						continue
 					n++
 					if ((awb = deep > bw.deep0 ? bw.b : bw.b.matchDatum(this, a)))
