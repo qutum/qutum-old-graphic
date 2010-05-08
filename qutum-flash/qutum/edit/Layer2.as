@@ -31,10 +31,7 @@ final class Layer2
 	static function init(zonest:Datum):void
 	{
 		var In:Datum = input(zonest, 'in')
-		output(In, 'data')
-		var next:Datum = output(In, 'next')
-		var next2:Datum = output(next, next)
-		next.agent(new Wire, next2, false)
+		var data:Datum = output(In, 'data'), next:Datum = output(In, 'next')
 		In.refresh(3)
 
 		var math:Datum = input(zonest, 'math')
@@ -61,6 +58,18 @@ final class Layer2
 		input(ge, a), input(ge, b), output(ge, v)
 		var le:Datum = output(Int, '<=')
 		input(le, a), input(le, b), output(le, v)
+
+		var al:Datum = input(zonest, 'algorithm')
+		var s:Datum = output(al, 'list.next')
+		output(s, data), output(s, next)
+		s = output(al, 'list.data')
+		output(s, data)
+		next = output(s, next), output(next, data)
+		s = output(al, 'list.cycle')
+		output(s, data)
+		next = output(s, next), s.agent(new Wire, next, false)
+		next.agent(new Wire, output(next, next), false) 
+		output(s, 'nextable')
 	}
 }
 }
