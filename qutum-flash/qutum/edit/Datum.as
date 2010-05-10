@@ -289,7 +289,15 @@ final class Datum extends Hit
 				unity = uu
 			else
 				(unity = new Unity).d = this
-		else
+		else if (unity == u.unity)
+			return unity
+		uNext.uPrev = uPrev
+		uPrev.uNext = uNext
+		uNext = u.uNext
+		uPrev = u
+		u.uNext = this
+		uNext.uPrev = this
+		if (u != this)
 		{
 			if (u.name)
 				name = u.name
@@ -299,12 +307,6 @@ final class Datum extends Hit
 				throw 'unity must have name'
 			unity = u.unity
 		}
-		uNext.uPrev = uPrev
-		uPrev.uNext = uNext
-		uNext = u.uNext
-		uPrev = u
-		u.uNext = this
-		uNext.uPrev = this
 		return unity
 	}
 
@@ -1098,6 +1100,8 @@ final class Datum extends Hit
 	private function error4():String
 	{
 		mustRun = tv >= 0
+		if (io < 0 && !zone.zone && !layer2)
+			return 'your input zone must not be zonest'  
 		if (zv)
 			return io < 0 ? 'input must not be inside veto' :
 				io ? 'output must not be inside veto' : 'datum must not be inside veto'
