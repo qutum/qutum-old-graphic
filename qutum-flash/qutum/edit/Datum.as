@@ -901,7 +901,7 @@ final class Datum extends Hit
 							ww.from = bw
 						}
 			}
-//		namey.text = namey.text.replace(/:.*/, '') + ':' + base0
+		namey.text = namey.text.replace(/:.*/, '') + ':' + base0 // TODO
 		if (ox > 0)
 			for (x = IX; x <= ox; x++)
 				for (r = rowAt(x), y = 0, n = r.numChildren; y < n; y++)
@@ -920,11 +920,11 @@ final class Datum extends Hit
 		if (ox > 0 && !tv)
 			for each (w in bs)
 				if ( !w.err && !w.yield && (mn >= mn_ || w.base.mn >= mn_))
-					w.base.match(this, mn_)
+					w.base.match(w.base, this, this, mn_)
 		return mn > mn_ ? mn : 0
 	}
 
-	private function match(a:Datum, mn_:int):Boolean
+	private function match(z:Datum, a:Datum, za:Datum, mn_:int):Boolean
 	{
 		if (a.ox < 0)
 			return false
@@ -932,7 +932,7 @@ final class Datum extends Hit
 		for (r = a.rowAt(IX), x = 0, n = r.numChildren; x < n; x++)
 			if ((ad = r.datumAt(x)).name && ad.yield >= 0)
 				if ((d = matchUnity(a, ad, mn_)) && !d.err)
-					(ad.match(d, mn_) || d.mn > mn_) && (_ = true)
+					(ad.match(ad, d, d, mn_) || d.mn > mn_) && (_ = true)
 		for (r = a.rowAt(a.ox), x = 0, n = r.numChildren; x < n; x++)
 			if ((ad = r.datumAt(x)).tv >= 0 && ad.name && ad.yield >= 0)
 			{
@@ -940,17 +940,17 @@ final class Datum extends Hit
 				if ( !d || d.err)
 					continue
 				if ( !ad.bs.length)
-					d.match(ad, mn_) && (_ = true)
+					d.match(this, ad, a, mn_) && (_ = true)
 				else if ( !ad.cycle)
 					for each (w in ad.bs)
 						if ( !w.err && w.base.bzer.io < 0 && !w.base.bzer.bs.length)
 						{
-							d.match(ad, mn_) && (_ = true)
+							d.match(this, ad, a, mn_) && (_ = true)
 							break
 						}
 				d.mn > mn_ && (_ = true)
 			}
-		matchWire(this, a, a)
+		z.matchWire(this, za, a)
 		_ && (mn = a.mn = mn_ + 1)
 		return _
 	}
@@ -1009,64 +1009,66 @@ final class Datum extends Hit
 		return d
 	}
 
-	private function matchWire(o:Datum, a:Datum, ao:Datum):void
+	private function matchWire(z:Datum, a:Datum, za:Datum):void
 	{
-		if (ao.ox < 0)
+		if (a.ox < 0)
 			return
-		var r:Row, x:int, aoo:Datum, oo:Datum, n:int,
+		var r:Row, x:int, ao:Datum, o:Datum, n:int,
 			aw:Wiring, bw:Wiring, awb:Datum, w:Wire
-		for (r = ao.rowAt(ao.ox), x = r.numChildren - 1; x >= 0; x--)
+		for (r = a.rowAt(a.ox), x = r.numChildren - 1; x >= 0; x--)
 		{
-			if ( !(aoo = r.datumAt(x)).name || aoo.yield < 0)
+			if ( !(ao = r.datumAt(x)).name || ao.yield < 0)
 				continue
 			n = 0
-			for each (aw in aoo.bbs)
-				a.deep >= aw.deep0 && a.deep <= aw.deep9 && n++
+			for each (aw in ao.bbs)
+				za.deep >= aw.deep0 && za.deep <= aw.deep9 && n++
 			if ( !n)
 				continue
-			if ((oo = o.us[aoo.unity]))
+			if ((o = us[ao.unity]))
 			{
 				n = 0
-				for each (bw in oo.bbs)
+				for each (bw in o.bbs)
 				W: {
-					if (bw.from && bw.from.err || deep < bw.deep0 || deep > bw.deep9 ||
-						deep == bw.deep0 && bw.b != this && bw.b.io >= 0 && bw.b.base0 <= deep)
+					if (bw.from && bw.from.err || z.deep < bw.deep0 || z.deep > bw.deep9 ||
+							// instead by other deep
+						z.deep == bw.deep0 && bw.b != z && bw.b.io >= 0 && bw.b.base0 <= z.deep
+							) // instead by other Wiring
 						continue
 					n++
-					if ((awb = deep > bw.deep0 ? bw.b : bw.b.matchDatum(this, a)))
-						for each (aw in aoo.bbs)
+					if ((awb = z.deep > bw.deep0 ? bw.b : bw.b.matchDatum(z, za)))
+						for each (aw in ao.bbs)
 							if (aw.b == awb)
 								break W // continue
 					WW: {
-						for each (w in oo.bs)
+						for each (w in o.bs)
 							if (w.base == bw.b)
 								break WW
 						w = new Wire
 						w.yield = 1, edit.yields.push(w)
-						bw.b.As.push(w), oo.bs.push(w)
-						w.addTo(bw.b, oo)
+						bw.b.As.push(w), o.bs.push(w)
+						w.addTo(bw.b, o)
 					}
 					w.yield < 0 && (w.yield = 1)
 					if ( !w.err)
 						w.err = "wire must match a wire\n  inside '"
-							+ a.name + "' with agent '" + aoo.name + "'",
+							+ za.name + "' with agent '" + ao.name + "'",
 						edit.refresh = w.refresh = true, edit.error = 1
 				}
-				if ( !n && !oo.err)
-					for each (aw in aoo.bbs)
-						if (aw.b != oo)
+				if ( !n && !o.err)
+					for each (aw in ao.bbs)
+						if (aw.b != o)
 						{
-							oo.err = "output must have base to match\n  '"
-								+ a.name + "' and '" + aoo.name + "' inside"
-							oo.refresh(-1), edit.error = 1
+							o.err = "output must have base to match\n  '"
+								+ za.name + "' and '" + ao.name + "' inside"
+							o.refresh(-1), edit.error = 1
 							break
 						}
-				matchWire(oo, a, aoo)
+//				o.matchWire(z, ao, za)
 			}
-			else if (aoo.tv <= 0 && !aoo.err)
-				aoo.err = "output having base must be matched\n  by '"
-					+ (this == o ? name + "'" : name + "' and '" + o.name + "' inside"),
-				aoo.refresh(-1), edit.error = 1
+			else if (ao.tv <= 0 && !ao.err)
+				ao.err = "output having base must be matched\n  by '"
+					+ (z == this ? name + "'" : z.name + "' and '" + name + "' inside"),
+				ao.refresh(-1), edit.error = 1
 		}
 	}
 
