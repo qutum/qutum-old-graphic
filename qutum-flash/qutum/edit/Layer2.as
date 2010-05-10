@@ -15,7 +15,7 @@ final class Layer2
 		var d:Datum = new Datum(-1)
 		d.layer2 = true
 		d.addTo(z, Datum.IX, z.ox < 0 ? 0 : z.rowAt(Datum.IX).numChildren, false)
-		nameOrU is String ? d.name = String(nameOrU) : d.unityTo(Datum(nameOrU)).layer2 = true
+		nameOrU is String ? d.name = String(nameOrU) : d.unityTo(Datum(nameOrU))
 		return d
 	}
 
@@ -24,7 +24,7 @@ final class Layer2
 		var d:Datum = new Datum(1)
 		d.layer2 = true
 		d.addTo(z, Datum.DX, z.ox < 0 ? 0 : z.rowAt(Datum.DX).numChildren, false)
-		nameOrU is String ? d.name = String(nameOrU) : d.unityTo(Datum(nameOrU)).layer2 = true
+		nameOrU is String ? d.name = String(nameOrU) : d.unityTo(Datum(nameOrU))
 		return d
 	}
 
@@ -68,8 +68,7 @@ final class Layer2
 		s = output(al, 'list.cycle')
 		output(s, data)
 		next = output(s, next), s.agent(new Wire, next, false)
-		next.agent(new Wire, output(next, next), false) 
-		output(s, 'nextable')
+		output(next, data), output(next, output(s, 'nextable'))
 	}
 }
 }

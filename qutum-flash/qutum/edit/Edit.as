@@ -173,7 +173,8 @@ public final class Edit extends Widget
 		var e:KeyboardEvent = KeyboardEvent(o)
 		if (e.target != this)
 			return this
-		var k:int = e.keyCode, c:int = e.charCode, ctrl:Boolean = e.ctrlKey
+		var k:int = e.keyCode, c:int = e.charCode,
+			shift:Boolean = e.shiftKey, ctrl:Boolean = e.ctrlKey
 		if (e.type == KeyboardEvent.KEY_DOWN)
 		{
 			if (c && k == keyOff && new Date().time - keyTime < 16)
@@ -191,21 +192,21 @@ public final class Edit extends Widget
 					if (k == 27 || k == 32) // esc or space
 						dragStop(false)
 					else
-						key.draging(drag, 0, k, c, e.shiftKey, ctrl)
+						key.draging(drag, 0, k, c, shift, ctrl)
 				else if (c != 0)
-					dragStart(k, c, e.shiftKey, ctrl)
+					dragStart(k, c, shift, ctrl)
 				else
 					;
 			else if (ctrl && k == 38) // ctrl-up
 				key.keyPrev && keyin(key.keyPrev, -1, -1, false)
 			else if (ctrl && k == 40) // ctrl-down
 				key.keyNext && keyin(key.keyNext, -1, -1, false)
-			else if (ctrl && k == 37) // ctrl-left
+			else if (ctrl && (k == 39 || k == 89 || k == 90 && shift))
+				com.redo() // ctrl-right ctrl-y ctrl-shift-z
+			else if (ctrl && (k == 37 || k == 90)) // ctrl-left ctrl-z
 				com.undo()
-			else if (ctrl && k == 39) // ctrl-right
-				com.redo()
 			else
-				key.key(k, c, e.shiftKey, ctrl),
+				key.key(k, c, shift, ctrl),
 			c && (keyOn = k)
 		}
 		else if (k == keyOn)
@@ -240,7 +241,7 @@ public final class Edit extends Widget
 				.add(' with your source file attached')
 			i.addOk()
 		}
-		else if (error < 0 && !++error)
+		else if (error < -1 ? !++error : error == -1 && !namey.visible && !++error)
 			compile()
 		var stay:Boolean = moveX == (moveX = mouseX)
 		stay = moveY == (moveY = mouseY) && stay

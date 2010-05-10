@@ -278,7 +278,7 @@ final class Datum extends Hit
 		return n0
 	}
 
-	function unityTo(u:Datum, uu:Unity = null):Unity
+	function unityTo(u:Datum, uu:Unity = null):void
 	{
 		if (io != u.io)
 			throw 'must be input or output both'
@@ -290,7 +290,7 @@ final class Datum extends Hit
 			else
 				(unity = new Unity).d = this
 		else if (unity == u.unity)
-			return unity
+			return
 		uNext.uPrev = uPrev
 		uPrev.uNext = uNext
 		uNext = u.uNext
@@ -307,7 +307,6 @@ final class Datum extends Hit
 				throw 'unity must have name'
 			unity = u.unity
 		}
-		return unity
 	}
 
 	function unities(u:Boolean):void

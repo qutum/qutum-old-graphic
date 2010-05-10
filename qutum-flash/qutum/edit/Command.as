@@ -94,7 +94,7 @@ final class Command
 		var key:Datum = Datum(edit.key), kr:int = edit.keyR, kx:int = edit.keyX,
 			ku:Datum = key.uNext, u:Boolean = key != ku,
 			n:String = key.name, un:String = ku.name
-		if (n != v && ( !v || !key.unity || !key.unity.layer2))
+		if (n != v && ( !v || !key.unity || !key.unity.d.layer2))
 			go(function (redo)
 			{
 				if (redo)
