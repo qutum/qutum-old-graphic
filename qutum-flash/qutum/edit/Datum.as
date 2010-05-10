@@ -950,7 +950,7 @@ final class Datum extends Hit
 						}
 				d.mn > mn_ && (_ = true)
 			}
-		z.matchWire(this, za, a)
+		matchWire(z, a, za)
 		_ && (mn = a.mn = mn_ + 1)
 		return _
 	}
@@ -1013,8 +1013,8 @@ final class Datum extends Hit
 	{
 		if (a.ox < 0)
 			return
-		var r:Row, x:int, ao:Datum, o:Datum, n:int,
-			aw:Wiring, bw:Wiring, awb:Datum, w:Wire
+		var r:Row, x:int, o:Datum, ao:Datum, n:int,
+			bw:Wiring, aw:Wiring, awb:Datum, w:Wire
 		for (r = a.rowAt(a.ox), x = r.numChildren - 1; x >= 0; x--)
 		{
 			if ( !(ao = r.datumAt(x)).name || ao.yield < 0)
@@ -1063,7 +1063,6 @@ final class Datum extends Hit
 							o.refresh(-1), edit.error = 1
 							break
 						}
-//				o.matchWire(z, ao, za)
 			}
 			else if (ao.tv <= 0 && !ao.err)
 				ao.err = "output having base must be matched\n  by '"
