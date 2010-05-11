@@ -933,8 +933,6 @@ final class Datum extends Hit
 			if ((ad = r.datumAt(x)).name && ad.yield >= 0)
 				if ((bd = matchBaseUnity(b, a, ad, mn_)) && !bd.err)
 					(match(ad, ad, bd, bd, mn_) || bd.mn > mn_) && (_ = true),
-					Boolean(b == bz ? trace(bz.deep, bz.name, b.deep, b.name)
-						: trace(bz.deep, bz.name, b.deep, b.name, bd.deep, bd.name, az.deep, az.name, ad.deep, ad.name)),
 					b != bz && matchWire(bz, bd, az, ad, b)
 		for (r = a.rowAt(a.ox), x = 0, n = r.numChildren; x < n; x++)
 			if ((ad = r.datumAt(x)).tv >= 0 && ad.name && ad.yield >= 0)
