@@ -920,64 +920,64 @@ final class Datum extends Hit
 		if (ox > 0 && !tv)
 			for each (w in bs)
 				if ( !w.err && !w.yield && (mn >= mn_ || w.base.mn >= mn_))
-					w.base.match(w.base, this, this, mn_)
+					match(w.base, w.base, this, this, mn_)
 		return mn > mn_ ? mn : 0
 	}
 
-	private function match(z:Datum, a:Datum, za:Datum, mn_:int):Boolean
+	private static function match(bz:Datum, b:Datum, az:Datum, a:Datum, mn_:int):Boolean
 	{
 		if (a.ox < 0)
 			return false
-		var _:Boolean = false, r:Row, x:int, n:int, d:Datum, ad:Datum, w:Wire
+		var _:Boolean = false, r:Row, x:int, n:int, bd:Datum, ad:Datum, w:Wire
 		for (r = a.rowAt(IX), x = 0, n = r.numChildren; x < n; x++)
 			if ((ad = r.datumAt(x)).name && ad.yield >= 0)
-				if ((d = matchUnity(a, ad, mn_)) && !d.err)
-					(ad.match(ad, d, d, mn_) || d.mn > mn_) && (_ = true),
-					this != z && d.matchWire(z, ad, za)
+				if ((bd = matchBaseUnity(b, a, ad, mn_)) && !bd.err)
+					(match(ad, ad, bd, bd, mn_) || bd.mn > mn_) && (_ = true),
+					Boolean(b == bz ? trace(bz.deep, bz.name, b.deep, b.name)
+						: trace(bz.deep, bz.name, b.deep, b.name, bd.deep, bd.name, az.deep, az.name, ad.deep, ad.name)),
+					b != bz && matchWire(bz, bd, az, ad, b)
 		for (r = a.rowAt(a.ox), x = 0, n = r.numChildren; x < n; x++)
 			if ((ad = r.datumAt(x)).tv >= 0 && ad.name && ad.yield >= 0)
 			{
-				d = matchUnity(a, ad, mn_)
-				if ( !d || d.err)
-					continue
-				if (ad.cycle || !ad.bs.length)
-					d.match(z, ad, za, mn_) && (_ = true)
-				else
-					for each (w in ad.bs)
+				bd = matchBaseUnity(b, a, ad, mn_)
+				if (bd && !bd.err)
+					if (ad.cycle || !ad.bs.length)
+						match(bz, bd, az, ad, mn_) && (_ = true)
+					else for each (w in ad.bs)
 						if ( !w.err && w.base.bzer.io < 0 && !w.base.bzer.bs.length)
 						{
-							d.match(z, ad, za, mn_) && (_ = true)
+							match(bz, bd, az, ad, mn_) && (_ = true)
 							break
 						}
-				d.mn > mn_ && (_ = true)
+				bd.mn > mn_ && (_ = true)
+				bd && bd.err || matchWire(bz, bd, az, ad, b)
 			}
-		_ && (mn = a.mn = mn_ + 1)
-		matchWire(z, a, za)
+		_ && (b.mn = a.mn = mn_ + 1)
 		return _
 	}
 
-	private function matchUnity(a:Datum, ad:Datum, mn_:int):Datum
+	private static function matchBaseUnity(b:Datum, a:Datum, ad:Datum, mn_:int):Datum
 	{
-		var d:Datum = us[ad.unity], z:Datum, err:String
+		var d:Datum = b.us[ad.unity], z:Datum, err:String
 		if (d && d.yield >= 0)
 		{
 			if (d.tv <= 0 && ad.tv > 0 && !ad.err)
 				ad.err = "veto must be matched\n  by '"
-					+ name + "' and '" + d.name + "' inside",
-				ad.refresh(-1), edit.error = 1
+					+ b.name + "' and '" + d.name + "' inside",
+				ad.refresh(-1), b.edit.error = 1
 			else if (d.tv > 0 && ad.tv <= 0 && !d.err)
 				d.err = (d.io < 0 ? "input must not be veto to match\n  '"
 					: "output must not be veto to match\n  '")
 					+ a.name + "' and '" + ad.name + "' inside",
-				d.refresh(-1), edit.error = 1
+				d.refresh(-1), b.edit.error = 1
 			return d
 		}		
-		if (ad.tv > 0 && (gene || layer2))
+		if (ad.tv > 0 && (b.gene || b.layer2))
 			return null
-		for (z = this; z.io > 0; z = z.zone)
+		for (z = b; z.io > 0; z = z.zone)
 			if (z.unity == ad.unity)
 			{
-				if (cycle == z.zone)
+				if (b.cycle == z.zone)
 					return z // not yield
 				err = 'zone must be cycle agent of zone of\
   innermost zone of same unity inside base zoner'
@@ -992,88 +992,80 @@ final class Datum extends Hit
 			d = new Datum(ad.io)
 			d.yield = 1
 			ad.tv > 0 && (d.tv = 1)
-			var r:int = ad.io < 0 ? IX : ox < 0 ? DX : ox
-			d.yR = r, d.yX = ox < 0 ? 0 : rowAt(r).numChildren
-			d.addTo(this, d.yR, d.yX, false)
+			var r:int = ad.io < 0 ? IX : b.ox < 0 ? DX : b.ox
+			d.yR = r, d.yX = b.ox < 0 ? 0 : b.rowAt(r).numChildren
+			d.addTo(b, d.yR, d.yX, false)
 			ad.uNext == ad && Boolean(a.us[ad.unity] = ad)
-			d.unityTo(ad), us[ad.unity] = d
+			d.unityTo(ad), b.us[ad.unity] = d
 			d.mn = mn_ + 1
 			d.us = new Dictionary
-			edit.yields.push(d)
+			b.edit.yields.push(d)
 		}
-		if ((d.layer2 = layer2))
+		if ((d.layer2 = b.layer2))
 			d.err = 'Yield forbidden here',
-			d.refresh(-1), edit.error = 1
+			d.refresh(-1), b.edit.error = 1
 		else if (err)
 			d.err = err,
-			d.refresh(-1), edit.error = 1
+			d.refresh(-1), b.edit.error = 1
 		return d
 	}
 
-	private function matchWire(z:Datum, a:Datum, za:Datum):void
+	private static function matchWire(bz:Datum, b:Datum, az:Datum, a:Datum, b_:Datum):void
 	{
-		if (a.ox < 0)
+		var a0b9:int, n:int, bw:Wiring, aw:Wiring, awb:Datum, w:Wire
+		a0b9 = a.deep, n = 0
+		for each (aw in a.bbs)
+			if (a.azer.zone.deep == aw.deep9)
+				n++, aw.deep0 < a0b9 && (a0b9 = aw.deep0)
+		if ( !n)
 			return
-		var r:Row, x:int, o:Datum, ao:Datum, a0b9:int, n:int,
-			bw:Wiring, aw:Wiring, awb:Datum, w:Wire
-		for (r = a.rowAt(a.ox), x = r.numChildren - 1; x >= 0; x--)
+		if (b)
 		{
-			if ( !(ao = r.datumAt(x)).name || ao.yield < 0)
-				continue
-			a0b9 = ao.deep, n = 0
-			for each (aw in ao.bbs)
-				if (a.deep == aw.deep9)
-					n++, aw.deep0 < a0b9 && (a0b9 = aw.deep0)
-			if ( !n)
-				continue
-			if ((o = us[ao.unity]))
-			{
-				a0b9 = a0b9 - ao.deep + o.deep, n = 0
-				for each (bw in o.bbs)
-				W: {
-					if (bw.from && bw.from.err || bw.deep9 < a0b9
-						|| bw.b != z && bw.b.bzer.io >= 0)
-						continue
-					n++
-					if ((awb = z.deep > bw.deep0 ? bw.b : bw.b.matchDatum(z, za)))
-						for each (aw in ao.bbs)
-							if (aw.b == awb)
-								break W // continue
-					WW: {
-						for each (w in o.bs)
-							if (w.base == bw.b)
-								break WW
-						w = new Wire
-						w.yield = 1, edit.yields.push(w)
-						bw.b.As.push(w), o.bs.push(w)
-						w.addTo(bw.b, o)
-					}
-					w.yield < 0 && (w.yield = 1)
-					if ( !w.err)
-						w.err = "wire must match a wire\n  inside '"
-							+ za.name + "' with agent '" + ao.name + "'",
-						edit.refresh = w.refresh = true, edit.error = 1
+			a0b9 = a0b9 - a.deep + b.deep, n = 0
+			for each (bw in b.bbs)
+			W: {
+				if (bw.from && bw.from.err || bw.deep9 < a0b9
+					|| bw.b != bz && bw.b.bzer.io >= 0)
+					continue
+				n++
+				if ((awb = bz.deep > bw.deep0 ? bw.b : matchDatum(bz, bw.b, az)))
+					for each (aw in a.bbs)
+						if (aw.b == awb)
+							break W // continue
+				WW: {
+					for each (w in b.bs)
+						if (w.base == bw.b)
+							break WW
+					w = new Wire
+					w.yield = 1, b.edit.yields.push(w)
+					bw.b.As.push(w), b.bs.push(w)
+					w.addTo(bw.b, b)
 				}
-				if ( !n && !o.err)
-					for each (aw in ao.bbs)
-						if (aw.b != o)
-						{
-							o.err = "output must have base to match\n  '"
-								+ za.name + "' and '" + ao.name + "' inside"
-							o.refresh(-1), edit.error = 1
-							break
-						}
+				w.yield < 0 && (w.yield = 1)
+				if ( !w.err)
+					w.err = "wire must match a wire\n  inside '"
+						+ az.name + "' with agent '" + a.name + "'",
+					b.edit.refresh = w.refresh = true, b.edit.error = 1
 			}
-			else if (ao.tv <= 0 && !ao.err)
-				ao.err = "output having base must be matched\n  by '"
-					+ (z == this ? name + "'" : z.name + "' and '" + name + "' inside"),
-				ao.refresh(-1), edit.error = 1
+			if ( !n && !b.err)
+				for each (aw in a.bbs)
+					if (aw.b != b)
+					{
+						b.err = "output must have base to match\n  '"
+							+ az.name + "' and '" + a.name + "' inside"
+						b.refresh(-1), b.edit.error = 1
+						break
+					}
 		}
+		else if (a.tv <= 0 && !a.err)
+			a.err = "output having base must be matched\n  by '"
+				+ (bz == b_ ? b_.name + "'" : bz.name + "' and '" + b_.name + "' inside"),
+			a.refresh(-1), b.edit.error = 1
 	}
 
-	private function matchDatum(z:Datum, zz:Datum):Datum
+	private static function matchDatum(z:Datum, d:Datum, zz:Datum):Datum
 	{
-		return this == z ? zz : (z = zone.matchDatum(z, zz)) && z.us[unity]
+		return d == z ? zz : (z = matchDatum(z, d.zone, zz)) && z.us[d.unity]
 	}
 
 	function compile4():void
