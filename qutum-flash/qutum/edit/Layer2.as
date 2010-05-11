@@ -30,7 +30,6 @@ final class Layer2
 
 	static function init(zonest:Datum):void
 	{
-		return
 		var In:Datum = input(zonest, 'in')
 		var data:Datum = output(In, 'data'), next:Datum = output(In, 'next')
 		In.refresh(3)
