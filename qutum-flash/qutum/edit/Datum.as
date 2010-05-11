@@ -149,7 +149,7 @@ final class Datum extends Hit
 
 	private function addTo0(deep:int):void
 	{
-		unity.d != this && unityTo(unity.d)
+		unity.d != this && unityTo(unity.d, true)
 		for each (var w:Wire in bs)
 			if (w.zone.deep < deep)
 				w.base.As.push(w), w.addTo()
@@ -185,7 +185,7 @@ final class Datum extends Hit
 
 	private function unadd0(deep:int):void
 	{
-		unity.d != this && unityTo(this, unity)
+		uNext != this && unityTo(this, true)
 		var x:int, w:Wire
 		for each (w in bs)
 			if (w.zone.deep < deep)
@@ -282,19 +282,17 @@ final class Datum extends Hit
 		return n0
 	}
 
-	function unityTo(u:Datum, uu:Unity = null):void
+	function unityTo(u:Datum, undoRedo:Boolean = false):void
 	{
 		if (io != u.io)
 			throw 'must be input or output both'
 		if (unity.d == this)
 			unity.d = uNext
-		if (u == this)
-			if (uu)
-				unity = uu
-			else
+		if ( !undoRedo)
+			if (u == this)
 				(unity = new Unity).d = this
-		else if (unity == u.unity)
-			return
+			else if (unity == u.unity)
+				return
 		uNext.uPrev = uPrev
 		uPrev.uNext = uNext
 		uNext = u.uNext
@@ -906,20 +904,19 @@ final class Datum extends Hit
 				w.deep0 = bw.zone.deep, w.deep9 = azer.deep - 1
 				base0 = Math.max(base0, Math.min(w.b.base0,
 					bw.base == bw.zone || bw.zb.io < 0 ? bw.zone.deep : bw.zb.deep))
-				if (bw.base != bw.zone)
-					for each (wb in w.b.bbs)
-						if (wb.deep0 <= w.deep0)
-						B: {
-							for each (wbb in bbs)
-								if (wbb.b == wb.b)
-									break B // continue
-							ww = new Wiring
-							bbs.push(ww)
-							ww.b = wb.b
-							ww.deep0 = wb.deep0
-							ww.deep9 = wb.deep9 < w.deep0 ? wb.deep9 : w.deep9
-							ww.from = bw
-						}
+				for each (wb in w.b.bbs)
+					if (wb.deep0 <= w.deep0)
+					B: {
+						for each (wbb in bbs)
+							if (wbb.b == wb.b)
+								break B // continue
+						ww = new Wiring
+						bbs.push(ww)
+						ww.b = wb.b
+						ww.deep0 = wb.deep0
+						ww.deep9 = wb.deep9 < w.deep0 ? wb.deep9 : w.deep9
+						ww.from = bw
+					}
 			}
 //		namey.text = namey.text.replace(/:.*/, '') + ':' + base0 // TODO debug
 		if (ox > 0)
@@ -944,7 +941,7 @@ final class Datum extends Hit
 		return mn > mn_ ? mn : 0
 	}
 
-	private static function match(bz:Datum, b:Datum, az:Datum, a:Datum, mn_:int):Boolean
+	private static function match(zb:Datum, b:Datum, za:Datum, a:Datum, mn_:int):Boolean
 	{
 		if (a.ox < 0)
 			return false
@@ -953,22 +950,22 @@ final class Datum extends Hit
 			if ((ad = r.datumAt(x)).name && ad.yield >= 0)
 				if ((bd = matchBaseUnity(b, a, ad, mn_)) && !bd.err)
 					(match(ad, ad, bd, bd, mn_) || bd.mn > mn_) && (_ = true),
-					b != bz && matchWire(bz, bd, az, ad, b)
+					b != zb && matchWire(zb, bd, za, ad, b)
 		for (r = a.rowAt(a.ox), x = 0, n = r.numChildren; x < n; x++)
 			if ((ad = r.datumAt(x)).tv >= 0 && ad.name && ad.yield >= 0)
 			{
 				bd = matchBaseUnity(b, a, ad, mn_)
 				if (bd && !bd.err)
 					if (ad.cycle || !ad.bs.length)
-						match(bz, bd, az, ad, mn_) && (_ = true)
+						match(zb, bd, za, ad, mn_) && (_ = true)
 					else for each (w in ad.bs)
 						if ( !w.err && w.base.bzer.io < 0 && !w.base.bzer.bs.length)
 						{
-							match(bz, bd, az, ad, mn_) && (_ = true)
+							match(zb, bd, za, ad, mn_) && (_ = true)
 							break
 						}
 				bd.mn > mn_ && (_ = true)
-				bd && bd.err || matchWire(bz, bd, az, ad, b)
+				bd && bd.err || matchWire(zb, bd, za, ad, b)
 			}
 		_ && (b.mn = a.mn = mn_ + 1)
 		return _
@@ -997,7 +994,7 @@ final class Datum extends Hit
 			{
 				if (b.cycle == z.zone)
 					return z // not yield
-				err = 'zone must be cycle agent of zone of\
+				err = 'yield zone must be cycle agent of zone of\
   innermost zone of same unity inside base zoner'
 				break
 			}
@@ -1028,7 +1025,7 @@ final class Datum extends Hit
 		return d
 	}
 
-	private static function matchWire(bz:Datum, b:Datum, az:Datum, a:Datum, b_:Datum):void
+	private static function matchWire(zb:Datum, b:Datum, za:Datum, a:Datum, b_:Datum):void
 	{
 		var a0b9:int = a.deep, n:int = 0, bw:Wiring, aw:Wiring, awb:Datum, w:Wire
 		for each (aw in a.bbs)
@@ -1040,18 +1037,18 @@ final class Datum extends Hit
 		{
 			if (a.tv <= 0 && !a.err)
 				a.err = "output having base must be matched\n  by '"
-					+ (bz == b_ ? b_.name + "'" : bz.name + "' and '" + b_.name + "' inside"),
-				a.refresh(-1), b.edit.error = 1
+					+ (zb == b_ ? b_.name + "'" : zb.name + "' and '" + b_.name + "' inside"),
+				a.refresh(-1), a.edit.error = 1
 			return
 		}
 		a0b9 = a0b9 - a.deep + b.deep, n = 0
 		for each (bw in b.bbs)
 		W: {
 			if (bw.from && bw.from.err || bw.deep9 < a0b9
-				|| bw.b != bz && bw.b.bzer.io >= 0)
+				|| bw.b != zb && bw.b.bzer.io >= 0)
 				continue
 			n++
-			if ((awb = bz.deep > bw.deep0 ? bw.b : matchDatum(bz, bw.b, az)))
+			if ((awb = zb.deep > bw.deep0 ? bw.b : matchDatum(zb, bw.b, za)))
 				for each (aw in a.bbs)
 					if (aw.b == awb)
 						break W // continue
@@ -1067,7 +1064,7 @@ final class Datum extends Hit
 			w.yield < 0 && (w.yield = 1)
 			if ( !w.err)
 				w.err = "wire must match a wire\n  inside '"
-					+ az.name + "' with agent '" + a.name + "'",
+					+ za.name + "' with agent '" + a.name + "'",
 				b.edit.refresh = w.refresh = true, b.edit.error = 1
 		}
 		if ( !n && !b.err)
@@ -1075,7 +1072,7 @@ final class Datum extends Hit
 				if (aw.b != b)
 				{
 					b.err = "output must have base to match\n  '"
-						+ az.name + "' and '" + a.name + "' inside"
+						+ za.name + "' and '" + a.name + "' inside"
 					b.refresh(-1), b.edit.error = 1
 					break
 				}

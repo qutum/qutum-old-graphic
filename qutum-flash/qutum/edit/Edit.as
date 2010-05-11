@@ -140,6 +140,8 @@ public final class Edit extends Widget
 	{
 		if (down)
 			return
+		if ( !k)
+			throw 'null key'
 		var key0:Hit = key, d:Datum
 		key = k
 		keyRx(r, x)
