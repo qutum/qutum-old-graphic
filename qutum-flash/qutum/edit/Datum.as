@@ -901,7 +901,7 @@ final class Datum extends Hit
 							ww.from = bw
 						}
 			}
-		namey.text = namey.text.replace(/:.*/, '') + ':' + base0 // TODO
+//		namey.text = namey.text.replace(/:.*/, '') + ':' + base0 // TODO debug
 		if (ox > 0)
 			for (x = IX; x <= ox; x++)
 				for (r = rowAt(x), y = 0, n = r.numChildren; y < n; y++)
@@ -939,13 +939,13 @@ final class Datum extends Hit
 				d = matchUnity(a, ad, mn_)
 				if ( !d || d.err)
 					continue
-				if ( !ad.bs.length)
-					d.match(this, ad, a, mn_) && (_ = true)
-				else if ( !ad.cycle)
+				if (ad.cycle || !ad.bs.length)
+					d.match(z, ad, za, mn_) && (_ = true)
+				else
 					for each (w in ad.bs)
 						if ( !w.err && w.base.bzer.io < 0 && !w.base.bzer.bs.length)
 						{
-							d.match(this, ad, a, mn_) && (_ = true)
+							d.match(z, ad, za, mn_) && (_ = true)
 							break
 						}
 				d.mn > mn_ && (_ = true)

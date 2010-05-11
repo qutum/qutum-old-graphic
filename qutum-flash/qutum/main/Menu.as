@@ -88,7 +88,7 @@ public final class Menu extends Bar
 			return keyed(0, 37, false, true)
 		var p:Shape = new Shape, g:flash.display.Graphics = p.graphics
 		Util.line(g, 2, 0x774400), g.moveTo(10, 1), g.lineTo(1, 7), g.lineTo(10, 13)
-		Item(p, undo, 'Undo', 'Ctrl Left', 8)
+		Item(p, undo, 'Undo', 'Ctrl Left or Ctrl z', 8)
 	}
 
 	private function redo(e = null)
@@ -97,7 +97,7 @@ public final class Menu extends Bar
 			return keyed(0, 39, false, true)
 		var p:Shape = new Shape, g:flash.display.Graphics = p.graphics
 		Util.line(g, 2, 0x774400), g.moveTo(1, 1), g.lineTo(10, 7), g.lineTo(1, 13)
-		Item(p, redo, 'Redo', 'Ctrl Right')
+		Item(p, redo, 'Redo', 'Ctrl Right or Ctrl y or Shift Ctrl z')
 	}
 
 	private function unfocus(e = null)
