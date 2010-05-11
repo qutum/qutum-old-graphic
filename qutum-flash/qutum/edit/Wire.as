@@ -330,10 +330,10 @@ final class Wire extends Hit
 		if (base != zone && zb.el >= za.el)
 			return 'must wire early to later'
 		if ( !zone.gene)
-			if ( !agent.io)
-				return 'wire inside agent must have input or output agent'
-			else if (base != zone && !base.io)
+			if (base != zone && !base.io)
 				return 'wire inside agent must have input or output base'
+			else if ( !agent.io)
+				return 'wire inside agent must have input or output agent'
 		for (a = az.zone; a != zone; a = a.zone)
 			if (a.io < 0)
 				return 'wire must not cross input edge'

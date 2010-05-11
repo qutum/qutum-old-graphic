@@ -1013,26 +1013,26 @@ final class Datum extends Hit
 	{
 		if (a.ox < 0)
 			return
-		var r:Row, x:int, o:Datum, ao:Datum, n:int,
+		var r:Row, x:int, o:Datum, ao:Datum, a0b9:int, n:int,
 			bw:Wiring, aw:Wiring, awb:Datum, w:Wire
 		for (r = a.rowAt(a.ox), x = r.numChildren - 1; x >= 0; x--)
 		{
 			if ( !(ao = r.datumAt(x)).name || ao.yield < 0)
 				continue
-			n = 0
+			a0b9 = ao.deep, n = 0
 			for each (aw in ao.bbs)
-				za.deep >= aw.deep0 && za.deep <= aw.deep9 && n++
+//				za.deep >= aw.deep0 && za.deep <= aw.deep9 && n++
+				if (a.deep == aw.deep9)
+					n++, aw.deep0 < a0b9 && (a0b9 = aw.deep0)
 			if ( !n)
 				continue
 			if ((o = us[ao.unity]))
 			{
-				n = 0
+				a0b9 = a0b9 - ao.deep + o.deep, n = 0
 				for each (bw in o.bbs)
 				W: {
-					if (bw.from && bw.from.err || z.deep < bw.deep0 || z.deep > bw.deep9 ||
-							// instead by other deep
-						z.deep == bw.deep0 && bw.b != z && bw.b.io >= 0 && bw.b.base0 <= z.deep
-							) // instead by other Wiring
+					if (bw.from && bw.from.err || bw.deep9 < a0b9
+						|| bw.b != z && bw.b.bzer.io >= 0)
 						continue
 					n++
 					if ((awb = z.deep > bw.deep0 ? bw.b : bw.b.matchDatum(z, za)))
