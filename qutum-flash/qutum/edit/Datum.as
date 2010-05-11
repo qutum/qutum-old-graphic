@@ -70,6 +70,10 @@ final class Datum extends Hit
 
 	Shape // for mxml bug on Graphics
 
+////////////////////////////////       ////////////////////////////////
+//////////////////////////////// logic ////////////////////////////////
+////////////////////////////////       ////////////////////////////////
+
 	function Datum(io_:int)
 	{
 		io = io_
@@ -317,6 +321,10 @@ final class Datum extends Hit
 			d.namey.background = u
 	}
 
+////////////////////////////////      ////////////////////////////////
+//////////////////////////////// view ////////////////////////////////
+////////////////////////////////      ////////////////////////////////
+
 	/** 0: no refresh, <0: refresh, 1: refresh to hide, 2: refresh to only this
 	 *  3: refresh to this and inners, >3: refresh all deeply */
 	function refresh(x:int):Boolean
@@ -517,6 +525,10 @@ final class Datum extends Hit
 			xy.x - Math.max(edit.sx, Math.min(xy.x, edit.sr - w)),
 			xy.y - Math.max(edit.sy, Math.min(xy.y, edit.sb - h)))
 	}
+
+////////////////////////////////      ////////////////////////////////
+//////////////////////////////// edit ////////////////////////////////
+////////////////////////////////      ////////////////////////////////
 
 	override function key(k:int, c:int, shift:Boolean, ctrl:Boolean)
 	{
@@ -732,6 +744,10 @@ final class Datum extends Hit
 		g.moveTo(8.5, -8.5), g.lineTo(-7.5, 7.5)
 	}
 
+////////////////////////////////           ////////////////////////////////
+//////////////////////////////// load save ////////////////////////////////
+////////////////////////////////           ////////////////////////////////
+
 	function save(str:IDataOutput, byte:int):void
 	{
 		var d:Datum, r:Row, x:int, y:int, n:int, el:int, w:Wire
@@ -835,6 +851,10 @@ final class Datum extends Hit
 			return end ? d : d.loadDatum(str)
 		throw 'datum not found'
 	}
+
+////////////////////////////////         ////////////////////////////////
+//////////////////////////////// compile ////////////////////////////////
+////////////////////////////////         ////////////////////////////////
 
 	function compile1():void
 	{
@@ -969,7 +989,7 @@ final class Datum extends Hit
 					+ a.name + "' and '" + ad.name + "' inside",
 				d.refresh(-1), b.edit.error = 1
 			return d
-		}		
+		}
 		if (ad.tv > 0 && (b.gene || b.layer2))
 			return null
 		for (z = b; z.io > 0; z = z.zone)
@@ -1010,55 +1030,55 @@ final class Datum extends Hit
 
 	private static function matchWire(bz:Datum, b:Datum, az:Datum, a:Datum, b_:Datum):void
 	{
-		var a0b9:int, n:int, bw:Wiring, aw:Wiring, awb:Datum, w:Wire
-		a0b9 = a.deep, n = 0
+		var a0b9:int = a.deep, n:int = 0, bw:Wiring, aw:Wiring, awb:Datum, w:Wire
 		for each (aw in a.bbs)
 			if (a.azer.zone.deep == aw.deep9)
 				n++, aw.deep0 < a0b9 && (a0b9 = aw.deep0)
 		if ( !n)
 			return
-		if (b)
+		if ( !b)
 		{
-			a0b9 = a0b9 - a.deep + b.deep, n = 0
-			for each (bw in b.bbs)
-			W: {
-				if (bw.from && bw.from.err || bw.deep9 < a0b9
-					|| bw.b != bz && bw.b.bzer.io >= 0)
-					continue
-				n++
-				if ((awb = bz.deep > bw.deep0 ? bw.b : matchDatum(bz, bw.b, az)))
-					for each (aw in a.bbs)
-						if (aw.b == awb)
-							break W // continue
-				WW: {
-					for each (w in b.bs)
-						if (w.base == bw.b)
-							break WW
-					w = new Wire
-					w.yield = 1, b.edit.yields.push(w)
-					bw.b.As.push(w), b.bs.push(w)
-					w.addTo(bw.b, b)
-				}
-				w.yield < 0 && (w.yield = 1)
-				if ( !w.err)
-					w.err = "wire must match a wire\n  inside '"
-						+ az.name + "' with agent '" + a.name + "'",
-					b.edit.refresh = w.refresh = true, b.edit.error = 1
-			}
-			if ( !n && !b.err)
-				for each (aw in a.bbs)
-					if (aw.b != b)
-					{
-						b.err = "output must have base to match\n  '"
-							+ az.name + "' and '" + a.name + "' inside"
-						b.refresh(-1), b.edit.error = 1
-						break
-					}
+			if (a.tv <= 0 && !a.err)
+				a.err = "output having base must be matched\n  by '"
+					+ (bz == b_ ? b_.name + "'" : bz.name + "' and '" + b_.name + "' inside"),
+				a.refresh(-1), b.edit.error = 1
+			return
 		}
-		else if (a.tv <= 0 && !a.err)
-			a.err = "output having base must be matched\n  by '"
-				+ (bz == b_ ? b_.name + "'" : bz.name + "' and '" + b_.name + "' inside"),
-			a.refresh(-1), b.edit.error = 1
+		a0b9 = a0b9 - a.deep + b.deep, n = 0
+		for each (bw in b.bbs)
+		W: {
+			if (bw.from && bw.from.err || bw.deep9 < a0b9
+				|| bw.b != bz && bw.b.bzer.io >= 0)
+				continue
+			n++
+			if ((awb = bz.deep > bw.deep0 ? bw.b : matchDatum(bz, bw.b, az)))
+				for each (aw in a.bbs)
+					if (aw.b == awb)
+						break W // continue
+			WW: {
+				for each (w in b.bs)
+					if (w.base == bw.b)
+						break WW
+				w = new Wire
+				w.yield = 1, b.edit.yields.push(w)
+				bw.b.As.push(w), b.bs.push(w)
+				w.addTo(bw.b, b)
+			}
+			w.yield < 0 && (w.yield = 1)
+			if ( !w.err)
+				w.err = "wire must match a wire\n  inside '"
+					+ az.name + "' with agent '" + a.name + "'",
+				b.edit.refresh = w.refresh = true, b.edit.error = 1
+		}
+		if ( !n && !b.err)
+			for each (aw in a.bbs)
+				if (aw.b != b)
+				{
+					b.err = "output must have base to match\n  '"
+						+ az.name + "' and '" + a.name + "' inside"
+					b.refresh(-1), b.edit.error = 1
+					break
+				}
 	}
 
 	private static function matchDatum(z:Datum, d:Datum, zz:Datum):Datum
@@ -1091,7 +1111,7 @@ final class Datum extends Hit
 	{
 		mustRun = tv >= 0
 		if (io < 0 && !zone.zone && !layer2)
-			return 'your input zone must not be zonest'  
+			return 'your input zone must not be zonest'
 		if (zv)
 			return io < 0 ? 'input must not be inside veto' :
 				io ? 'output must not be inside veto' : 'datum must not be inside veto'
