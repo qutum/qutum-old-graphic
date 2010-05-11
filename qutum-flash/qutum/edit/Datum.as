@@ -932,7 +932,8 @@ final class Datum extends Hit
 		for (r = a.rowAt(IX), x = 0, n = r.numChildren; x < n; x++)
 			if ((ad = r.datumAt(x)).name && ad.yield >= 0)
 				if ((d = matchUnity(a, ad, mn_)) && !d.err)
-					(ad.match(ad, d, d, mn_) || d.mn > mn_) && (_ = true)
+					(ad.match(ad, d, d, mn_) || d.mn > mn_) && (_ = true),
+					this != z && d.matchWire(z, ad, za)
 		for (r = a.rowAt(a.ox), x = 0, n = r.numChildren; x < n; x++)
 			if ((ad = r.datumAt(x)).tv >= 0 && ad.name && ad.yield >= 0)
 			{
@@ -950,8 +951,8 @@ final class Datum extends Hit
 						}
 				d.mn > mn_ && (_ = true)
 			}
-		matchWire(z, a, za)
 		_ && (mn = a.mn = mn_ + 1)
+		matchWire(z, a, za)
 		return _
 	}
 
@@ -1021,7 +1022,6 @@ final class Datum extends Hit
 				continue
 			a0b9 = ao.deep, n = 0
 			for each (aw in ao.bbs)
-//				za.deep >= aw.deep0 && za.deep <= aw.deep9 && n++
 				if (a.deep == aw.deep9)
 					n++, aw.deep0 < a0b9 && (a0b9 = aw.deep0)
 			if ( !n)
