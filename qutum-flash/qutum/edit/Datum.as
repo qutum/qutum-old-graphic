@@ -945,7 +945,7 @@ final class Datum extends Hit
 	{
 		if (a.ox < 0)
 			return false
-		var _:Boolean = false, r:Row, x:int, n:int, bd:Datum, ad:Datum, w:Wire
+		var _:Boolean = false, r:Row, x:int, n:int, bd:Datum, ad:Datum, y:int, w:Wire
 		for (r = a.rowAt(IX), x = 0, n = r.numChildren; x < n; x++)
 			if ((ad = r.datumAt(x)).name && ad.yield >= 0)
 				if ((bd = matchBaseUnity(b, a, ad, mn_)) && !bd.err)
@@ -956,15 +956,14 @@ final class Datum extends Hit
 			{
 				bd = matchBaseUnity(b, a, ad, mn_)
 				if (bd && !bd.err)
-					if (ad.cycle || !ad.bs.length)
-						match(zb, bd, za, ad, mn_) && (_ = true)
-					else for each (w in ad.bs)
-						if ( !w.err && w.base.bzer.io < 0 && !w.base.bzer.bs.length)
-						{
-							match(zb, bd, za, ad, mn_) && (_ = true)
+				{
+					for (w = null, y = ad.bs.length - 1; y >= 0; y--)
+						if ( !(w = ad.bs[y]).err && !w.yield &&
+							(w.base == w.zone || w.base.bzer.io < 0 && !w.base.bzer.bs.length))
 							break
-						}
-				bd.mn > mn_ && (_ = true)
+					w && y < 0 || match(zb, bd, za, ad, mn_) && (_ = true)
+					bd.mn > mn_ && (_ = true)
+				}
 				bd && bd.err || matchWire(zb, bd, za, ad, b)
 			}
 		_ && (b.mn = a.mn = mn_ + 1)
@@ -1045,7 +1044,7 @@ final class Datum extends Hit
 		for each (bw in b.bbs)
 		W: {
 			if (bw.from && bw.from.err || bw.deep9 < a0b9
-				|| bw.b != zb && bw.b.bzer.io >= 0)
+				|| bw.b != zb && bw.b.bzer.io >= 0 && bw.b.base0 <= a0b9)
 				continue
 			n++
 			if ((awb = zb.deep > bw.deep0 ? bw.b : matchDatum(zb, bw.b, za)))
@@ -1067,15 +1066,21 @@ final class Datum extends Hit
 					+ za.name + "' with agent '" + a.name + "'",
 				b.edit.refresh = w.refresh = true, b.edit.error = 1
 		}
-		if ( !n && !b.err)
+		B: {
+			awb = matchDatum(zb, b, za) 
 			for each (aw in a.bbs)
-				if (aw.b != b)
-				{
-					b.err = "output must have base to match\n  '"
-						+ za.name + "' and '" + a.name + "' inside"
-					b.refresh(-1), b.edit.error = 1
-					break
-				}
+				if (aw.b == awb)
+					break B // base outsite cycle agent and agent inside cycle agent
+			if ( !n && !b.err)
+				for each (aw in a.bbs)
+					if (aw.b != b)
+					{
+						b.err = "output must have base to match\n  '"
+							+ za.name + "' and '" + a.name + "' inside"
+						b.refresh(-1), b.edit.error = 1
+						break
+					}
+		}
 	}
 
 	private static function matchDatum(z:Datum, d:Datum, zz:Datum):Datum
