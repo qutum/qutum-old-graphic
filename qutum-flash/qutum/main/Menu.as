@@ -27,8 +27,7 @@ public final class Menu extends Bar
 	public function Menu(father:Widget)
 	{
 		super(father, H, 0, 0)
-		logo()
-		text(Eventy.NEW, 'New', 'New file', 'F2', 2)
+		text(Eventy.NEW, 'New', 'New file', 'F2', 2, 38)
 		text(Eventy.LOAD, 'Load', 'Load file', 'F3', 3)
 		text(Eventy.SAVE, 'Save', 'Save file', 'F4', 4)
 		text(Eventy.RUN, 'Run', 'Run', 'F10', 10)
@@ -72,14 +71,6 @@ public final class Menu extends Bar
 			else
 				tip.visible = false
 		}
-	}
-
-	private function logo(e = null)
-	{
-		if (e)
-			Main.web()
-		else
-			Item(new Logo, logo, '', '', Tool.W, 26)
 	}
 
 	private function undo(e = null)

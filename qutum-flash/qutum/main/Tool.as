@@ -9,7 +9,6 @@ package qutum.main
 import flash.display.DisplayObject;
 import flash.display.GradientType;
 import flash.display.Shape;
-import flash.events.KeyboardEvent;
 import flash.events.MouseEvent;
 import flash.geom.Matrix;
 import flash.geom.Point;
@@ -27,6 +26,7 @@ public final class Tool extends Bar
 	public function Tool(father:Widget)
 	{
 		super(father, 0, W, 0)
+		logo()
 		zInput(), zDatum(), zOutput()
 		input(), datum(), output()
 		namey(), trial(), veto(), unity(), base(), agent()
@@ -67,13 +67,25 @@ public final class Tool extends Bar
 		}
 	}
 
+	private function logo(e = null)
+	{
+		if (e)
+			Main.web()
+		else
+		{
+			var i:Widget = new Widget().add(new Logo).attach(MouseEvent.CLICK, logo)
+			i.xy(W - i.width >> 1, Menu.H - i.height >> 1)
+			add(i)
+		}
+	}
+
 	private function zInput(e = null)
 	{
 		if (e)
 			return keyed(105, 73)
 		var p:Shape = new Shape, g:flash.display.Graphics = p.graphics
 		Util.line(g, 2, 0x6600dd), g.moveTo(0, 1), g.lineTo(16, 1), g.drawRect(3, 1, 10, 9)
-		Item(p, zInput, 'Add sibling Input', 'i', 28)
+		Item(p, zInput, 'Add sibling Input', 'i', 14)
 	}
 
 	private function zDatum(e = null)
