@@ -173,7 +173,6 @@ final class Datum extends Hit
 			if (ox == DX && rowAt(IX).numChildren + rowAt(ox).numChildren == 0)
 				removeChildAt(DX), removeChildAt(IX),
 				ox = -1
-			reRx = 1
 			refresh(3)
 		}
 		edit.key == this && edit.keyin(keyPrev, 0, 0, false) // will keyin again

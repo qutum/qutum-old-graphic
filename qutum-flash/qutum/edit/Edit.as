@@ -30,7 +30,6 @@ public final class Edit extends Widget
 	static var firstActive:Boolean = true
 
 	var zonest:Datum
-	var iu:int, ou:int
 
 	var sx:int, sy:int, sr:int, sb:int
 	var key:Hit, keyR:int, keyX:int
