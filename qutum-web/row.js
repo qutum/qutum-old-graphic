@@ -6,6 +6,7 @@
 //
 (function(){
 
+// row is array
 Row = function (d, row)
 {
 	row.d = d

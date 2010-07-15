@@ -6,29 +6,11 @@
 //
 (function () {
 
-function input(z, nameOrU)
-{
-	var d = new Datum(-1)
-	d.layer2 = true
-	d.addTo(z, 0, z.ox < 0 ? 0 : z.rows[0].length)
-	nameOrU.unity ? d.unityTo(nameOrU) : d.naming(nameOrU)
-	return d
-}
-
-function output(z, nameOrU)
-{
-	var d = new Datum(1)
-	d.layer2 = true
-	d.addTo(z, 1, z.ox < 0 ? 0 : z.rows[1].length)
-	nameOrU.unity ? d.unityTo(nameOrU) : d.naming(nameOrU)
-	return d
-}
-
 Layer2 = function (zonest)
 {
 	var In = input(zonest, 'in')
 	var data = output(In, 'data'), next = output(In, 'next')
-	In.view(3)
+	In.show(3)
 
 	var math = input(zonest, 'math')
 	var Int = output(math, 'int')
@@ -65,6 +47,24 @@ Layer2 = function (zonest)
 	output(s, data)
 	next = output(s, next), s.agent(new Wire, next, false)
 	output(next, data), output(next, output(s, 'nextable'))
+}
+
+function input(z, nameOrU)
+{
+	var d = new Datum(-1)
+	d.layer2 = true
+	d.addTo(z, 0, z.ox < 0 ? 0 : z.rows[0].length)
+	nameOrU.unity ? d.unityTo(nameOrU) : d.naming(nameOrU)
+	return d
+}
+
+function output(z, nameOrU)
+{
+	var d = new Datum(1)
+	d.layer2 = true
+	d.addTo(z, 1, z.ox < 0 ? 0 : z.rows[1].length)
+	nameOrU.unity ? d.unityTo(nameOrU) : d.naming(nameOrU)
+	return d
 }
 
 })()
