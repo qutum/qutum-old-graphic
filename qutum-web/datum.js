@@ -6,8 +6,6 @@
 //
 (function () {
 
-var IX = 0, DX = 1, Unity = 0
-
 Datum = function (io)
 {
 	this.io = io
@@ -17,10 +15,12 @@ Datum = function (io)
 	this.bs = []
 	this.as = []
 }
-var SIZE0 = Datum.SIZE0 = 20, SPACE = Datum.SPACE = 20, NAME_WIDTH = Datum.NAME_WIDTH = 50
+var IX = 0, DX = 1, Unity = 0,
+	SIZE0 = Datum.SIZE0 = 20, SPACE = Datum.SPACE = 20, NAME_WIDTH = Datum.NAME_WIDTH = 50
 
 Datum.prototype =
 {
+
 edit: null,
 zone: null,
 deep: 0, // zone.deep + 1
@@ -64,7 +64,7 @@ w: 0,
 h: 0,
 ox: -1, // -1: no inner datum, >=DX: output row index
 detail: 1, // 1: hide, 2: only this, 3: this and inners
-refresh: 0,
+showing: 0,
 dragMode: 0,
 nowPrev: null,
 nowNext: null,
@@ -115,7 +115,7 @@ addTo: function (z, r, x) // x < 0 to add row
 				: z.rows[r - 1].last().el + 1
 	}
 	this._addTo(this.deep)
-	this.view(this.layer2 ? z.layer2 ? 1 : 2 : 3)
+	this.show(this.layer2 ? z.layer2 ? 1 : 2 : 3)
 	return this
 },
 
@@ -143,7 +143,7 @@ unadd: function (r, x)
 	this.io || this.row.length || (z.rows.splice(r, 1), z.ox--, unrow = true)
 	if (z.ox == DX && z.rows[IX].length + z.rows[DX].length == 0)
 		z.rows = [], z.ox = -1
-	z.view(3)
+	z.show(3)
 	var p = this.nowPrev, n = this.nowNext
 	this.edit.now == this && this.edit.beNow(p, 0, 0, false) // will beNow again
 	p && (p.nowNext = n), n && (n.nowPrev = p)
@@ -183,7 +183,7 @@ _naming: function (v)
 	this.name = v
 	v = (this.tv ? this.edit.nameTvW : 0) + (v ? this.edit.draw.measureText(v).width | 0 : 0)
 	this.nameR = v && (v + 6), this.nameH = v && (this.edit.nameH + 6)
-	this.view(-1)
+	this.show(-1)
 },
 
 tving: function (tv)
@@ -225,7 +225,7 @@ breakRow: function (r, x)
 	var r0 = this.rows[r], r1 = Row(this, r0.splice(x))
 	this.rows.splice(r + 1, 0, r1)
 	this.ox++
-	this.view(3)
+	this.show(3)
 },
 
 // return the length before merge
@@ -237,7 +237,7 @@ mergeRow: function (r)
 	var n0 = r0.length
 	r0.push.apply(r1[0])
 	this.ox--
-	this.view(3)
+	this.show(3)
 	return n0
 },
 
@@ -287,18 +287,9 @@ offsetY: function (z)
 	return y
 },
 
-// 0: no refresh, <0: refresh, 1: refresh to hide, 2: refresh to only this
-// 3: refresh to this and inners, >3: refresh all deeply
-view: function (x)
-{
-	if (this.refresh <= 0 || x > this.refresh)
-		this.refresh = x, this.edit.refresh = true
-	return true
-},
-
 layoutDetail: function ()
 {
-	var dd = this.refresh, r, x, y, d
+	var dd = this.showing, r, x, y, d
 	if ( !this.zone || dd >= 4)
 		this.detail = 3
 	else if (dd > 0)
@@ -308,18 +299,18 @@ layoutDetail: function ()
 		{
 			if (dd > 0)
 				if (dd >= 4)// TODO && !d.layer2)
-					d.refresh = 4
+					d.showing = 4
 				else if (dd <= 2)
-					d.refresh = 1
+					d.showing = 1
 			d.layoutDetail()
 			if (d.detail >= 2 && this.detail < 3)
-				this.detail = this.refresh = 3
+				this.detail = this.showing = 3
 		}
 	if (this.detail >= 3)
 		for (x = IX; x <= this.ox; x++)
 			for (r = this.rows[x], y = 0; d = r[y]; y++)
 				if (d.detail < 2)
-					d.detail = d.refresh = 2
+					d.detail = d.showing = 2
 },
 
 layout: function (force)
@@ -328,7 +319,7 @@ layout: function (force)
 	for (x = IX; r = rs[x]; x++)
 		for (y = 0; d = r[y]; y++)
 			d.layout(false) && (force = true)
-	this.refresh && (force = true, this.refresh = 0)
+	this.showing && (force = true, this.showing = 0)
 	if ( !force)
 	{
 		for (x = 0; w = ws[x]; x++)
@@ -391,31 +382,44 @@ layout: function (force)
 	return true
 },
 
-draw: function (draw, drawName)
+
+// 0: no show, <0: show, 1: hide, 2: show only this
+// 3: show this and inners, >3: show all deeply
+show: function (x, draw)
 {
-	var c0 = this.io < 0 ? '#f9f3ff' : this.io > 0 ? '#f3f9ff' : '#f5fff5',
+	if ( !draw)
+	{
+		if (this.showing <= 0 || x > this.showing)
+			this.showing = x, this.edit.show()
+		return true
+	}
+	var io = this.io,
+		c0 = io < 0 ? '#f9f3ff' : io > 0 ? '#f3f9ff' : '#f5fff5',
 		c = this.err ? this.yield ? '#ff9999' : '#ff0000'
-			: this.io < 0 ? this.yield ? '#9933ff' : '#6600dd'
-			: this.io > 0 ? this.yield ? '#3399ff' : '#0066dd'
+			: io < 0 ? this.yield ? '#9933ff' : '#6600dd'
+			: io > 0 ? this.yield ? '#3399ff' : '#0066dd'
 			: this.yield ? '#66cc66' : '#008800'
-	if ( !this.zone || this.io != this.zone.io)
+	var w2, h2, x, r, y, d, w = this.w
+	if ( !this.zone || io != this.zone.io)
 		draw.fillStyle = c0,
-		draw.fillRect(0, 0, this.w, this.h)
+		draw.fillRect(0, 0, w, this.h)
 	if (this.gene)
 		draw.fileStyle = c, draw.beginPath(),
 		draw.moveTo(1, 1), draw.lineTo(3.5, 1), draw.lineTo(1, 3.5), draw.fill()
-	if (this.w)
+	if (w)
 	{
 		draw.lineWidth = 1, draw.strokeStyle = c
-		draw.strokeRect(0.5, 0.5, this.w - 1, this.h - 1)
+		draw.strokeRect(0.5, 0.5, w - 1, this.h - 1)
+		if (this.uNext != this && this.unity == this.edit.now.unity)
+			draw.fillStyle = io < 0 ? '#e6ccff' : io > 0 ? '#cce6ff' : '#000',
+			draw.fillRect(2, 2, this.nameR - 4, this.nameY - 1)
 		if (x = this.tv)
-			drawName.fillText(x < 0 ? '?' : '!', 3, dy + this.nameY)
+			draw.fillStyle = '#000', draw.fillText(x < 0 ? '?' : '!', 3, this.nameY)
 		if (y = this.name)
-			drawName.fillText(y, 3 + (x && this.edit.nameTvW), this.nameY)
+			draw.fillStyle = '#000', draw.fillText(y, 3 + (x && this.edit.nameTvW), this.nameY)
 	}
-	var w2, h2, x, r, y, d, w
 	if (this.detail == 2 && this.ox > 0)
-		w2 = this.w >> 1, h2 = this.nameH || this.h >> 1,
+		w2 = w >> 1, h2 = this.nameH || this.h >> 1,
 		draw.lineWidth = 2, draw.beginPath(),
 		draw.moveTo(w2 - 3, h2), draw.lineTo(w2 + 3, h2), draw.stroke()
 	if (this.yield)
@@ -424,11 +428,9 @@ draw: function (draw, drawName)
 
 	for (x = 0; r = this.rows[x]; x++)
 		for (y = 0; d = r[y]; y++)
-			draw.translate(d.x, d.y), drawName.translate(d.x, d.y),
-			d.draw(draw, drawName),
-			draw.translate(-d.x, -d.y), drawName.translate(-d.x, -d.y)
+			draw.translate(d.x, d.y), d.show(null, draw), draw.translate(-d.x, -d.y)
 	for (x = 0; w = this.wires[x]; x++)
-		w.draw(draw)
+		w.show(draw)
 },
 
 }
