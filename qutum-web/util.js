@@ -45,12 +45,11 @@ canvas: function (o, font)
 	return draw
 },
 
-draw: function (draw, w, h, x, y)
+draw: function (draw, x, y, w, h)
 {
 	var canv = draw.canvas
+	canv.style.left = x + 'px', canv.style.top = y + 'px'
 	canv.width = w, canv.height = h
-	if (+x===x)
-		canv.style.left = x + 'px', canv.style.top = y + 'px', draw.translate(-x, -y)
 	draw.textBaseline = 'bottom' // 'top' 'baseline' uncompatible
 	draw.font = draw.font0
 	return draw

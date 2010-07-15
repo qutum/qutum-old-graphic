@@ -167,7 +167,7 @@ layout: function (force)
 	}
 },
 
-show: function (draw)
+show: function (draw, X, Y, W, H)
 {
 	var s = this.xys
 	if ( !s)
@@ -175,9 +175,9 @@ show: function (draw)
 	draw.lineWidth = 2
 	draw.strokeStyle = this.err ? this.yield ? '#ffbbbb' : '#ff3333' : this.yield ? '#aaaaaa' : '#555555'
 	draw.beginPath()
-	draw.moveTo(s[0], s[1])
+	draw.moveTo(s[0] - X, s[1] - Y)
 	for (var i = 2, n = s.length; i < n; )
-		draw.lineTo(s[i++], s[i++])
+		draw.lineTo(s[i++] - X, s[i++] - Y)
 	draw.stroke()
 },
 

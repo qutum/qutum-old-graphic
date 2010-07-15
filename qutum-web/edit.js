@@ -14,7 +14,7 @@ Edit = function (dom)
 	var whole = this.whole = dom.appendChild(document.createElement('div')),
 		css = getComputedStyle(whole, null)
 		font = css.fontWeight + ' ' + css.fontSize + ' "' + css.fontFamily + '"',
-	this.draw = Util.draw(Util.canvas(whole, font), 50, 50)
+	this.draw = Util.draw(Util.canvas(whole, font), 0, 0, 50, 50)
 	this.drawHit = Util.canvas(whole, font)
 	this.drawNow = Util.canvas(whole, font)
 	this.drawDrag = Util.canvas(whole, font)
@@ -22,16 +22,15 @@ Edit = function (dom)
 	this.nameTvW = this.draw.measureText('?').width | 0
 	this.showing = Date.now()
 	dom.addEventListener('scroll', show, false)
-	dom.addEventListener('resize', show, false)
+	window.addEventListener('resize', show, false)
+	function show() { This.show() }
 
-	var z = this.zonest = new Datum(0), This = this
+	var This = this, z = this.zonest = new Datum(0)
 	z.edit = this
 	z.addTo(null, 0, 0)
 	this.nowing(z, -1, -1, false)
 	Layer2(z)
 	z.show(4)
-
-	function show() { This.show() }
 }
 
 Edit.prototype =
@@ -113,12 +112,12 @@ show: function (edit)
 			setTimeout(this.show, this.showing - Date.now(), this), this.showing = -1
 		return true
 	}
-	edit.showing = Date.now() + 80
-	var z = edit.zonest, dom = edit.dom
+	var now = Date.now(), z = edit.zonest, dom = edit.dom
 	z.layoutDetail(), z.layout(false)
 	edit.whole.style.width = z.w + 'px', edit.whole.style.height = z.h + 'px'
-	Util.draw(edit.draw, dom.clientWidth, dom.clientHeight, dom.scrollLeft, dom.scrollTop)
-	z.show(null, edit.draw)
+	Util.draw(edit.draw, dom.scrollLeft, dom.scrollTop, dom.clientWidth, dom.clientHeight)
+	z.show(null, edit.draw, dom.scrollLeft, dom.scrollTop, dom.clientWidth, dom.clientHeight)
+	edit.showing = -now + (now = Date.now()) + now + 50
 },
 
 }

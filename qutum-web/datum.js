@@ -274,19 +274,6 @@ unityTo: function (u, undoRedo)
 //////////////////////////////// view ////////////////////////////////
 ////////////////////////////////      ////////////////////////////////
 
-offsetX: function (z)
-{
-	for (var x = 0, d = this; d != z; d = d.zone)
-		x += d.x
-	return x
-},
-offsetY: function (z)
-{
-	for (var y = 0, d = this; d != z; d = d.zone)
-		y += d.y
-	return y
-},
-
 layoutDetail: function ()
 {
 	var dd = this.showing, r, x, y, d
@@ -382,10 +369,9 @@ layout: function (force)
 	return true
 },
 
-
 // 0: no show, <0: show, 1: hide, 2: show only this
 // 3: show this and inners, >3: show all deeply
-show: function (x, draw)
+show: function (x, draw, X, Y, W, H)
 {
 	if ( !draw)
 	{
@@ -393,44 +379,91 @@ show: function (x, draw)
 			this.showing = x, this.edit.show()
 		return true
 	}
-	var io = this.io,
-		c0 = io < 0 ? '#f9f3ff' : io > 0 ? '#f3f9ff' : '#f5fff5',
+	var w = this.w, h = this.h
+	if (X >= w || Y >= h || X + W <= 0 || Y + H <= 0 || !w)
+		return
+	draw.translate(-X, -Y)
+
+	var io = this.io, c0 = io < 0 ? '#f9f3ff' : io > 0 ? '#f3f9ff' : '#f5fff5',
 		c = this.err ? this.yield ? '#ff9999' : '#ff0000'
 			: io < 0 ? this.yield ? '#9933ff' : '#6600dd'
 			: io > 0 ? this.yield ? '#3399ff' : '#0066dd'
 			: this.yield ? '#66cc66' : '#008800'
-	var w2, h2, x, r, y, d, w = this.w
-	if ( !this.zone || io != this.zone.io)
-		draw.fillStyle = c0,
-		draw.fillRect(0, 0, w, this.h)
+	var s = this.rows, R, r, D, d, x, y, rh, dw, dh
+	
+	draw.fillStyle = c0
+	if (this.ox > 0)
+		for (R = this.searchRow(Y), R ^= R >> 31, y = 0; (r = s[R]) && y < Y + H; R++)
+		{
+			draw.fillRect(0, y, w, -y + (y = r.y))
+			rh = r.h
+			D = r.searchDatumX(X), D ^= D >> 31
+			for (x = 0; (d = r[D]) && x < X + W; D++)
+				draw.fillRect(x, y, -x + (x = d.x), rh),
+				draw.fillRect(x, y, dw = d.w, d.y - y),
+				draw.fillRect(x, dh = d.y + d.h, dw, rh - dh),
+				x += dw
+			D && (d = r[D - 1], draw.fillRect(dw = d.x + d.w, y, w - dw, rh))
+			y += rh
+		}
+	else
+		draw.fillRect(0, 0, w, h)
+
+	draw.lineWidth = 1, draw.strokeStyle = c
+	draw.strokeRect(0.5, 0.5, w - 1, h - 1)
 	if (this.gene)
 		draw.fileStyle = c, draw.beginPath(),
 		draw.moveTo(1, 1), draw.lineTo(3.5, 1), draw.lineTo(1, 3.5), draw.fill()
-	if (w)
-	{
-		draw.lineWidth = 1, draw.strokeStyle = c
-		draw.strokeRect(0.5, 0.5, w - 1, this.h - 1)
-		if (this.uNext != this && this.unity == this.edit.now.unity)
-			draw.fillStyle = io < 0 ? '#e6ccff' : io > 0 ? '#cce6ff' : '#000',
-			draw.fillRect(2, 2, this.nameR - 4, this.nameY - 1)
-		if (x = this.tv)
-			draw.fillStyle = '#000', draw.fillText(x < 0 ? '?' : '!', 3, this.nameY)
-		if (y = this.name)
-			draw.fillStyle = '#000', draw.fillText(y, 3 + (x && this.edit.nameTvW), this.nameY)
-	}
 	if (this.detail == 2 && this.ox > 0)
-		w2 = w >> 1, h2 = this.nameH || this.h >> 1,
-		draw.lineWidth = 2, draw.beginPath(),
-		draw.moveTo(w2 - 3, h2), draw.lineTo(w2 + 3, h2), draw.stroke()
+		draw.lineWidth = 2, draw.strokeRect((w >> 1) - 3, this.nameH || h >> 1, 6, 0)
 	if (this.yield)
-		draw.lineWidth = 1, draw.strokStyle = c0,
-		draw.beginPath(), draw.moveTo(0.5, 1), draw.lineTo(0.5, 6), draw.stroke()
+		draw.strokStyle = c0, draw.strokeRect(0.5, 1, 0, 5)
 
-	for (x = 0; r = this.rows[x]; x++)
-		for (y = 0; d = r[y]; y++)
-			draw.translate(d.x, d.y), d.show(null, draw), draw.translate(-d.x, -d.y)
-	for (x = 0; w = this.wires[x]; x++)
-		w.show(draw)
+	if (this.uNext != this && this.unity == this.edit.now.unity)
+		draw.fillStyle = io < 0 ? '#e6ccff' : io > 0 ? '#cce6ff' : '#000',
+		draw.fillRect(2, 2, this.nameR - 4, this.nameY - 1)
+	if (x = this.tv)
+		draw.fillStyle = '#000', draw.fillText(x < 0 ? '?' : '!', 3, this.nameY)
+	if (y = this.name)
+		draw.fillStyle = '#000', draw.fillText(y, 3 + (x && this.edit.nameTvW), this.nameY)
+
+	draw.translate(X, Y)
+	for (R = 0; r = s[R]; R++)
+		for (D = 0; d = r[D]; D++)
+			d.show(null, draw, X - d.x, Y - d.y, W, H)
+	for (s = this.wires, x = 0; s[x]; x++)
+		s[x].show(draw, X, Y, W, H)
+},
+
+offsetX: function (z)
+{
+	for (var x = 0, d = this; d != z; d = d.zone)
+		x += d.x
+	return x
+},
+offsetY: function (z)
+{
+	for (var y = 0, d = this; d != z; d = d.zone)
+		y += d.y
+	return y
+},
+
+searchRow: function (y)
+{
+	if (y < 0)
+		return ~IX
+	var low = IX, high = this.ox, s = this.rows
+	while (low <= high)
+	{
+		var mid = low + high >>> 1, r = s[mid]
+		if (y < r.y)
+			high = mid - 1
+		else if (y >= r.y + r.h)
+			low = mid + 1
+		else
+			return mid
+	}
+	return ~low
 },
 
 }

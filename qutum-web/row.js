@@ -54,7 +54,7 @@ function searchDatum(x, y)
 	var low = 0, high = this.length - 1
 	while (low <= high)
 	{
-		var mid = (low + high) >> 1, d = this[mid], dx = d.x
+		var mid = low + high >>> 1, d = this[mid], dx = d.x
 		if (x < dx)
 			high = mid - 1
 		else if (x >= dx + d.w)
@@ -71,10 +71,10 @@ function searchDatum(x, y)
 
 function searchDatumX(x)
 {
-	var low = 0, high = this.length - 1, s2 = this.space >> 1
+	var low = 0, high = this.length - 1, s2 = this.space / 2 // maybe odd
 	while (low <= high)
 	{
-		var mid = (low + high) >> 1, d = this[mid], dx = d.x
+		var mid = low + high >>> 1, d = this[mid], dx = d.x
 		if (x <= dx - s2)
 			high = mid - 1
 		else if (x > dx + d.w + s2)
