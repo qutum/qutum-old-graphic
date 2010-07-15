@@ -6,13 +6,14 @@
 //
 (function () {
 
-var S = Datum.SPACE / 4, SS = Datum.SPACE / 2
-
 Wire = function ()
 {
 }
+var S = Datum.SPACE / 4, SS = Datum.SPACE / 2
+
 Wire.prototype =
 {
+
 edit: null,
 base: null,
 agent: null,
@@ -22,7 +23,7 @@ za: null,
 yield: 0, // yield, with error
 
 err: '',
-refresh: false,
+showing: false,
 xys: null, // []
 dragMode: 0,
 nowPrev: null,
@@ -48,7 +49,7 @@ addTo: function (b, a)
 	}
 	else
 		this.zone.wires.push(this)
-	this.edit.refresh = this.refresh = true
+	this.showing = true, this.edit.show()
 },
 
 unadd: function ()
@@ -66,9 +67,9 @@ unadd: function ()
 
 layout: function (force)
 {
-	if ( !this.refresh && !force)
+	if ( !this.showing && !force)
 		return
-	this.refresh = false
+	this.showing = false
 	if (this.zone.detail <= 2)
 		return this.xys = null
 
@@ -166,7 +167,7 @@ layout: function (force)
 	}
 },
 
-draw: function (draw)
+show: function (draw)
 {
 	var s = this.xys
 	if ( !s)
@@ -186,7 +187,7 @@ draw: function (draw)
 
 compile1: function ()
 {
-	this.err != (this.err = this.error1()) && (this.edit.refresh = this.refresh = true)
+	this.err != (this.err = this.error1()) && (this.showing = true, this.edit.show())
 	this.err && (this.edit.error = 1)
 },
 
