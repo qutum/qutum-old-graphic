@@ -285,7 +285,7 @@ layoutDetail: function ()
 		for (r = this.rows[x], y = 0; d = r[y]; y++)
 		{
 			if (dd > 0)
-				if (dd >= 4)// TODO && !d.layer2)
+				if (dd >= 4 && !d.layer2)
 					d.showing = 4
 				else if (dd <= 2)
 					d.showing = 1
@@ -391,8 +391,8 @@ show: function (x, draw, X, Y, W, H)
 			: this.yield ? '#66cc66' : '#008800'
 	var s = this.rows, R, r, D, d, x, y, rh, dw, dh
 	
-	draw.fillStyle = c0
-	if (this.ox > 0)
+	draw.fillStyle = c0, draw.strokeStyle = c
+	if (this.detail > 2 && this.ox > 0)
 		for (R = this.searchRow(Y), R ^= R >> 31, y = 0; (r = s[R]) && y < Y + H; R++)
 		{
 			draw.fillRect(0, y, w, -y + (y = r.y))
@@ -409,7 +409,7 @@ show: function (x, draw, X, Y, W, H)
 	else
 		draw.fillRect(0, 0, w, h)
 
-	draw.lineWidth = 1, draw.strokeStyle = c
+	draw.lineWidth = 1 
 	draw.strokeRect(0.5, 0.5, w - 1, h - 1)
 	if (this.gene)
 		draw.fileStyle = c, draw.beginPath(),
@@ -417,7 +417,7 @@ show: function (x, draw, X, Y, W, H)
 	if (this.detail == 2 && this.ox > 0)
 		draw.lineWidth = 2, draw.strokeRect((w >> 1) - 3, this.nameH || h >> 1, 6, 0)
 	if (this.yield)
-		draw.strokStyle = c0, draw.strokeRect(0.5, 1, 0, 5)
+		draw.lineWidth = 1, draw.strokStyle = c0, draw.strokeRect(0.5, 1, 0, 5)
 
 	if (this.uNext != this && this.unity == this.edit.now.unity)
 		draw.fillStyle = io < 0 ? '#e6ccff' : io > 0 ? '#cce6ff' : '#000',
