@@ -14,55 +14,29 @@ Edit = function (dom)
 	var whole = this.whole = dom.appendChild(document.createElement('div')),
 		css = getComputedStyle(whole, null)
 		font = css.fontWeight + ' ' + css.fontSize + ' "' + css.fontFamily + '"',
-		draw = setDraw(canvas(whole, font), 50, 50)
-	this.draw = draw
-	this.drawName = setDraw(canvas(whole, font), 50, 50)
-	this.drawHit = setDraw(canvas(whole, font), 50, 50)
-	this.drawDrag = setDraw(canvas(whole, font), 50, 50)
+	this.draw = Util.draw(Util.canvas(whole, font), 50, 50)
+	this.drawHit = Util.canvas(whole, font)
+	this.drawNow = Util.canvas(whole, font)
+	this.drawDrag = Util.canvas(whole, font)
 	this.nameH = parseInt(css.fontSize, 10)
-	this.nameTvW = Math.max(draw.measureText('?').width, draw.measureText('!').width) | 0
+	this.nameTvW = this.draw.measureText('?').width | 0
+	this.showing = Date.now()
+	dom.addEventListener('scroll', show, false)
+	dom.addEventListener('resize', show, false)
 
-	var z = this.zonest = new Datum(0)
+	var z = this.zonest = new Datum(0), This = this
 	z.edit = this
 	z.addTo(null, 0, 0)
+	this.nowing(z, -1, -1, false)
 	Layer2(z)
-	z.view(4), z.layoutDetail(), z.layout(false)
-	setDraw(draw, z.w, z.h)
-	setDraw(this.drawName, z.w, z.h)
-	z.draw(draw, this.drawName)
-}
-var Alert = alert
-alert = function (v)
-{
-	Alert.call(null, Array.prototype.join.call(arguments, ' '))
-	return v
-}
-Array.prototype.last = function ()
-{
-	return this[this.length - 1]
-}
-Array.prototype.remove = function (v)
-{
-	(v = this.indexOf(v)) >= 0 && this.splice(v, 1)
-}
-function canvas(o, font)
-{
-	var canv = o.appendChild(document.createElement('canvas')), draw = canv.getContext('2d')
-	canv.style.display = 'block', canv.style.position = 'absolute'
-	draw.font0 = font
-	return draw
-}
-function setDraw(draw, w, h)
-{
-	var canv = draw.canvas
-	canv.width = w, canv.height = h
-	draw.textBaseline = 'bottom' // 'top' 'baseline' uncompatible
-	draw.font = draw.font0
-	return draw
+	z.show(4)
+
+	function show() { This.show() }
 }
 
 Edit.prototype =
 {
+
 zonest: null,
 now: null,
 nowR: 0,
@@ -80,15 +54,13 @@ dragY: 0,
 dom: null,
 whole: null,
 draw: null,
-drawName: null,
 drawHit: null,
+drawNow: null,
 drawDrag: null,
 nameH: 0,
 nameTvW: 0,
 name: null,
-unities: true,
-unity: null,
-refresh: false,
+showing: 0,
 
 com: null,
 unsave: 0,
@@ -114,8 +86,8 @@ nowing: function (now, r, x, nav)
 		now0.nowNext && (now0.nowNext.nowPrev = null),
 		now0.nowNext = now
 // TODO no name edit
-	this.refresh = true
-	now instanceof Datum && now.detail < 2 && now.view(2)
+	now instanceof Datum && now.detail < 2 && now.show(2)
+	this.show()
 },
 
 _nowing: function (r, x)
@@ -129,9 +101,24 @@ _nowing: function (r, x)
 		this.nowX = this.now.row.indexOf(this.now)
 },
 
-view: function ()
+////////////////////////////////      ////////////////////////////////
+//////////////////////////////// view ////////////////////////////////
+////////////////////////////////      ////////////////////////////////
+
+show: function (edit)
 {
-	
+	if ( !edit)
+	{
+		if (this.showing >= 0)
+			setTimeout(this.show, this.showing - Date.now(), this), this.showing = -1
+		return true
+	}
+	edit.showing = Date.now() + 80
+	var z = edit.zonest, dom = edit.dom
+	z.layoutDetail(), z.layout(false)
+	edit.whole.style.width = z.w + 'px', edit.whole.style.height = z.h + 'px'
+	Util.draw(edit.draw, dom.clientWidth, dom.clientHeight, dom.scrollLeft, dom.scrollTop)
+	z.show(null, edit.draw)
 },
 
 }
