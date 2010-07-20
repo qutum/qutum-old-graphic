@@ -14,9 +14,11 @@
 html, body { width:100%; height:100%; padding:0; margin:0; overflow:hidden; }
 #edit { width:100%; height:100%; font-size:15px; }
 #Log {
-	position:fixed; right:0; bottom:0; max-width:30em; max-height:20em; overflow:auto;
-	padding:1ex; border:1px solid #99f; background: rgba(192,192,255,0.6);
+	box-sizing:content-box; -webkit-box-sizing:content-box; -moz-box-sizing:content-box;
+	position:fixed; right:0; bottom:0; max-width:40em; max-height:20em; overflow:scroll;
+	padding: 1ex; border:1px solid #99f; background: rgba(192,192,255,0.6);
 }
+#Log div { white-space:nowrap; min-height: 1ex; }
 #Log .err { color:red }
 </style>
 </head>

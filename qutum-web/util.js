@@ -55,6 +55,39 @@ draw: function (draw, x, y, w, h)
 	return draw
 },
 
+on: function (dom, event, This, func, args)
+{
+	func.call.call
+	dom.addEventListener(event,
+		args===true ? function (e)
+		{
+			try { var _; func.call(This, e); _ = true } finally { _ || $err('event error') }
+		}
+		: args ? function ()
+		{
+			try { var _; func.apply(This, args); _ = true } finally { _ || $err('event error') }
+		}
+		: function ()
+		{
+			try { var _; func.call(This); _ = true } finally { _ || $err('event error') }
+		},
+		false)
+},
+
+timer: function (time, This, func, args)
+{
+	func.call.call
+	return setTimeout(args ? function ()
+		{
+			try { var _; func.apply(This, args); _ = true } finally { _ || $err('timer error') }
+		}
+		: function ()
+		{
+			try { var _; func.call(This); _ = true } finally { _ || $err('timer error') }
+		},
+		time >= 0 ? time : 0)
+},
+
 }
 
 })()

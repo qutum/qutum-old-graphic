@@ -186,6 +186,11 @@ _naming: function (v)
 	this.show(-1)
 },
 
+toString: function ()
+{
+	return "'" + this.name + "'"
+},
+
 tving: function (tv)
 {
 	var tv0 = this.tv
@@ -371,14 +376,15 @@ layout: function (force)
 
 // 0: no show, <0: show, 1: hide, 2: show only this
 // 3: show this and inners, >3: show all deeply
-show: function (x, draw, X, Y, W, H)
+show: function (x)
 {
-	if ( !draw)
-	{
-		if (this.showing <= 0 || x > this.showing)
-			this.showing = x, this.edit.show()
-		return true
-	}
+	if (this.showing <= 0 || x > this.showing)
+		this.showing = x, this.edit.show()
+	return true
+},
+
+_show: function (draw, X, Y, W, H)
+{
 	var w = this.w, h = this.h
 	if (X >= w || Y >= h || X + W <= 0 || Y + H <= 0 || !w)
 		return
@@ -412,8 +418,8 @@ show: function (x, draw, X, Y, W, H)
 	draw.lineWidth = 1 
 	draw.strokeRect(0.5, 0.5, w - 1, h - 1)
 	if (this.gene)
-		draw.fileStyle = c, draw.beginPath(),
-		draw.moveTo(1, 1), draw.lineTo(3.5, 1), draw.lineTo(1, 3.5), draw.fill()
+		draw.fillStyle = c, draw.beginPath(),
+		draw.moveTo(1, 1), draw.lineTo(4, 1), draw.lineTo(1, 4), draw.fill()
 	if (this.detail == 2 && this.ox > 0)
 		draw.lineWidth = 2, draw.strokeRect((w >> 1) - 3, this.nameH || h >> 1, 6, 0)
 	if (this.yield)
@@ -430,9 +436,53 @@ show: function (x, draw, X, Y, W, H)
 	draw.translate(X, Y)
 	for (R = 0; r = s[R]; R++)
 		for (D = 0; d = r[D]; D++)
-			d.show(null, draw, X - d.x, Y - d.y, W, H)
+			d._show(draw, X - d.x, Y - d.y, W, H)
 	for (s = this.wires, x = 0; s[x]; x++)
 		s[x].show(draw, X, Y, W, H)
+},
+
+hit: function (xy, wire)
+{
+	var x = xy[0], y = xy[1], i, n, d = this, w, r
+	if (x < 0 || y < 0 || x >= this.w || y >= this.h)
+		return null
+	xy[0] = xy[1] = 0
+	for (;;)
+	{
+		if (wire !== false)
+			for (i = 0; w = d.wires[i]; i++)
+				if (w.hit(x, y))
+					return w
+		if ((i = d.searchRow(y)) < 0)
+			break
+		r = d.rows[i]
+		i = r.searchDatum(x, y)
+		if (i < 0)
+			break
+		d = r[i]
+		x -= d.x, y -= d.y
+		xy[0] += d.x, xy[1] += d.y
+	}
+	return d
+},
+
+Hit: function (draw, x, y)
+{
+	var w = this.w, h = this.h,
+		c = this.err ? '#f00' : this.io < 0 ? '#b6f' : this.io > 0 ? '#6af' : '#6c6'
+	Util.draw(draw, x, y, w, h)
+	draw.clearRect(0, 0, w, h)
+	draw.globalAlpha = this.yield ? 0.5 : 1
+	if (this.gene)
+		draw.fillStyle = c, draw.beginPath(),
+		draw.moveTo(2, 2), draw.lineTo(7, 2), draw.lineTo(2, 7), draw.fill()
+	draw.lineWidth = 3, draw.strokeStyle = c
+	draw.strokeRect(1.5, 1.5, w - 3, h - 3)
+//	if (err)
+//		edit.tip.str(err).color(0xfff8f8, 0xaa6666, 0x880000)
+//			.xy(stage.mouseX + 1, stage.mouseY - edit.tip.height).visible = true
+//	else
+//		edit.tip.str('').visible = false	
 },
 
 offsetX: function (z)
@@ -441,6 +491,7 @@ offsetX: function (z)
 		x += d.x
 	return x
 },
+
 offsetY: function (z)
 {
 	for (var y = 0, d = this; d != z; d = d.zone)

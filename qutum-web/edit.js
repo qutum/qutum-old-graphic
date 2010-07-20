@@ -20,15 +20,15 @@ Edit = function (dom)
 	this.drawDrag = Util.canvas(whole, font)
 	this.nameH = parseInt(css.fontSize, 10)
 	this.nameTvW = this.draw.measureText('?').width | 0
-	this.showing = Date.now()
-	dom.addEventListener('scroll', show, false)
-	window.addEventListener('resize', show, false)
-	function show() { This.show() }
+	css = font = null
+	Util.on(dom, 'scroll', this, this.show)
+	Util.on(window, 'resize', this, this.show)
+	Util.on(dom, 'mousemove', this, this.Hit, true)
 
-	var This = this, z = this.zonest = new Datum(0)
+	var z = this.zonest = new Datum(0)
 	z.edit = this
 	z.addTo(null, 0, 0)
-	this.nowing(z, -1, -1, false)
+	this.Now(z, -1, -1, false)
 	Layer2(z)
 	z.show(4)
 }
@@ -39,13 +39,13 @@ Edit.prototype =
 zonest: null,
 now: null,
 nowR: 0,
-nowX: 0,
+nowD: 0,
 keyOn: 0,
 keyOff: 0,
 keyTime: 0,
 hit: null,
-hitX: 0,
-hitY: 0,
+hitX: 0, // relative to page
+hitY: 0, // relative to page
 drag: false,
 dragX: 0,
 dragY: 0,
@@ -60,6 +60,7 @@ nameH: 0,
 nameTvW: 0,
 name: null,
 showing: 0,
+hitting: 0,
 
 com: null,
 unsave: 0,
@@ -68,7 +69,7 @@ error: 0,
 yields: null, // []
 
 // r and x is -1 by default, nav is true by default
-nowing: function (now, r, x, nav)
+Now: function (now, r, x, nav)
 {
 	if (this.drag)
 		return
@@ -76,7 +77,7 @@ nowing: function (now, r, x, nav)
 		throw 'null now'
 	var now0 = this.now
 	this.now = now
-	this._nowing(r, x)
+	this._Now(r, x)
 	if (nav !== false && now0 != now)
 		now.nowPrev && (now.nowPrev.nowNext = now.nowNext),
 		now.nowNext && (now.nowNext.nowPrev = now.nowPrev),
@@ -89,15 +90,15 @@ nowing: function (now, r, x, nav)
 	this.show()
 },
 
-_nowing: function (r, x)
+_Now: function (r, x)
 {
 	if (this.now == this.zonest || !(this.now instanceof Datum))
-		this.nowR = nowX = -1
+		this.nowR = nowD = -1
 	else if (r >= 0 && x >= 0)
-		this.nowR = r, this.nowX = x
+		this.nowR = r, this.nowD = x
 	else
 		this.nowR = this.now.zone.rows.indexOf(this.now.row),
-		this.nowX = this.now.row.indexOf(this.now)
+		this.nowD = this.now.row.indexOf(this.now)
 },
 
 ////////////////////////////////      ////////////////////////////////
@@ -106,18 +107,45 @@ _nowing: function (r, x)
 
 show: function (edit)
 {
-	if ( !edit)
+	if (this.showing >= 0)
+		Util.timer(this.showing - Date.now(), this, this._show), this.showing = -1
+	if (this.hitting >= 0)
+		Util.timer(this.hitting - Date.now(), this, this._Hit), this.hitting = -1
+},
+
+_show: function ()
+{
+	try
 	{
-		if (this.showing >= 0)
-			setTimeout(this.show, this.showing - Date.now(), this), this.showing = -1
-		return true
+		var now = Date.now(), z = this.zonest, m = this.dom
+		z.layoutDetail(), z.layout(false)
+		this.whole.style.width = z.w + 'px', this.whole.style.height = z.h + 'px'
+		Util.draw(this.draw, m.scrollLeft, m.scrollTop, m.clientWidth, m.clientHeight)
+		z._show(this.draw, m.scrollLeft, m.scrollTop, m.clientWidth, m.clientHeight)
 	}
-	var now = Date.now(), z = edit.zonest, dom = edit.dom
-	z.layoutDetail(), z.layout(false)
-	edit.whole.style.width = z.w + 'px', edit.whole.style.height = z.h + 'px'
-	Util.draw(edit.draw, dom.scrollLeft, dom.scrollTop, dom.clientWidth, dom.clientHeight)
-	z.show(null, edit.draw, dom.scrollLeft, dom.scrollTop, dom.clientWidth, dom.clientHeight)
-	edit.showing = -now + (now = Date.now()) + now + 50
+	finally
+	{
+		this.showing = -now + (now = Date.now()) + now + 50
+	}
+},
+
+Hit: function (e)
+{
+	this.hitX = e.clientX + pageXOffset
+	this.hitY = e.clientY + pageYOffset
+	if (this.hitting >= 0)
+		Util.timer(this.hitting - Date.now(), this, this._Hit), this.hitting = -1
+},
+
+_Hit: function ()
+{
+	this.hitting = Date.now() + 80
+	var x = this.hitX, y = this.hitY, m = this.dom
+	do
+		x += m.scrollLeft - m.offsetLeft, y += m.scrollTop - m.offsetTop
+	while (m = m.offsetParent)
+	var xy = [ x, y ], h = this.hit = this.zonest.hit(xy)
+	h && h.Hit(this.drawHit, xy[0], xy[1])
 },
 
 }
