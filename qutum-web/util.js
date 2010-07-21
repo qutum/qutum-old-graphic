@@ -25,13 +25,14 @@ $err = function (v)
 	return v
 }
 
-Array.prototype.last = function ()
+ArrayLast = function (s)
 {
-	return this[this.length - 1]
+	return s[s.length - 1]
 }
-Array.prototype.remove = function (v)
+ArrayRem = function (s, v)
 {
-	(v = this.indexOf(v)) >= 0 && this.splice(v, 1)
+	(v = s.indexOf(v)) >= 0 && s.splice(v, 1)
+	return s
 }
 
 Util =

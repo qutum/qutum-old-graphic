@@ -112,7 +112,7 @@ addTo: function (z, r, x) // x < 0 to add row
 			this.bzer = this.azer = this,
 			this.el = r <= DX ? x // for loading
 				: x ? z.rows[r][x - 1].el + 1
-				: z.rows[r - 1].last().el + 1
+				: ArrayLast(z.rows[r - 1]).el + 1
 	}
 	this._addTo(this.deep)
 	this.show(this.layer2 ? z.layer2 ? 1 : 2 : 3)
@@ -157,10 +157,10 @@ _unadd: function (deep)
 	var x, w, r, y, d
 	for (x = 0; w = this.bs[x]; x++)
 		if (w.zone.deep < deep)
-			w.base.as.remove(w), w.unadd()
+			ArrayRem(w.base.as, w), w.unadd()
 	for (x = 0; w = this.as[x]; x++)
 		if (w.zone.deep < deep)
-			w.agent.bs.remove(w), w.unadd()
+			ArrayRem(w.agent.bs, w), w.unadd()
 	for (x = IX; r = this.rows[x]; x++)
 		for (y = 0; d = r[y]; y++)
 			d._unadd(deep)
@@ -221,7 +221,7 @@ unagent: function (w)
 	var x = this.as.indexOf(w), a = w.agent
 	if (x < 0)
 		return
-	this.as.splice(x, 1), a.bs.remove(w)
+	this.as.splice(x, 1), ArrayRem(a.bs, w)
 	w.unadd()
 },
 
@@ -476,8 +476,8 @@ Hit: function (draw, x, y)
 	if (this.gene)
 		draw.fillStyle = c, draw.beginPath(),
 		draw.moveTo(2, 2), draw.lineTo(7, 2), draw.lineTo(2, 7), draw.fill()
-	draw.lineWidth = 3, draw.strokeStyle = c
-	draw.strokeRect(1.5, 1.5, w - 3, h - 3)
+	draw.lineWidth = 2.5, draw.strokeStyle = c
+	draw.strokeRect(1.25, 1.25, w - 2.5, h - 2.5)
 //	if (err)
 //		edit.tip.str(err).color(0xfff8f8, 0xaa6666, 0x880000)
 //			.xy(stage.mouseX + 1, stage.mouseY - edit.tip.height).visible = true

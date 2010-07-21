@@ -54,7 +54,7 @@ addTo: function (b, a)
 
 unadd: function ()
 {
-	this.zone.wires.remove(this) // no zone layout
+	ArrayRem(this.zone.wires, this) // no zone layout
 	var p = this.nowPrev, n = this.nowNext
 	this.edit.now == this && (this.edit.now = nowPrev)
 	p && (p.nowNext = n), n && (n.nowPrev = p)
