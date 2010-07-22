@@ -166,19 +166,19 @@ _unadd: function (deep)
 			d._unadd(deep)
 },
 
-naming: function (v)
+Name: function (v)
 {
 	if (v.charCodeAt(0) == 63 || v.charCodeAt(0) == 33) // ? !
 		v = v.substr(1)
 	for (var d = this.uNext; d != this; d = d.uNext)
 		if (v)
-			d._naming(v)
+			d._Name(v)
 		else
 			throw 'empty unity name'
-	this._naming(v)
+	this._Name(v)
 },
 
-_naming: function (v)
+_Name: function (v)
 {
 	this.name = v
 	v = (this.tv ? this.edit.nameTvW : 0) + (v ? this.edit.draw.measureText(v).width | 0 : 0)
@@ -191,13 +191,13 @@ toString: function ()
 	return "'" + this.name + "'"
 },
 
-tving: function (tv)
+Tv: function (tv)
 {
 	var tv0 = this.tv
 	if (tv0 == tv)
 		return
 	this.tv = tv
-	!tv0 != !tv && this._naming(this.name)
+	!tv0 != !tv && this._Name(this.name)
 },
 
 // replace is true by default, return exist
@@ -266,9 +266,9 @@ unityTo: function (u, undoRedo)
 	if (u != this)
 	{
 		if (u.name)
-			this.naming(u.name)
+			this.Name(u.name)
 		else if (this.name)
-			u.naming(this.name)
+			u.Name(this.name)
 		else
 			throw 'unity must have name'
 		this.unity = u.unity
@@ -390,13 +390,10 @@ _show: function (draw, X, Y, W, H)
 		return
 	draw.translate(-X, -Y)
 
-	var io = this.io, c0 = io < 0 ? '#f9f3ff' : io > 0 ? '#f3f9ff' : '#f5fff5',
-		c = this.err ? this.yield ? '#ff9999' : '#ff0000'
-			: io < 0 ? this.yield ? '#9933ff' : '#6600dd'
-			: io > 0 ? this.yield ? '#3399ff' : '#0066dd'
-			: this.yield ? '#66cc66' : '#008800'
-	var s = this.rows, R, r, D, d, x, y, rh, dw, dh
-	
+	var io = this.io, s = this.rows, R, r, D, d, x, y, rh, dw, dh,
+		c0 = io < 0 ? '#f9f3ff' : io > 0 ? '#f3f9ff' : '#f5fff5',
+		c = this.err ? '#ff0000' : io < 0 ? '#8800dd' : io > 0 ? '#0066dd' : '#008800'
+
 	draw.fillStyle = c0, draw.strokeStyle = c
 	if (this.detail > 2 && this.ox > 0)
 		for (R = this.searchRow(Y), R ^= R >> 31, y = 0; (r = s[R]) && y < Y + H; R++)
@@ -415,15 +412,12 @@ _show: function (draw, X, Y, W, H)
 	else
 		draw.fillRect(0, 0, w, h)
 
-	draw.lineWidth = 1 
-	draw.strokeRect(0.5, 0.5, w - 1, h - 1)
+	draw.lineWidth = this.yield ? 0.25 : 1, draw.strokeRect(0.5, 0.5, w - 1, h - 1)
 	if (this.gene)
 		draw.fillStyle = c, draw.beginPath(),
-		draw.moveTo(1, 1), draw.lineTo(4, 1), draw.lineTo(1, 4), draw.fill()
+		draw.moveTo(1, 1), draw.lineTo(7, 1), draw.lineTo(1, 7), draw.fill()
 	if (this.detail == 2 && this.ox > 0)
 		draw.lineWidth = 2, draw.strokeRect((w >> 1) - 3, this.nameH || h >> 1, 6, 0)
-	if (this.yield)
-		draw.lineWidth = 1, draw.strokStyle = c0, draw.strokeRect(0.5, 1, 0, 5)
 
 	if (this.uNext != this && this.unity == this.edit.now.unity)
 		draw.fillStyle = io < 0 ? '#e6ccff' : io > 0 ? '#cce6ff' : '#000',
@@ -437,8 +431,20 @@ _show: function (draw, X, Y, W, H)
 	for (R = 0; r = s[R]; R++)
 		for (D = 0; d = r[D]; D++)
 			d._show(draw, X - d.x, Y - d.y, W, H)
-	for (s = this.wires, x = 0; s[x]; x++)
-		s[x].show(draw, X, Y, W, H)
+	if (this == this.edit.now)
+	{
+		draw.translate(-X, -Y)
+		draw.strokeStyle = c
+		if (this.yield)
+			draw.lineWidth = 0.5, draw.strokeRect(1.5, 1.5, w - 3, h - 3),
+			draw.lineWidth = 0.375, draw.strokeRect(2.5, 2.5, w - 5, h - 5)
+		else
+			draw.lineWidth = 2.5, draw.strokeRect(1.25, 1.25, w - 2.5, h - 2.5)
+		draw.translate(X, Y)
+	}
+	if (this.detail >= 3)
+		for (s = this.wires, x = 0; s[x]; x++)
+			s[x].show(draw, X, Y, W, H)
 },
 
 hit: function (xy, wire)
@@ -449,7 +455,7 @@ hit: function (xy, wire)
 	xy[0] = xy[1] = 0
 	for (;;)
 	{
-		if (wire !== false)
+		if (wire !== false && d.detail >= 3)
 			for (i = 0; w = d.wires[i]; i++)
 				if (w.hit(x, y))
 					return w
@@ -472,12 +478,12 @@ Hit: function (draw, x, y)
 		c = this.err ? '#f00' : this.io < 0 ? '#b6f' : this.io > 0 ? '#6af' : '#6c6'
 	Util.draw(draw, x, y, w, h)
 	draw.clearRect(0, 0, w, h)
-	draw.globalAlpha = this.yield ? 0.5 : 1
-	if (this.gene)
-		draw.fillStyle = c, draw.beginPath(),
-		draw.moveTo(2, 2), draw.lineTo(7, 2), draw.lineTo(2, 7), draw.fill()
-	draw.lineWidth = 2.5, draw.strokeStyle = c
-	draw.strokeRect(1.25, 1.25, w - 2.5, h - 2.5)
+	if (this != this.edit.now)
+	{
+		draw.globalAlpha = this.yield ? 0.5 : 1
+		draw.strokeStyle = c, draw.lineWidth = 2.5 
+		draw.strokeRect(1.25, 1.25, w - 2.5, h - 2.5)
+	}
 //	if (err)
 //		edit.tip.str(err).color(0xfff8f8, 0xaa6666, 0x880000)
 //			.xy(stage.mouseX + 1, stage.mouseY - edit.tip.height).visible = true

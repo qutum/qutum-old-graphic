@@ -16,7 +16,6 @@ Edit = function (dom)
 		font = css.fontWeight + ' ' + css.fontSize + ' "' + css.fontFamily + '"',
 	this.draw = Util.draw(Util.canvas(whole, font), 0, 0, 50, 50)
 	this.drawHit = Util.canvas(whole, font)
-	this.drawNow = Util.canvas(whole, font)
 	this.drawDrag = Util.canvas(whole, font)
 	this.nameH = parseInt(css.fontSize, 10)
 	this.nameTvW = this.draw.measureText('?').width | 0
@@ -24,6 +23,8 @@ Edit = function (dom)
 	Util.on(dom, 'scroll', this, this.show)
 	Util.on(window, 'resize', this, this.show)
 	Util.on(dom, 'mousemove', this, this.Hit, true)
+	Util.on(dom, 'mousedown', this, this.Hit, true)
+	Util.on(dom, 'mouseup', this, this.Hit, true)
 
 	var z = this.zonest = new Datum(0)
 	z.edit = this
@@ -54,7 +55,6 @@ dom: null,
 whole: null,
 draw: null,
 drawHit: null,
-drawNow: null,
 drawDrag: null,
 nameH: 0,
 nameTvW: 0,
@@ -109,23 +109,22 @@ show: function (edit)
 {
 	if (this.showing >= 0)
 		Util.timer(this.showing - Date.now(), this, this._show), this.showing = -1
-	if (this.hitting >= 0)
-		Util.timer(this.hitting - Date.now(), this, this._Hit), this.hitting = -1
 },
 
 _show: function ()
 {
 	try
 	{
-		var now = Date.now(), z = this.zonest, m = this.dom
+		var time = Date.now(), z = this.zonest, m = this.dom
 		z.layoutDetail(), z.layout(false)
 		this.whole.style.width = z.w + 'px', this.whole.style.height = z.h + 'px'
 		Util.draw(this.draw, m.scrollLeft, m.scrollTop, m.clientWidth, m.clientHeight)
 		z._show(this.draw, m.scrollLeft, m.scrollTop, m.clientWidth, m.clientHeight)
+		this._Hit()
 	}
 	finally
 	{
-		this.showing = -now + (now = Date.now()) + now + 50
+		this.showing = -time + (time = Date.now()) + time + 50
 	}
 },
 
@@ -133,19 +132,31 @@ Hit: function (e)
 {
 	this.hitX = e.clientX + pageXOffset
 	this.hitY = e.clientY + pageYOffset
-	if (this.hitting >= 0)
+	if (e.type == 'mousedown')
+		this._Hit(true)
+	else if (e.type == 'mouseup')
+		this._Hit(false, e.shiftKey ? 4 : 3)
+	else if (this.hitting >= 0)
 		Util.timer(this.hitting - Date.now(), this, this._Hit), this.hitting = -1
 },
 
-_Hit: function ()
+_Hit: function (down, up)
 {
 	this.hitting = Date.now() + 80
 	var x = this.hitX, y = this.hitY, m = this.dom
 	do
-		x += m.scrollLeft - m.offsetLeft, y += m.scrollTop - m.offsetTop
+		x += m.scrollLeft - m.offsetLeft - m.clientLeft,
+		y += m.scrollTop - m.offsetTop - m.clientTop
 	while (m = m.offsetParent)
-	var xy = [ x, y ], h = this.hit = this.zonest.hit(xy)
-	h && h.Hit(this.drawHit, xy[0], xy[1])
+	var xy = [ x, y ], h = this.hit = this.zonest.hit(xy), now
+	if ( !h)
+		Util.draw(this.drawHit, 0, 0, 0, 0)
+	else if (down)
+		this.Now(h)
+	else if ( !up)
+		h.Hit(this.drawHit, xy[0], xy[1])
+	else if ((now = this.now) == h && now instanceof Datum && now.detail < up)
+		now.show(up)
 },
 
 }
