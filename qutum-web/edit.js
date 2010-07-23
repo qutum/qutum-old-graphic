@@ -130,8 +130,8 @@ _show: function ()
 
 Hit: function (e)
 {
-	this.hitX = e.clientX + pageXOffset
-	this.hitY = e.clientY + pageYOffset
+	this.hitX = e.clientX + pageXOffset - 1
+	this.hitY = e.clientY + pageYOffset - 1
 	if (e.type == 'mousedown')
 		this._Hit(true)
 	else if (e.type == 'mouseup')

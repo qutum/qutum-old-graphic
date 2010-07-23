@@ -447,6 +447,25 @@ _show: function (draw, X, Y, W, H)
 			s[x].show(draw, X, Y, W, H)
 },
 
+Hit: function (draw, x, y)
+{
+	var w = this.w, h = this.h
+	Util.draw(draw, x, y, w, h)
+	draw.clearRect(0, 0, w, h)
+	if (this != this.edit.now)
+	{
+		draw.globalAlpha = this.yield ? 0.5 : 1
+		draw.strokeStyle = this.err ? '#f00' : this.io < 0 ? '#b6f' : this.io > 0 ? '#6af' : '#6c6'
+		draw.lineWidth = 2.5 
+		draw.strokeRect(1.25, 1.25, w - 2.5, h - 2.5)
+	}
+//	if (err)
+//		edit.tip.str(err).color(0xfff8f8, 0xaa6666, 0x880000)
+//			.xy(stage.mouseX + 1, stage.mouseY - edit.tip.height).visible = true
+//	else
+//		edit.tip.str('').visible = false	
+},
+
 hit: function (xy, wire)
 {
 	var x = xy[0], y = xy[1], i, n, d = this, w, r
@@ -470,25 +489,6 @@ hit: function (xy, wire)
 		xy[0] += d.x, xy[1] += d.y
 	}
 	return d
-},
-
-Hit: function (draw, x, y)
-{
-	var w = this.w, h = this.h,
-		c = this.err ? '#f00' : this.io < 0 ? '#b6f' : this.io > 0 ? '#6af' : '#6c6'
-	Util.draw(draw, x, y, w, h)
-	draw.clearRect(0, 0, w, h)
-	if (this != this.edit.now)
-	{
-		draw.globalAlpha = this.yield ? 0.5 : 1
-		draw.strokeStyle = c, draw.lineWidth = 2.5 
-		draw.strokeRect(1.25, 1.25, w - 2.5, h - 2.5)
-	}
-//	if (err)
-//		edit.tip.str(err).color(0xfff8f8, 0xaa6666, 0x880000)
-//			.xy(stage.mouseX + 1, stage.mouseY - edit.tip.height).visible = true
-//	else
-//		edit.tip.str('').visible = false	
 },
 
 offsetX: function (z)

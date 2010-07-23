@@ -25,6 +25,10 @@ yield: 0, // yield, with error
 err: '',
 showing: false,
 xys: null, // []
+minX: 1,
+minY: 1,
+maxX: 0,
+maxY: 0,
 dragMode: 0,
 nowPrev: null,
 nowNext: null,
@@ -165,6 +169,13 @@ layout: function (force)
 		}
 		xys.push(bx, by)
 	}
+	var x0 = Infinity, y0 = Infinity, x9 = 0, y9 = 0
+	for (i = xys.length - 1; i > 0; )
+		y = xys[i--], x = xys[i--],
+		x < x0 ? x0 = x : x > x9 && (x9 = x),
+		y < y0 ? y0 = y : y > y9 && (y9 = y)
+	this.minX = x0 - 2, this.minY = y0 - 2
+	this.maxX = x9 + 2, this.maxY = y9 + 2
 },
 
 show: function (draw, X, Y, W, H)
@@ -172,13 +183,55 @@ show: function (draw, X, Y, W, H)
 	var s = this.xys
 	if ( !s)
 		return
-	draw.lineWidth = 2
-	draw.strokeStyle = this.err ? this.yield ? '#ffbbbb' : '#ff3333' : this.yield ? '#aaaaaa' : '#555555'
+	if (this != this.edit.now)
+		draw.strokeStyle = this.err ? '#f33' : '#555',
+		draw.lineWidth = this.yield ? 1.125 : 2
+	else
+		draw.strokeStyle = this.err ? '#f00' : '#080',
+		draw.lineWidth = this.yield ? 1.875 : 2.5
 	draw.beginPath()
 	draw.moveTo(s[0] - X, s[1] - Y)
 	for (var i = 2, n = s.length; i < n; )
 		draw.lineTo(s[i++] - X, s[i++] - Y)
 	draw.stroke()
+},
+
+Hit: function (draw, x, y)
+{
+	var xx = this.minX, yy = this.minY, w = this.maxX - xx + 1, h = this.maxY - yy + 1
+	Util.draw(draw, x + xx, y + yy, w, h)
+	draw.clearRect(0, 0, w, h)
+	var s = this.xys
+	if ( !s)
+		return
+	if (this != this.edit.now)
+	{
+		draw.strokeStyle = this.err ? '#f00' : '#6c6',
+		draw.lineWidth = this.yield ? 2.125 : 2.5
+		draw.beginPath()
+		draw.moveTo(s[0] - xx, s[1] - yy)
+		for (var i = 2, n = s.length; i < n; )
+			draw.lineTo(s[i++] - xx, s[i++] - yy)
+		draw.stroke()
+	}
+},
+
+hit: function (x, y)
+{
+	var s
+	if (x < this.minX || y < this.minY || x > this.maxX || y > this.maxY || !(s = this.xys))
+		return null
+	var x1 = s[0], y1 = s[1], x2, y2
+	for (var i = 2, n = s.length; i < n; )
+	{
+		x2 = s[i++], y2 = s[i++]
+		if (y1 == y2
+			? y - y1 > -3 && y - y1 < 3 && (x1 < x2 ? x >= x1 && x <= x2 : x >= x2 && x <= x1)
+			: x - x1 > -3 && x - x1 < 3 && (y1 < y2 ? y >= y1 && y <= y2 : y >= y2 && y <= y1))
+			return this
+		x1 = x2, y1 = y2
+	}
+	return null
 },
 
 ////////////////////////////////         ////////////////////////////////
