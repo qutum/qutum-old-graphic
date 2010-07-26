@@ -56,23 +56,23 @@ draw: function (draw, x, y, w, h)
 	return draw
 },
 
-on: function (dom, event, This, func, args)
+on: function (dom, event, This, func, args, capture)
 {
 	func.call.call
 	dom.addEventListener(event,
-		args===true ? function (e)
+		args===null ? function ()
 		{
-			try { var _; func.call(This, e); _ = true } finally { _ || $err('event error') }
+			try { var _; func.call(This); _ = true } finally { _ || $err('event error') }
 		}
 		: args ? function ()
 		{
 			try { var _; func.apply(This, args); _ = true } finally { _ || $err('event error') }
 		}
-		: function ()
+		: function (e)
 		{
-			try { var _; func.call(This); _ = true } finally { _ || $err('event error') }
+			try { var _; func.call(This, e); _ = true } finally { _ || $err('event error') }
 		},
-		false)
+		!!capture)
 },
 
 timer: function (time, This, func, args)

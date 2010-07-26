@@ -24,11 +24,11 @@ yield: 0, // yield, with error
 
 err: '',
 showing: false,
-xys: null, // []
-minX: 1,
-minY: 1,
-maxX: 0,
-maxY: 0,
+xys: null, // [] based on zone rather than wire
+x: 0,
+y: 0,
+w: 0,
+h: 0,
 dragMode: 0,
 nowPrev: null,
 nowNext: null,
@@ -174,8 +174,8 @@ layout: function (force)
 		y = xys[i--], x = xys[i--],
 		x < x0 ? x0 = x : x > x9 && (x9 = x),
 		y < y0 ? y0 = y : y > y9 && (y9 = y)
-	this.minX = x0 - 2, this.minY = y0 - 2
-	this.maxX = x9 + 2, this.maxY = y9 + 2
+	this.x = x0 - 2, this.y = y0 - 2
+	this.w = x9 - x0 + 4, this.h = y9 - y0 + 4
 },
 
 show: function (draw, X, Y, W, H)
@@ -198,7 +198,7 @@ show: function (draw, X, Y, W, H)
 
 Hit: function (draw, x, y)
 {
-	var xx = this.minX, yy = this.minY, w = this.maxX - xx + 1, h = this.maxY - yy + 1
+	var xx = this.x, yy = this.y, w = this.w, h = this.h
 	Util.draw(draw, x + xx, y + yy, w, h)
 	draw.clearRect(0, 0, w, h)
 	var s = this.xys
@@ -219,7 +219,9 @@ Hit: function (draw, x, y)
 hit: function (x, y)
 {
 	var s
-	if (x < this.minX || y < this.minY || x > this.maxX || y > this.maxY || !(s = this.xys))
+	if (x < this.x || y < this.y || x >= this.x + this.w || y >= this.y + this.h)
+		return null
+	if ( !(s = this.xys))
 		return null
 	var x1 = s[0], y1 = s[1], x2, y2
 	for (var i = 2, n = s.length; i < n; )
@@ -232,6 +234,56 @@ hit: function (x, y)
 		x1 = x2, y1 = y2
 	}
 	return null
+},
+
+offsetX: function (z)
+{
+	for (var x = 0, d = this; d != z; d = d.zone)
+		x += d.x
+	return x
+},
+
+offsetY: function (z)
+{
+	for (var y = 0, d = this; d != z; d = d.zone)
+		y += d.y
+	return y
+},
+
+////////////////////////////////      ////////////////////////////////
+//////////////////////////////// edit ////////////////////////////////
+////////////////////////////////      ////////////////////////////////
+
+nowLeft: function ()
+{
+},
+
+nowRight: function ()
+{
+},
+
+nowUp: function ()
+{
+},
+
+nowDown: function ()
+{
+},
+
+nowHome: function ()
+{
+},
+
+nowEnd: function ()
+{
+},
+
+nowZone: function ()
+{
+},
+
+nowInner: function ()
+{
 },
 
 ////////////////////////////////         ////////////////////////////////

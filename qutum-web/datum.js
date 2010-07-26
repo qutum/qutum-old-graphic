@@ -145,7 +145,7 @@ unadd: function (r, x)
 		z.rows = [], z.ox = -1
 	z.show(3)
 	var p = this.nowPrev, n = this.nowNext
-	this.edit.now == this && this.edit.beNow(p, 0, 0, false) // will beNow again
+	this.edit.now == this && this.edit.Now(p, 0, 0, false) // will beNow again
 	p && (p.nowNext = n), n && (n.nowPrev = p)
 	this.nowPrev = this.nowNext = null
 	return unrow
@@ -392,7 +392,7 @@ _show: function (draw, X, Y, W, H)
 
 	var io = this.io, s = this.rows, R, r, D, d, x, y, rh, dw, dh,
 		c0 = io < 0 ? '#f9f3ff' : io > 0 ? '#f3f9ff' : '#f5fff5',
-		c = this.err ? '#ff0000' : io < 0 ? '#8800dd' : io > 0 ? '#0066dd' : '#008800'
+		c = this.err ? '#f00' : io < 0 ? '#80d' : io > 0 ? '#06d' : '#080'
 
 	draw.fillStyle = c0, draw.strokeStyle = c
 	if (this.detail > 2 && this.ox > 0)
@@ -420,7 +420,7 @@ _show: function (draw, X, Y, W, H)
 		draw.lineWidth = 2, draw.strokeRect((w >> 1) - 3, this.nameH || h >> 1, 6, 0)
 
 	if (this.uNext != this && this.unity == this.edit.now.unity)
-		draw.fillStyle = io < 0 ? '#e6ccff' : io > 0 ? '#cce6ff' : '#000',
+		draw.fillStyle = io < 0 ? '#ebf' : io > 0 ? '#bdf' : '#000',
 		draw.fillRect(2, 2, this.nameR - 4, this.nameY - 1)
 	if (x = this.tv)
 		draw.fillStyle = '#000', draw.fillText(x < 0 ? '?' : '!', 3, this.nameY)
@@ -450,8 +450,7 @@ _show: function (draw, X, Y, W, H)
 Hit: function (draw, x, y)
 {
 	var w = this.w, h = this.h
-	Util.draw(draw, x, y, w, h)
-	draw.clearRect(0, 0, w, h)
+	Util.draw(draw, x, y, w, h), draw.clearRect(0, 0, w, h)
 	if (this != this.edit.now)
 	{
 		draw.globalAlpha = this.yield ? 0.5 : 1
@@ -523,6 +522,64 @@ searchRow: function (y)
 	return ~low
 },
 
+////////////////////////////////      ////////////////////////////////
+//////////////////////////////// edit ////////////////////////////////
+////////////////////////////////      ////////////////////////////////
+
+nowLeft: function ()
+{
+	var nr = this.edit.nowR, nd = this.edit.nowD, r = this.row
+	if (r && (--nd >= 0 || (r = this.zone.rows[--nr]) && (nd = r.length - 1) >= 0))
+		this.edit.Now(r[nd], nr, nd)
+},
+
+nowRight: function ()
+{
+	var nr = this.edit.nowR, nd = this.edit.nowD, r = this.row
+	if (r && (++nd < r.length || (r = this.zone.rows[++nr]) && (nd = 0) < r.length))
+		this.edit.Now(r[nd], nr, nd)
+},
+
+nowUp: function ()
+{
+	var nr = this.edit.nowR, r = this.zone, d
+	if (r && (r = r.rows[--nr]) && r.length)
+		d = r.searchDatumX(this.x + this.w / 2),
+		this.edit.Now(r[d ^= d >> 31] || r[d = r.length - 1], nr, d)
+},
+
+nowDown: function ()
+{
+	var nr = this.edit.nowR, r = this.zone, d
+	if (r && (r = r.rows[++nr]) && r.length)
+		d = r.searchDatumX(this.x + this.w / 2),
+		this.edit.Now(r[d ^= d >> 31] || r[d = r.length - 1], nr, d)
+},
+
+nowHome: function ()
+{
+	var d = this.row
+	d && this != (d = d[0]) && this.edit.Now(d, this.edit.nowR, 0)
+},
+
+nowEnd: function ()
+{
+	var r = this.row, d
+	r && this != (d = r[r.length - 1]) && this.edit.Now(d, this.edit.nowR, r.length - 1)
+},
+
+nowZone: function ()
+{
+	this.edit.Now(this.zone || this)
+},
+
+nowInner: function ()
+{
+	var kr
+	this.ox > 0 && this.edit.Now(this.rows[kr = IX][0] || this.rows[kr = DX][0], kr, 0)
+},
+
 }
 
 })()
+
