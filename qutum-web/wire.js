@@ -254,36 +254,23 @@ offsetY: function (z)
 //////////////////////////////// edit ////////////////////////////////
 ////////////////////////////////      ////////////////////////////////
 
-nowLeft: function ()
-{
-},
-
-nowRight: function ()
-{
-},
-
-nowUp: function ()
-{
-},
-
-nowDown: function ()
-{
-},
-
-nowHome: function ()
-{
-},
-
-nowEnd: function ()
-{
-},
-
 nowZone: function ()
 {
+	this.edit.Now(this.zone)
 },
-
-nowInner: function ()
+nowBase: function (next)
 {
+	if ( !next)
+		return this.edit.Now(this.base)
+	var s = this.agent.bs
+	this.edit.Now(s[s.indexOf(this) + 1] || s[0])
+},
+nowAgent: function (next)
+{
+	if ( !next)
+		return this.edit.Now(this.agent)
+	var s = this.base.as
+	this.edit.Now(s[s.indexOf(this) + 1] || s[0])
 },
 
 ////////////////////////////////         ////////////////////////////////

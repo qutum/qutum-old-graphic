@@ -93,7 +93,7 @@ Now: function (now, r, d, nav, show)
 	this.now = now
 	this._Now(r, d)
 	show == null && (show = 2)
-	now instanceof Datum && now.detail < show && now.show(show) || this.show()
+	now.nowUnfold && now.nowUnfold(show) || this.show()
 },
 
 _Now: function (r, d)
@@ -169,7 +169,7 @@ _Hit: function (down)
 		if (this.now != h) 
 			this.Now(h, -1, -1, true, down)
 		else
-			h instanceof Datum && h.detail < down + 1 && h.show(down + 1)
+			h.nowUnfold && h.nowUnfold(down + 1)
 	else
 		h.Hit(this.drawHit, xy[0], xy[1])
 },
@@ -188,7 +188,7 @@ key: function (e)
 			this.keyTime = Date.now() // fix key repeat on linux
 		return
 	}
-	var k = e.charCode, shift = e.shiftKey, cam = e.ctrlKey || e.altKey || e.metaKey
+	var now = this.now, k = e.charCode
 	if ( !k)
 	K: {
 		k = e.keyCode
@@ -199,21 +199,18 @@ key: function (e)
 			return this.keyType = e.type // fix keydown repeat on Firefox
 		this.keyType = e.type
 
+		var shift = e.shiftKey, cam = e.ctrlKey || e.altKey || e.metaKey
 		if ( !shift && !cam)
-			if (k == 37) // left
-				this.now.nowLeft()
-			else if (k == 39) // right
-				this.now.nowRight()
-			else if (k == 38) // up
-				this.now.nowUp()
-			else if (k == 40) // down
-				this.now.nowDown()
-			else if (k == 36) // home
-				this.now.nowHome()
-			else if (k == 35) // end
-				this.now.nowEnd()
-			else if (k == 9) // tab
-				this.now.nowInner()
+			switch (k)
+			{
+			case 37: now.nowLeft && now.nowLeft(); break // left
+			case 39: now.nowRight && now.nowRight(); break // right
+			case 38: now.nowUp && now.nowUp(); break // up
+			case 40: now.nowDown && now.nowDown(); break // down
+			case 36: now.nowHome && now.nowHome(); break // home
+			case 35: now.nowEnd && now.nowEnd(); break // end
+			case 9: now.nowInner && now.nowInner(); break // tab
+			}
 
 		if (shift && k == 37 || cam && k == 90)
 			this.com.undo() // shift-left cam-z
@@ -227,14 +224,25 @@ key: function (e)
 	}
 	this.keyType = e.type
 
-	if (k == 122) // z
-		this.now.nowZone()
-	else if (k == 32) // space
-		this.now.nowInner()
-// TODO if (c && k == keyOff && new Date().time - keyTime < 16)
-//		keyOn = keyOff // fix linux player on key repeat
-	else
-		return
+	if (k == 43 && k == this.keyUp && Date.now() - this.keyTime < 16)
+		this.keyUp = this.keyDown // fix linux player on key repeat
+	switch (k)
+	{
+	case 122: now.nowZone && now.nowZone(); break // z
+	case 32: now.nowInner && now.nowInner(); break // space
+	case 44: now.nowInput && now.nowInput(); break // ,
+	case 96: now.nowDatum && now.nowDatum(); break // `
+	case 46: now.nowOuput && now.nowOutput(); break // .
+	case 59: now.nowUnity && now.nowUnity(); break // ;
+	case 91: now.nowBase && now.nowBase(true); break // [
+	case 93: now.nowAgent && now.nowAgent(true); break // ]
+	case 123: now.nowBase && now.nowBase(false); break // {
+	case 125: now.nowAgent && now.nowAgent(false); break // }
+	case 43: k != this.keyDown && now.nowUnfold && now.nowUnfold(4); break // +
+	case 61: now.nowUnfold && now.nowUnfold(3); break // =
+	case 45: case 95: now.nowFold && now.nowFold(2); break // - _
+	default: return
+	}
 	e.preventDefault() // key consumed
 },
 

@@ -62,7 +62,7 @@ x: 0,
 y: 0,
 w: 0,
 h: 0,
-ox: -1, // -1: no inner datum, >=DX: output row index
+ox: -1, // -1: no inner datum, >=DX: output row index, == rows.length - 1
 detail: 1, // 1: hide, 2: only this, 3: this and inners
 showing: 0,
 dragMode: 0,
@@ -375,7 +375,7 @@ layout: function (force)
 },
 
 // 0: no show, <0: show, 1: hide, 2: show only this
-// 3: show this and inners, >3: show all deeply
+// 3: show this and inners, >=4: show all deeply
 show: function (x)
 {
 	if (this.showing <= 0 || x > this.showing)
@@ -532,14 +532,12 @@ nowLeft: function ()
 	if (r && (--nd >= 0 || (r = this.zone.rows[--nr]) && (nd = r.length - 1) >= 0))
 		this.edit.Now(r[nd], nr, nd)
 },
-
 nowRight: function ()
 {
 	var nr = this.edit.nowR, nd = this.edit.nowD, r = this.row
 	if (r && (++nd < r.length || (r = this.zone.rows[++nr]) && (nd = 0) < r.length))
 		this.edit.Now(r[nd], nr, nd)
 },
-
 nowUp: function ()
 {
 	var nr = this.edit.nowR, r = this.zone, d
@@ -547,7 +545,6 @@ nowUp: function ()
 		d = r.searchDatumX(this.x + this.w / 2),
 		this.edit.Now(r[d ^= d >> 31] || r[d = r.length - 1], nr, d)
 },
-
 nowDown: function ()
 {
 	var nr = this.edit.nowR, r = this.zone, d
@@ -555,31 +552,56 @@ nowDown: function ()
 		d = r.searchDatumX(this.x + this.w / 2),
 		this.edit.Now(r[d ^= d >> 31] || r[d = r.length - 1], nr, d)
 },
-
 nowHome: function ()
 {
-	var d = this.row
-	d && this != (d = d[0]) && this.edit.Now(d, this.edit.nowR, 0)
+	var d = this.row; d && this != (d = d[0]) && this.edit.Now(d, this.edit.nowR, 0)
 },
-
 nowEnd: function ()
 {
 	var r = this.row, d
 	r && this != (d = r[r.length - 1]) && this.edit.Now(d, this.edit.nowR, r.length - 1)
 },
-
 nowZone: function ()
 {
 	this.edit.Now(this.zone || this)
 },
-
 nowInner: function ()
 {
-	var kr
-	this.ox > 0 && this.edit.Now(this.rows[kr = IX][0] || this.rows[kr = DX][0], kr, 0)
+	var kr; this.ox > 0 && this.edit.Now(this.rows[kr = IX][0] || this.rows[kr = DX][0], kr, 0)
+},
+nowInput: function ()
+{
+	var d; this.ox > 0 && (d = this.rows[IX][0]) && this.edit.Now(d, IX, 0)
+},
+nowDatum: function ()
+{
+	var d; this.ox > DX && (d = this.rows[DX][0]) && this.edit.Now(d, DX, 0)
+},
+nowOutput: function ()
+{
+	var d, ox = this.ox; ox > 0 && (d = this.rows[ox][0]) && this.edit.Now(d, ox, 0)
+},
+nowUnity: function ()
+{
+	this.uNext != this && this.edit.Now(this.uNext)
+},
+nowBase: function (next)
+{
+	var b = this.bs[0]; b && this.edit.Now(b)
+},
+nowAgent: function (next)
+{
+	var a = this.as[0]; a && this.edit.Now(a)
+},
+nowUnfold: function (x)
+{
+	return (x >= 4 || this.detail < x) && this.show(x)
+},
+nowFold: function (x)
+{
+	this.detail > 2 && this.show(2)
 },
 
 }
 
 })()
-
