@@ -27,7 +27,6 @@ Edit = function (dom)
 	Util.on(dom, 'mousedown', this, this.Hit)
 	Util.on(dom, 'keydown', this, this.key)
 	Util.on(dom, 'keypress', this, this.key)
-	Util.on(dom, 'keyup', this, this.key)
 
 	var z = this.zonest = new Datum(0)
 	z.edit = this
@@ -35,6 +34,7 @@ Edit = function (dom)
 	this.Now(z, -1, -1, false)
 	Layer2(z)
 	z.show(4)
+	this.com = new Command(this)
 }
 
 Edit.prototype =
@@ -42,13 +42,10 @@ Edit.prototype =
 
 zonest: null,
 now: null,
-nowR: 0,
-nowD: 0,
-nowScroll: false,
+nowR: 0, // row of now, <0 now is zonest or wire
+nowD: 0, // datum of now in row, <0 now is zonest or wire
+nowScroll: false, // scroll to show now
 keyType: '',
-keyDown: 0,
-keyUp: 0,
-keyTime: 0,
 hit: null,
 hitX: 0, // relative to page
 hitY: 0, // relative to page
@@ -64,13 +61,14 @@ drawDrag: null,
 nameH: 0,
 nameTvW: 0,
 name: null,
-showing: 0,
-hitting: 0,
+showing: 0, // to show in milliseconds
+hitting: 0, // to show hit in milliseconds
 
 com: null,
-unsave: 0,
+unsave: 0, // >0 saved and redos <0 saved and undos
 saveUs: null, // {}
-error: 0,
+errorN: 0, // number of errors
+compiling: 0, // to compile in milliseconds
 yields: null, // []
 
 // r and d is -1 by default, nav is true by default, show is 2 by default
@@ -99,7 +97,7 @@ Now: function (now, r, d, nav, show)
 _Now: function (r, d)
 {
 	if (this.now == this.zonest || !(this.now instanceof Datum))
-		this.nowR = nowD = -1
+		this.nowR = this.nowD = -1
 	else if (r >= 0 && d >= 0)
 		this.nowR = r, this.nowD = d
 	else
@@ -180,22 +178,16 @@ _Hit: function (down)
 
 key: function (e)
 {
-	if (e.type == 'keyup')
-	{
-		if (e.keyCode == this.keyDown)
-			this.keyDown = 0,
-			this.keyUp = e.keyCode,
-			this.keyTime = Date.now() // fix key repeat on linux
-		return
-	}
 	var now = this.now, k = e.charCode
 	if ( !k)
 	K: {
 		k = e.keyCode
+		if (k == 13 && e.type == 'keypress')
+			break K
 		if (k != 9 && k != 27 && (k < 33 || k > 40))
 			return
 		e.preventDefault() // no scroll
-		if (this.keyType == 'keypress' && e.type != 'keypress')
+		if (this.keyType != 'keypress' && e.type == 'keypress')
 			return this.keyType = e.type // fix keydown repeat on Firefox
 		this.keyType = e.type
 
@@ -224,8 +216,6 @@ key: function (e)
 	}
 	this.keyType = e.type
 
-	if (k == 43 && k == this.keyUp && Date.now() - this.keyTime < 16)
-		this.keyUp = this.keyDown // fix linux player on key repeat
 	switch (k)
 	{
 	case 122: now.nowZone && now.nowZone(); break // z
@@ -234,16 +224,29 @@ key: function (e)
 	case 96: now.nowDatum && now.nowDatum(); break // `
 	case 46: now.nowOuput && now.nowOutput(); break // .
 	case 59: now.nowUnity && now.nowUnity(); break // ;
-	case 91: now.nowBase && now.nowBase(true); break // [
-	case 93: now.nowAgent && now.nowAgent(true); break // ]
-	case 123: now.nowBase && now.nowBase(false); break // {
-	case 125: now.nowAgent && now.nowAgent(false); break // }
-	case 43: k != this.keyDown && now.nowUnfold && now.nowUnfold(4); break // +
-	case 61: now.nowUnfold && now.nowUnfold(3); break // =
+	case 91: case 123: now.nowBase && now.nowBase(k == 91); break // [ {
+	case 93: case 125: now.nowAgent && now.nowAgent(k == 93); break // ] }
+	case 43: case 61: now.nowUnfold && now.nowUnfold(k == 43 ? 4 : 3); break // + =
 	case 45: case 95: now.nowFold && now.nowFold(2); break // - _
+
+	case 105: case 73: this.com.input(k == 105); break // i I
+	case 100: case 68: this.com.datum(k == 100); break // d D
+	case 111: case 79: this.com.output(k == 111); break // o O
+	case 13: e.shiftKey && this.com.breakRow(); break // shift-enter
+	case 84: case 63: this.com.trialVeto(-1); break // t ?
+	case 86: case 33: this.com.trialVeto(1); break // v !
 	default: return
 	}
 	e.preventDefault() // key consumed
+},
+
+Unsave: function (delta)
+{
+	this.error = 0
+	// TODO compiling
+	this.yields = null
+	if ( !this.unsave != !(this.unsave += delta))
+		; // TODO unsaved 
 },
 
 }

@@ -15,7 +15,7 @@ Datum = function (io)
 	this.bs = []
 	this.as = []
 }
-var IX = 0, DX = 1, Unity = 0,
+var IX = Datum.IX = 0, DX = Datum.DX = 1, Unity = 0,
 	SIZE0 = Datum.SIZE0 = 20, SPACE = Datum.SPACE = 20, NAME_WIDTH = Datum.NAME_WIDTH = 50
 
 Datum.prototype =
@@ -45,9 +45,9 @@ wires: null, // []
 mustRun: false, // must run or may run, as agent zoner
 yield: 0,
 yR: 0,
-yX: 0,
+yD: 0,
 unyR: 0,
-unyX: 0,
+unyD: 0,
 us: null, // {}
 bbs: null, // [Wiring]
 base0: 0, // the maximum deep of all outermost bases
@@ -89,7 +89,7 @@ addTo: function (z, r, x) // x < 0 to add row
 		z.ox = DX
 	if (x < 0)
 		z.rows.splice(r, 0, this.row = Row(z, [ this ])),
-		z.ox++
+		z.ox++, x = 0
 	else
 		(this.row = z.rows[r]).splice(x, 0, this)
 	if ( !this.zone)
@@ -227,8 +227,10 @@ unagent: function (w)
 
 breakRow: function (r, x)
 {
-	var r0 = this.rows[r], r1 = Row(this, r0.splice(x))
+	var r0 = this.rows[r], r1 = Row(this, r0.splice(x)), d
 	this.rows.splice(r + 1, 0, r1)
+	for (d = r1.length - 1; d >= 0; d--)
+		r1[d].row = r1
 	this.ox++
 	this.show(3)
 },
@@ -239,8 +241,10 @@ mergeRow: function (r)
 	var r0 = this.rows[r], r1 = this.rows.splice(r + 1, 1)
 	if (r1 == null)
 		return -1
-	var n0 = r0.length
-	r0.push.apply(r1[0])
+	var n0 = r0.length, r1 = r1[0]
+	r0.push.apply(r0, r1)
+	for (d = r1.length - 1; d >= 0; d--)
+		r1[d].row = r0
 	this.ox--
 	this.show(3)
 	return n0
