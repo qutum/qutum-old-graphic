@@ -178,6 +178,7 @@ layout: function (force)
 	this.w = x9 - x0 + 4, this.h = y9 - y0 + 4
 },
 
+// X Y W H is draw area based on zone
 show: function (draw, X, Y, W, H)
 {
 	var s = this.xys
@@ -196,22 +197,19 @@ show: function (draw, X, Y, W, H)
 	draw.stroke()
 },
 
-Hit: function (draw, x, y)
+Hit: function (draw)
 {
-	var xx = this.x, yy = this.y, w = this.w, h = this.h
-	Util.draw(draw, x + xx, y + yy, w, h)
-	draw.clearRect(0, 0, w, h)
-	var s = this.xys
+	var x = this.x, y = this.y, s = this.xys
 	if ( !s)
 		return
-	if (this != this.edit.now)
+	if (this != this.edit.now || this.edit.drag)
 	{
 		draw.strokeStyle = this.err ? '#f00' : '#6c6',
 		draw.lineWidth = this.yield ? 2.125 : 2.5
 		draw.beginPath()
-		draw.moveTo(s[0] - xx, s[1] - yy)
+		draw.moveTo(s[0] - x, s[1] - y)
 		for (var i = 2, n = s.length; i < n; )
-			draw.lineTo(s[i++] - xx, s[i++] - yy)
+			draw.lineTo(s[i++] - x, s[i++] - y)
 		draw.stroke()
 	}
 },

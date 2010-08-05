@@ -77,8 +77,7 @@ unyield: function (s)
 
 name: function (v)
 {
-	var now = this.edit.now, nr = this.edit.nowR, nd = this.edit.nowD,
-		u = now.uNext, m = now.name, um = nu.name
+	var now = this.edit.now, u = now.uNext, m = now.name, um = nu.name
 	if (m != v && ( !v || !now.unity.d.layer2))
 		this.go(function (redo)
 		{
@@ -86,182 +85,187 @@ name: function (v)
 				now != u && !v && now.unityTo(now), key.name = v
 			else
 				now != u && !v ? now.unityTo(u) : key.name = m
-			this.edit.Now(now, nr, nd)
+			this.edit.Now(now)
 		})
 },
 
 input: function (inner)
 {
-	var now = this.edit.now, nr = this.edit.nowR, nd = this.edit.nowD
+	var now = this.edit.now
 	if (now instanceof Wire)
 		return
-	var z, d = new Datum(-1), dr, dd
+	var z, d = new Datum(-1), r, q
 	if (now.io < 0 && inner)
-		z = now.zone, dr = nr, dd = nd + 1
+		z = now.zone, r = now.zone.rows.indexOf(now.row), q = now.row.indexOf(now) + 1
 	else
 		z = inner && now.zone || now,
-		dr = IX, dd = z.ox < 0 ? 0 : z.rows[dr].length
+		r = IX, q = z.ox < 0 ? 0 : z.rows[r].length
 	this.go(function (redo)
 	{
 		if (redo)
-			d.addTo(z, dr, dd), this.edit.Now(d, dr, dd)
+			d.addTo(z, r, q), this.edit.Now(d)
 		else
-			d.unadd(dr, dd), this.edit.Now(now, nr, nd)
+			d.unadd(r, q), this.edit.Now(now)
 	})
 },
 
 datum: function (inner)
 {
-	var now = this.edit.now, nr = this.edit.nowR, nd = this.edit.nowD
+	var now = this.edit.now
 	if (now instanceof Wire)
 		return
-	var z, d = new Datum(0), dr, dd
+	var z, d = new Datum(0), r, q
 	if (now.io || !inner || !now.zone)
 		z = inner && now.zone || now,
-		z.ox <= DX ? (dr = DX, dd = -1) : (dr = z.ox - 1, dd = z.rows[dr].length),
-		dd >= 4 && (dr++, dd = -1)
+		z.ox <= DX ? (r = DX, q = -1) : (r = z.ox - 1, q = z.rows[r].length),
+		q >= 4 && (r++, q = -1)
 	else
-		z = now.zone, dr = nr, dd = nd + 1
+		z = now.zone, r = now.zone.rows.indexOf(now.row), q = now.row.indexOf(now) + 1
 	this.go(function (redo)
 	{
 		if (redo)
-			d.addTo(z, dr, dd), this.edit.Now(d, dr, dd)
+			d.addTo(z, r, q), this.edit.Now(d)
 		else
-			d.unadd(dr, dd < 0 ? 0 : dd), this.edit.Now(now, nr, nd)
+			d.unadd(r, q < 0 ? 0 : q), this.edit.Now(now)
 	})
 },
 
 output: function (inner)
 {
-	var now = this.edit.now, nr = this.edit.nowR, nd = this.edit.nowD
+	var now = this.edit.now
 	if (now instanceof Wire)
 		return
-	var z, d = new Datum(1), dr, dd
+	var z, d = new Datum(1), r, q
 	if (now.io > 0 && inner)
-		z = now.zone, dr = nr, dd = nd + 1
+		z = now.zone, r = now.zone.rows.indexOf(now.row), q = now.row.indexOf(now) + 1
 	else
 		z = inner && now.zone || now,
-		dr = z.ox < 0 ? DX : z.ox, dd = z.ox < 0 ? 0 : z.rows[dr].length
+		r = z.ox < 0 ? DX : z.ox, q = z.ox < 0 ? 0 : z.rows[r].length
 	this.go(function (redo)
 	{
 		if (redo)
-			d.addTo(z, dr, dd), this.edit.Now(d, dr, dd)
+			d.addTo(z, r, q), this.edit.Now(d)
 		else
-			d.unadd(dr, dd), this.edit.Now(now, nr, nd)
+			d.unadd(r, q), this.edit.Now(now)
 	})
 },
 
 breakRow: function ()
 {
-	var now = this.edit.now, nr = this.edit.nowR, nd = this.edit.nowD
-	if (now.io || nd <= 0)
+	var now = this.edit.now, r, q
+	if (now.io !== 0 || (q = now.row.indexOf(now)) <= 0) // not wire
 		return
+	r = now.zone.rows.indexOf(now.row)
 	this.go(function (redo)
 	{
 		if (redo)
-			now.zone.breakRow(nr, nd), this.edit.Now(now, nr + 1, 0)
+			now.zone.breakRow(r, q), this.edit.Now(now)
 		else
-			now.zone.mergeRow(nr), this.edit.Now(now, nr, nd)
+			now.zone.mergeRow(r), this.edit.Now(now)
 	})
 },
 
 remove: function ()
 {
-	var now = this.edit.now, nr = this.edit.nowR, nd = this.edit.nowD,
-		z = now.zone, rs, addRow
-	if ( !z)
+	var now = this.edit.now
+	if (now.row == null)
 		return
-	rs = z.rows
-	if (nr > IX && nr < z.ox - 1 && nd && nd == rs[nr].length - 1)
+	var z = now.zone, rs = z.rows, r = rs.indexOf(now.row), q = now.row.indexOf(now), addRow
+	if (r > IX && r < z.ox - 1 && q && q == now.row.length - 1)
 		this.go(function (redo)
 		{
 			if (redo)
-				now.unadd(nr, nd), z.mergeRow(nr),
-				this.edit.Now(z.rows[nr][nd], nr, nd)
+				now.unadd(r, q), z.mergeRow(r),
+				this.edit.Now(rs[r][q])
 			else
-				z.breakRow(nr, nd), now.addTo(z, nr, nd),
-				this.edit.Now(now, nr, nd)
+				z.breakRow(r, q), now.addTo(z, r, q),
+				this.edit.Now(now)
 		})
 	else
 		this.go(function (redo)
 		{
 			if (redo)
-				addRow = now.unadd(nr, nd),
+				addRow = now.unadd(r, q),
 				this.edit.Now(z.ox < 0 ? z
-					: rs[nr][nd] || rs[nr + 1] && rs[nr + 1][0]
-					|| rs[nr][nd - 1] || ArrayLast(rs[nr - 1]))
+					: rs[r][q] || rs[r + 1] && rs[r + 1][0]
+					|| rs[r][q - 1] || ArrayLast(rs[r - 1]))
 			else
-				now.addTo(z, nr, addRow ? -1 : nd), this.edit.Now(now, nr, nd)
+				now.addTo(z, r, addRow ? -1 : q), this.edit.Now(now)
 		})
 },
 
 removeBefore: function ()
 {
-	var now = this.edit.now, nr = this.edit.nowR, nd = this.edit.nowD,
-		z = now.zone, d, dd
-	if ( !z)
+	var now = this.edit.now
+	if (now.row == null)
 		return
-	if (nr > IX + 1 && nr < z.ox && nd == 0)
+	var z = now.zone, r = z.rows.indexOf(now.row), q = now.row.indexOf(now), d
+	if (r > IX + 1 && r < z.ox && q == 0)
 		this.go(function (redo)
 		{
 			if (redo)
-				dd = z.mergeRow(nr - 1), this.edit.Now(now, nr - 1, dd)
+				q = z.mergeRow(r - 1), this.edit.Now(now)
 			else
-				z.breakRow(nr - 1, dd), this.edit.Now(now, nr, nd)
+				z.breakRow(r - 1, q), this.edit.Now(now)
 		})
-	else if (nd)
-		d = z.rows[nr][dd = nd - 1],
+	else if (q)
+		d = z.rows[r][q - 1],
 		this.go(function (redo)
 		{
 			if (redo)
-				d.unadd(nr, dd), this.edit.Now(now, nr, dd)
+				d.unadd(r, q - 1), this.edit.Now(now)
 			else
-				d.addTo(z, nr, dd), this.edit.Now(now, nr, nd)
+				d.addTo(z, r, q - 1), this.edit.Now(now)
 		})
 },
 
-move: function (r, d)
+move: function (r, q)
 {
-	var now = this.edit.now, nr = this.edit.nowR, nd = this.edit.nowD,
-		z = now.zone, rs = z.rows, empty = r != nr && rs[nr].length == 1
-	if (r == nr && d > nd)
-		d--
+	var now = this.edit.now
+	if (now.row == null)
+		return
+	var z = now.zone, rs = z.rows, nr = rs.indexOf(now.row), nq = now.row.indexOf(now),
+		empty = r != nr && rs[nr].length == 1
+	if (r == nr && q > nq)
+		q--
 	this.go(function (redo)
 	{
 		if (redo)
-			rs[nr].splice(nd, 1), rs[r].splice(d, 0, now),
+			rs[nr].splice(nq, 1), rs[r].splice(q, 0, now),
 			empty && (z.ox--, rs.splice(nr, 1)),
-			z.show(-1), this.edit.Now(now, r, d)
+			z.show(-1), this.edit.Now(now)
 		else
 			empty && (z.ox++, rs.splice(nr, 0, Row(z, []))),
-			rs[r].splice(d, 1), rs[nr].splice(nd, 0, now),
-			z.show(-1), this.edit.Now(now, nr, nd)
+			rs[r].splice(q, 1), rs[nr].splice(nq, 0, now),
+			z.show(-1), this.edit.Now(now)
 	})
 },
 
 moveRow: function (r)
 {
-	var now = this.edit.now, nr = this.edit.nowR, nd = this.edit.nowD,
-		z = now.zone, rs = z.rows, empty = rs[nr].length == 1
+	var now = this.edit.now
+	if (now.row == null)
+		return
+	var z = now.zone, rs = z.rows, nr = rs.indexOf(now.row), nq = now.row.indexOf(now),
+		empty = rs[nr].length == 1
 	if (empty && r > nr)
 		r--
 	this.go(function (redo)
 	{
 		if (redo)
 			empty ? rs.splice(r, 0, rs.splice(nr, 1))
-				: (z.ox++, rs[nr].splice(nd, 1), rs.splice(r, 0, Row(z, [ now ]))),
-			z.show(-1), this.edit.Now(now, r, 0)
+				: (z.ox++, rs[nr].splice(nq, 1), rs.splice(r, 0, Row(z, [ now ]))),
+			z.show(-1), this.edit.Now(now)
 		else
 			empty ? z.addChildAt(z.removeChildAt(r), nr)
-				: (z.ox--, rs.splice(r, 1), rs[nr].splice(nd, 0, now)),
-			z.show(-1), this.edit.Now(now, nr, nd)
+				: (z.ox--, rs.splice(r, 1), rs[nr].splice(nq, 0, now)),
+			z.show(-1), this.edit.Now(now)
 	})
 },
 
 unity: function (u)
 {
-	var now = this.edit.now, nr = this.edit.nowR, nd = this.edit.nowD,
-		u = now.uNext, m = now.name, um = u.name
+	var now = this.edit.now, u = now.uNext, m = now.name, um = u.name
 	this.go(function (redo)
 	{
 		if (redo)
@@ -269,13 +273,13 @@ unity: function (u)
 		else
 			now.unityTo(u),
 			n == now.name || (now.name = m), um == u.name || (u.name = um)
-		this.edit.Now(now, nr, nd)
+		this.edit.Now(now)
 	})
 },
 
 trialVeto: function (tv)
 {
-	var now = this.edit.now, nr = this.edit.nowR, nd = this.edit.nowD,
+	var now = this.edit.now,
 		tv0 = now.tv
 	tv0 == tv && (tv = 0)
 	this.go(function (redo)
@@ -284,14 +288,13 @@ trialVeto: function (tv)
 			now.Tv(tv)
 		else
 			now.Tv(tv0)
-		this.edit.Now(now, nr, nd)
+		this.edit.Now(now)
 	})
 },
 
 nonyield: function ()
 {
-	var now = this.edit.now, nr = this.edit.nowR, nd = this.edit.nowD,
-		z, zz
+	var now = this.edit.now, z, zz
 	this.go(function (redo)
 	{
 		if (redo)
@@ -300,35 +303,33 @@ nonyield: function ()
 		else
 			for (z = now; z != zz; z = z.zone)
 				z.yield = 1, z.show(-1)
-		this.edit.Now(now, nr, nd)
+		this.edit.Now(now)
 	})
 },
 
 base: function (b)
 {
-	var now = this.edit.now, nr = this.edit.nowR, nd = this.edit.nowD,
-		w0, w = new Wire
+	var now = this.edit.now, w0, w = new Wire
 	this.go(function (redo)
 	{
 		if (redo)
 			w0 = b.agent(w, now)
 		else
 			w0 ? b.agent(w0, now) : b.unagent(w)
-		this.edit.Now(now, nr, nd)
+		this.edit.Now(now)
 	})
 },
 
 agent: function (a)
 {
-	var now = this.edit.now, nr = this.edit.nowR, nd = this.edit.nowD,
-		w0, w = new Wire
+	var now = this.edit.now, w0, w = new Wire
 	this.go(function (redo)
 	{
 		if (redo)
 			w0 = now.agent(w, a)
 		else
 			w0 ? now.agent(w0, a) : now.unagent(w)
-		this.edit.Now(now, nr, nd)
+		this.edit.Now(now)
 	})
 },
 
