@@ -404,8 +404,7 @@ nonyieldWire: function ()
 			for (az = now.agent; az != azz; az = az.zone)
 				az.yield = 1, az.show(-1)
 		}
-		this.edit.Now(now)
-		now.showing = true, edit.show()
+		this.edit.Now(now), now.showing = true, edit.show(true)
 	})
 },
 

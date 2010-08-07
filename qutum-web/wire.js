@@ -53,7 +53,7 @@ addTo: function (b, a)
 	}
 	else
 		this.zone.wires.push(this)
-	this.showing = true, this.edit.show()
+	this.showing = true, this.edit.show(true)
 },
 
 unadd: function ()
@@ -181,37 +181,23 @@ layout: function (force)
 // X Y W H is draw area based on zone
 show: function (draw, X, Y, W, H)
 {
-	var s = this.xys
+	var s = this.xys, edit = this.edit
 	if ( !s)
 		return
-	if (this != this.edit.now)
-		draw.strokeStyle = this.err ? '#f33' : '#555',
-		draw.lineWidth = this.yield ? 1.125 : 2
-	else
+	if (this == edit.hit && (this != edit.now || edit.drag))
+		draw.strokeStyle = this.err ? '#f00' : '#6c6',
+		draw.lineWidth = this.yield ? 2.125 : 2.5
+	else if (this == edit.now)
 		draw.strokeStyle = this.err ? '#f00' : '#080',
 		draw.lineWidth = this.yield ? 1.875 : 2.5
+	else
+		draw.strokeStyle = this.err ? '#f33' : '#555',
+		draw.lineWidth = this.yield ? 1.125 : 2
 	draw.beginPath()
 	draw.moveTo(s[0] - X, s[1] - Y)
 	for (var i = 2, n = s.length; i < n; )
 		draw.lineTo(s[i++] - X, s[i++] - Y)
 	draw.stroke()
-},
-
-Hit: function (draw)
-{
-	var x = this.x, y = this.y, s = this.xys
-	if ( !s)
-		return
-	if (this != this.edit.now || this.edit.drag)
-	{
-		draw.strokeStyle = this.err ? '#f00' : '#6c6',
-		draw.lineWidth = this.yield ? 2.125 : 2.5
-		draw.beginPath()
-		draw.moveTo(s[0] - x, s[1] - y)
-		for (var i = 2, n = s.length; i < n; )
-			draw.lineTo(s[i++] - x, s[i++] - y)
-		draw.stroke()
-	}
 },
 
 hit: function (x, y)
@@ -277,7 +263,8 @@ nowAgent: function (next)
 
 compile1: function ()
 {
-	this.err != (this.err = this.error1()) && (this.showing = true, this.edit.show())
+	if (this.err != (this.err = this.error1()))
+		this.showing = true, this.edit.show(true)
 	this.err && (this.edit.error = 1)
 },
 

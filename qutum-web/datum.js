@@ -65,7 +65,6 @@ h: 0,
 ox: -1, // -1: no inner datum, >=DX: output row index, == rows.length - 1
 detail: 1, // 1: hide, 2: only this, 3: this and inners
 showing: 0,
-dragMode: 0,
 nowPrev: null,
 nowNext: null,
 
@@ -383,7 +382,7 @@ layout: function (force)
 show: function (x)
 {
 	if (this.showing <= 0 || x > this.showing)
-		this.showing = x, this.edit.show()
+		this.showing = x, this.edit.show(true)
 	return true
 },
 
@@ -395,27 +394,28 @@ _show: function (draw, X, Y, W, H)
 		return
 	draw.translate(-X, -Y)
 
-	var io = this.io, s = this.rows, R, r, D, d, x, y, rh, dw, dh,
+	var edit = this.edit, io = this.io, s = this.rows, R, r, D, d, x, y, rh, dw, dh,
 		c0 = io < 0 ? '#f9f3ff' : io > 0 ? '#f3f9ff' : '#f5fff5',
 		c = this.err ? '#f00' : io < 0 ? '#80d' : io > 0 ? '#06d' : '#080'
 
 	draw.fillStyle = c0, draw.strokeStyle = c
-	if (this.detail > 2 && this.ox > 0)
-		for (R = this.searchRow(Y), R ^= R >> 31, y = 0; (r = s[R]) && y < Y + H; R++)
-		{
-			draw.fillRect(0, y, w, -y + (y = r.y))
-			rh = r.h
-			D = r.searchDatumX(X), D ^= D >> 31
-			for (x = 0; (d = r[D]) && x < X + W; D++)
-				draw.fillRect(x, y, -x + (x = d.x), rh),
-				draw.fillRect(x, y, dw = d.w, d.y - y),
-				draw.fillRect(x, dh = d.y + d.h, dw, rh - dh),
-				x += dw
-			D && (d = r[D - 1], draw.fillRect(dw = d.x + d.w, y, w - dw, rh))
-			y += rh
-		}
-	else
-		draw.fillRect(0, 0, w, h)
+// fill background
+//	if (this.detail > 2 && this.ox > 0)
+//		for (R = this.searchRow(Y), R ^= R >> 31, y = 0; (r = s[R]) && y < Y + H; R++)
+//		{
+//			draw.fillRect(0, y, w, -y + (y = r.y))
+//			rh = r.h
+//			D = r.searchDatumX(X), D ^= D >> 31
+//			for (x = 0; (d = r[D]) && x < X + W; D++)
+//				draw.fillRect(x, y, -x + (x = d.x), rh),
+//				draw.fillRect(x, y, dw = d.w, d.y - y),
+//				draw.fillRect(x, h = d.y + (dh = d.h), dw, rh - dh),
+//				x += dw
+//			D && (d = r[D - 1], draw.fillRect(dw = d.x + d.w, y, w - dw, rh))
+//			y += rh
+//		}
+//	else
+//		draw.fillRect(0, 0, w, h)
 
 	draw.lineWidth = this.yield ? 0.25 : 1, draw.strokeRect(0.5, 0.5, w - 1, h - 1)
 	if (this.gene)
@@ -424,19 +424,28 @@ _show: function (draw, X, Y, W, H)
 	if (this.detail == 2 && this.ox > 0)
 		draw.lineWidth = 2, draw.strokeRect((w >> 1) - 3, this.nameH || h >> 1, 6, 0)
 
-	if (this.uNext != this && this.unity == this.edit.now.unity)
+	if (this.uNext != this && this.unity == edit.now.unity)
 		draw.fillStyle = io < 0 ? '#ebf' : io > 0 ? '#bdf' : '#000',
 		draw.fillRect(2, 2, this.nameR - 4, this.nameY - 1)
 	if (x = this.tv)
 		draw.fillStyle = '#000', draw.fillText(x < 0 ? '?' : '!', 3, this.nameY)
 	if (y = this.name)
-		draw.fillStyle = '#000', draw.fillText(y, 3 + (x && this.edit.nameTvW), this.nameY)
+		draw.fillStyle = '#000', draw.fillText(y, 3 + (x && edit.nameTvW), this.nameY)
 
 	draw.translate(X, Y)
 	for (R = 0; r = s[R]; R++)
 		for (D = 0; d = r[D]; D++)
 			d._show(draw, X - d.x, Y - d.y, W, H)
-	if (this == this.edit.now)
+	if (this == edit.hit && (this != edit.now || edit.drag))
+	{
+		draw.translate(-X, -Y)
+		draw.globalAlpha = this.yield ? 0.5 : 1
+		draw.strokeStyle = this.err ? '#f00' : io < 0 ? '#b6f' : io > 0 ? '#6af' : '#6c6'
+		draw.lineWidth = 2.5 
+		draw.strokeRect(1.25, 1.25, w - 2.5, h - 2.5)
+		draw.translate(X, Y)
+	}
+	else if (this == edit.now)
 	{
 		draw.translate(-X, -Y)
 		draw.strokeStyle = c
@@ -447,25 +456,15 @@ _show: function (draw, X, Y, W, H)
 			draw.lineWidth = 2.5, draw.strokeRect(1.25, 1.25, w - 2.5, h - 2.5)
 		draw.translate(X, Y)
 	}
-	if (this.detail >= 3)
-		for (s = this.wires, x = 0; s[x]; x++)
-			s[x].show(draw, X, Y, W, H)
-},
-
-Hit: function (draw)
-{
-	if (this != this.edit.now || this.edit.drag)
-	{
-		draw.globalAlpha = this.yield ? 0.5 : 1
-		draw.strokeStyle = this.err ? '#f00' : this.io < 0 ? '#b6f' : this.io > 0 ? '#6af' : '#6c6'
-		draw.lineWidth = 2.5 
-		draw.strokeRect(1.25, 1.25, this.w - 2.5, this.h - 2.5)
-	}
+// hit
 //	if (err)
 //		edit.tip.str(err).color(0xfff8f8, 0xaa6666, 0x880000)
 //			.xy(stage.mouseX + 1, stage.mouseY - edit.tip.height).visible = true
 //	else
 //		edit.tip.str('').visible = false	
+	if (this.detail >= 3)
+		for (s = this.wires, x = 0; s[x]; x++)
+			s[x].show(draw, X, Y, W, H)
 },
 
 hit: function (xy, wire)
