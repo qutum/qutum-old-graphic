@@ -29,9 +29,8 @@ x: 0,
 y: 0,
 w: 0,
 h: 0,
-dragMode: 0,
-nowPrev: null,
-nowNext: null,
+navPrev: null,
+navNext: null,
 
 addTo: function (b, a)
 {
@@ -59,10 +58,10 @@ addTo: function (b, a)
 unadd: function ()
 {
 	ArrayRem(this.zone.wires, this) // no zone layout
-	var p = this.nowPrev, n = this.nowNext
-	this.edit.now == this && (this.edit.now = nowPrev)
-	p && (p.nowNext = n), n && (n.nowPrev = p)
-	this.nowPrev = this.nowNext = null
+	var p = this.navPrev, n = this.navNext
+	this.edit.now == this && (this.edit.now = navPrev)
+	p && (p.navNext = n), n && (n.navPrev = p)
+	this.navPrev = this.navNext = null
 },
 
 ////////////////////////////////      ////////////////////////////////

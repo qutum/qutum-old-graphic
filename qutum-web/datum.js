@@ -15,7 +15,7 @@ Datum = function (io)
 	this.bs = []
 	this.as = []
 }
-var IX = Datum.IX = 0, DX = Datum.DX = 1, Unity = 0,
+var Unity = 0,
 	SIZE0 = Datum.SIZE0 = 20, SPACE = Datum.SPACE = 20, NAME_WIDTH = Datum.NAME_WIDTH = 50
 
 Datum.prototype =
@@ -62,11 +62,11 @@ x: 0,
 y: 0,
 w: 0,
 h: 0,
-ox: -1, // -1: no inner datum, >=DX: output row index, == rows.length - 1
+ox: -1, // -1: no inner datum, >=1: output row index, == rows.length - 1
 detail: 1, // 1: hide, 2: only this, 3: this and inners
 showing: 0,
-nowPrev: null,
-nowNext: null,
+navPrev: null,
+navNext: null,
 
 ////////////////////////////////       ////////////////////////////////
 //////////////////////////////// logic ////////////////////////////////
@@ -84,8 +84,8 @@ addTo: function (z, r, q) // x < 0 to add row
 		return this // zonest
 	}
 	if (z.ox < 0)
-		z.rows[IX] = Row(z, []), z.rows[DX] = Row(z, []),
-		z.ox = DX
+		z.rows[0] = Row(z, []), z.rows[1] = Row(z, []),
+		z.ox = 1
 	if (q < 0)
 		z.rows.splice(r, 0, this.row = Row(z, [ this ])),
 		z.ox++, q = 0
@@ -109,7 +109,7 @@ addTo: function (z, r, q) // x < 0 to add row
 		else
 			this.gene = z.gene,
 			this.bzer = this.azer = this,
-			this.el = r <= DX ? q // for loading
+			this.el = r <= 1 ? q // for loading
 				: q ? z.rows[r][q - 1].el + 1
 				: ArrayLast(z.rows[r - 1]).el + 1
 	}
@@ -128,7 +128,7 @@ _addTo: function (deep)
 	for (x = 0; w = this.as[x]; x++)
 		if (w.zone.deep < deep)
 			w.agent.bs.push(w), w.addTo()
-	for (x = IX; r = this.rows[x]; x++)
+	for (x = 0; r = this.rows[x]; x++)
 		for (q = 0; d = r[q]; q++)
 			d._addTo(deep)
 },
@@ -140,13 +140,13 @@ unadd: function (r, q)
 	var z = this.zone, unrow = false
 	this.row.splice(q, 1)
 	this.io || this.row.length || (z.rows.splice(r, 1), z.ox--, unrow = true)
-	if (z.ox == DX && z.rows[IX].length + z.rows[DX].length == 0)
+	if (z.ox == 1 && z.rows[0].length + z.rows[1].length == 0)
 		z.rows = [], z.ox = -1
 	z.show(3)
-	var p = this.nowPrev, n = this.nowNext
+	var p = this.navPrev, n = this.navNext
 	this.edit.now == this && this.edit.Now(p, false)
-	p && (p.nowNext = n), n && (n.nowPrev = p)
-	this.nowPrev = this.nowNext = null
+	p && (p.navNext = n), n && (n.navPrev = p)
+	this.navPrev = this.navNext = null
 	return unrow
 },
 
@@ -160,7 +160,7 @@ _unadd: function (deep)
 	for (x = 0; w = this.as[x]; x++)
 		if (w.zone.deep < deep)
 			ArrayRem(w.agent.bs, w), w.unadd()
-	for (x = IX; r = this.rows[x]; x++)
+	for (x = 0; r = this.rows[x]; x++)
 		for (q = 0; d = r[q]; q++)
 			d._unadd(deep)
 },
@@ -289,7 +289,7 @@ layoutDetail: function ()
 		this.detail = 3
 	else if (dd > 0)
 		this.detail = dd < 2 && this.edit.now == this ? 2 : dd
-	for (x = IX; x <= this.ox; x++)
+	for (x = 0; x <= this.ox; x++)
 		for (r = this.rows[x], y = 0; d = r[y]; y++)
 		{
 			if (dd > 0)
@@ -302,7 +302,7 @@ layoutDetail: function ()
 				this.detail = this.showing = 3
 		}
 	if (this.detail >= 3)
-		for (x = IX; x <= this.ox; x++)
+		for (x = 0; x <= this.ox; x++)
 			for (r = this.rows[x], y = 0; d = r[y]; y++)
 				if (d.detail < 2)
 					d.detail = d.showing = 2
@@ -311,7 +311,7 @@ layoutDetail: function ()
 layout: function (force)
 {
 	var rs = this.rows, ws = this.wires, r, x, y, d, w, h, w2, h2
-	for (x = IX; r = rs[x]; x++)
+	for (x = 0; r = rs[x]; x++)
 		for (y = 0; d = r[y]; y++)
 			d.layout(false) && (force = true)
 	this.showing && (force = true, this.showing = 0)
@@ -323,7 +323,7 @@ layout: function (force)
 	}
 	if (this.detail <= 1)
 	{
-		for (x = IX; r = rs[x]; x++)
+		for (x = 0; r = rs[x]; x++)
 			r.layout(0, 0, 0, 0)
 		for (x = 0; w = ws[x]; x++)
 			w.layout(true)
@@ -343,22 +343,22 @@ layout: function (force)
 		this.h = Math.max(SIZE0, nh + 6)
 		this.nameY = 3 + this.edit.nameH
 		w2 = this.w >> 1, h2 = nh || h >> 1
-		rs[IX].layout(0, w2, w2, 0)
-		for (x = IX + 1; r = rs[x]; x++)
+		rs[0].layout(0, w2, w2, 0)
+		for (x = 1; r = rs[x]; x++)
 			r.layout(0, w2, w2, h2)
 		for (x = 0; w = ws[x]; x++)
 			w.layout(true)
 	}
 	else
 	{
-		r = rs[IX]
+		r = rs[0]
 		if (r.length && nr > NAME_WIDTH)
 			w = Math.max(SIZE0, nr, r.layoutW())
 		else
 			w = Math.max(SIZE0, nr + r.layoutW())
-		for (x = IX + 1; r = rs[x]; x++)
+		for (x = 1; r = rs[x]; x++)
 			w = Math.max(w, r.layoutW())
-		r = rs[IX]
+		r = rs[0]
 		if (r.length && nr > NAME_WIDTH)
 			r.layout(1, 0, w, 0),
 			h = r.h
@@ -367,7 +367,7 @@ layout: function (force)
 			h = 0
 		this.nameY = h + 3 + this.edit.nameH
 		h = Math.max(h + nh, r.h + SPACE)
-		for (x = IX + 1; r = rs[x]; x++)
+		for (x = 1; r = rs[x]; x++)
 			r.layout(x < this.ox ? 2 : 3, 0, w, h),
 			h += x < this.ox ? r.h + SPACE : r.h
 		this.w = w, this.h = h
@@ -424,7 +424,7 @@ _show: function (draw, X, Y, W, H)
 	if (this.detail == 2 && this.ox > 0)
 		draw.lineWidth = 2, draw.strokeRect((w >> 1) - 3, this.nameH || h >> 1, 6, 0)
 
-	if (this.uNext != this && this.unity == edit.now.unity)
+	if (this.uNext != this && this.unity == edit.nav.unity)
 		draw.fillStyle = io < 0 ? '#ebf' : io > 0 ? '#bdf' : '#000',
 		draw.fillRect(2, 2, this.nameR - 4, this.nameY - 1)
 	if (x = this.tv)
@@ -434,8 +434,9 @@ _show: function (draw, X, Y, W, H)
 
 	draw.translate(X, Y)
 	for (R = 0; r = s[R]; R++)
-		for (D = 0; d = r[D]; D++)
-			d._show(draw, X - d.x, Y - d.y, W, H)
+		if (Y - r.y < r.h && Y + H > r.y)
+			for (D = 0; d = r[D]; D++)
+				d._show(draw, X - d.x, Y - d.y, W, H)
 	if (this == edit.hit && (this != edit.now || edit.drag))
 	{
 		draw.translate(-X, -Y)
@@ -443,6 +444,11 @@ _show: function (draw, X, Y, W, H)
 		draw.strokeStyle = this.err ? '#f00' : io < 0 ? '#b6f' : io > 0 ? '#6af' : '#6c6'
 		draw.lineWidth = 2.5 
 		draw.strokeRect(1.25, 1.25, w - 2.5, h - 2.5)
+		if (this.zone)
+			if (edit.drag == 4)
+				draw.strokeStyle = '#666', draw.strokeRect(- SPACE / 2, 0, 0, h)
+			else if (edit.drag == 5)
+				draw.strokeStyle = '#666', draw.strokeRect(w + SPACE / 2, 0, 0, h)
 		draw.translate(X, Y)
 	}
 	else if (this == edit.now)
@@ -509,8 +515,8 @@ offsetY: function (z)
 searchRow: function (y)
 {
 	if (y < 0)
-		return ~IX
-	var low = IX, high = this.ox, s = this.rows
+		return -1
+	var low = 0, high = this.ox, s = this.rows
 	while (low <= high)
 	{
 		var mid = low + high >>> 1, r = s[mid]
@@ -574,15 +580,15 @@ nowZone: function ()
 },
 nowInner: function ()
 {
-	this.ox > 0 && this.edit.Now(this.rows[IX][0] || this.rows[DX][0])
+	this.ox > 0 && this.edit.Now(this.rows[0][0] || this.rows[1][0])
 },
 nowInput: function ()
 {
-	this.ox > 0 && this.rows[IX][0] && this.edit.Now(this.rows[IX][0])
+	this.ox > 0 && this.rows[0][0] && this.edit.Now(this.rows[0][0])
 },
 nowDatum: function ()
 {
-	this.ox > DX && this.rows[DX][0] && this.edit.Now(this.rows[DX][0])
+	this.ox > 1 && this.rows[1][0] && this.edit.Now(this.rows[1][0])
 },
 nowOutput: function ()
 {
@@ -606,7 +612,7 @@ nowUnfold: function (x)
 },
 nowFold: function (x)
 {
-	this.detail > 2 && this.show(2)
+	return this.detail > 2 && this.show(2)
 },
 
 }

@@ -14,6 +14,7 @@ Row = function (d, row)
 	row.layout = layout
 	row.searchDatum = searchDatum
 	row.searchDatumX = searchDatumX
+	// row.y, row.w, row.h, row.space
 	return row
 }
 var SPACE = Datum.SPACE

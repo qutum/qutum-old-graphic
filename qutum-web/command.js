@@ -11,7 +11,7 @@ Command = function (edit)
 	this.edit = edit
 	this.coms = []
 }
-var UNDOn = 301, IX = Datum.IX, DX = Datum.DX
+var UNDOn = 301
 
 Command.prototype =
 {
@@ -99,7 +99,7 @@ input: function (inner)
 		z = now.zone, r = now.zone.rows.indexOf(now.row), q = now.row.indexOf(now) + 1
 	else
 		z = inner && now.zone || now,
-		r = IX, q = z.ox < 0 ? 0 : z.rows[r].length
+		r = 0, q = z.ox < 0 ? 0 : z.rows[r].length
 	this.go(function (redo)
 	{
 		if (redo)
@@ -117,7 +117,7 @@ datum: function (inner)
 	var z, d = new Datum(0), r, q
 	if (now.io || !inner || !now.zone)
 		z = inner && now.zone || now,
-		z.ox <= DX ? (r = DX, q = -1) : (r = z.ox - 1, q = z.rows[r].length),
+		z.ox <= 1 ? (r = 1, q = -1) : (r = z.ox - 1, q = z.rows[r].length),
 		q >= 4 && (r++, q = -1)
 	else
 		z = now.zone, r = now.zone.rows.indexOf(now.row), q = now.row.indexOf(now) + 1
@@ -140,7 +140,7 @@ output: function (inner)
 		z = now.zone, r = now.zone.rows.indexOf(now.row), q = now.row.indexOf(now) + 1
 	else
 		z = inner && now.zone || now,
-		r = z.ox < 0 ? DX : z.ox, q = z.ox < 0 ? 0 : z.rows[r].length
+		r = z.ox < 0 ? 1 : z.ox, q = z.ox < 0 ? 0 : z.rows[r].length
 	this.go(function (redo)
 	{
 		if (redo)
@@ -153,7 +153,7 @@ output: function (inner)
 breakRow: function ()
 {
 	var now = this.edit.now, r, q
-	if (now.io !== 0 || (q = now.row.indexOf(now)) <= 0) // not wire
+	if (now.io !== 0 || now.row == null || (q = now.row.indexOf(now)) <= 0) // not wire
 		return
 	r = now.zone.rows.indexOf(now.row)
 	this.go(function (redo)
@@ -171,7 +171,7 @@ remove: function ()
 	if (now.row == null)
 		return
 	var z = now.zone, rs = z.rows, r = rs.indexOf(now.row), q = now.row.indexOf(now), addRow
-	if (r > IX && r < z.ox - 1 && q && q == now.row.length - 1)
+	if (r > 0 && r < z.ox - 1 && q && q == now.row.length - 1)
 		this.go(function (redo)
 		{
 			if (redo)
@@ -200,7 +200,7 @@ removeBefore: function ()
 	if (now.row == null)
 		return
 	var z = now.zone, r = z.rows.indexOf(now.row), q = now.row.indexOf(now), d
-	if (r > IX + 1 && r < z.ox && q == 0)
+	if (r > 1 && r < z.ox && q == 0)
 		this.go(function (redo)
 		{
 			if (redo)

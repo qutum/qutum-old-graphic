@@ -22,15 +22,15 @@ Edit = function (dom)
 	css = font = null
 	Util.on(dom, 'scroll', this, this.show, null)
 	Util.on(window, 'resize', this, this.show, null)
-	Util.on(dom, 'mousemove', this, this.Hit)
-	Util.on(dom, 'mousedown', this, this.Hit)
+	Util.on(whole, 'mousemove', this, this.Hit)
+	Util.on(whole, 'mousedown', this, this.Hit)
 	Util.on(dom, 'keydown', this, this.key)
 	Util.on(dom, 'keypress', this, this.key)
 
 	var z = this.zonest = new Datum(0)
 	z.edit = this
 	z.addTo(null, 0, 0)
-	this.Now(this.hit = z, false)
+	this.Now(this.nav = this.hit = this.now = z)
 	Layer2(z)
 	z.show(4)
 	this.com = new Command(this)
@@ -45,7 +45,8 @@ hit: null,
 hitX: 0, // relative to page
 hitY: 0, // relative to page
 hitXY: true, // use hitX and hitY
-drag: false,
+nav: null, // navigable now or hit
+drag: 0, // 0 no drag 1 unity 2 base 3 agent 4 early 5 later
 keyType: '',
 
 dom: null,
@@ -66,24 +67,29 @@ errorN: 0, // number of errors
 compiling: 0, // to compile in milliseconds
 yields: null, // []
 
-// nav is true by default, show is 2 by default
-Now: function (now, nav, show)
+// nav is true by default, show is 2 by default, drag unchanged by default
+Now: function (now, nav, show, drag)
 {
 	if ( !now)
 		throw 'null now'
-	var now0 = this.drag ? this.hit : this.now
-	if (nav !== false && now0 != now)
-		now.nowPrev && (now.nowPrev.nowNext = now.nowNext),
-		now.nowNext && (now.nowNext.nowPrev = now.nowPrev),
-		now.nowPrev = now0,
-		now.nowNext = null,
-		now0.nowNext && (now0.nowNext.nowPrev = null),
-		now0.nowNext = now
-	this.scroll = now0 != now
+	var n = this.nav
+	if (nav !== false && n != now)
+		now.navPrev && (now.navPrev.navNext = now.navNext),
+		now.navNext && (now.navNext.navPrev = now.navPrev),
+		now.navPrev = n,
+		now.navNext = null,
+		n.navNext && (n.navNext.navPrev = null),
+		n.navNext = now
+	if (drag != null)
+		this.drag != drag && (this.scroll = true), this.drag = drag
+	else
+		this.scroll = this.scroll || n != now
 // TODO no name edit
-	this.drag ? this.hit = now : this.now = now
-	show == null && (show = 2)
-	now.nowUnfold && now.nowUnfold(show) || this.show()
+	if (this.drag)
+		this.nav = this.hit = now
+	else
+		this.nav = this.now = now, this.hitXY = true
+	now.nowUnfold && now.nowUnfold(show != null ? show : 2) || this.show()
 },
 
 ////////////////////////////////      ////////////////////////////////
@@ -106,19 +112,27 @@ _show: function ()
 			z.layoutDetail(), z.layout(false),
 			this.layout = false, this.scroll = true,
 			this.whole.style.width = z.w + 'px', this.whole.style.height = z.h + 'px'
-		if (this.hitXY)
-			this.hit = this.HitXY(), this.hitXY = false
+		this.hitXY && (this.hit = this.HitXY() || z)
 		var mx = m.scrollLeft, my = m.scrollTop, mw = m.clientWidth, mh = m.clientHeight
 		if (this.scroll)
 		{
 			this.scroll = false
+			var x = mx && z.w - mw, y = my && z.h - mh
+			if (x < mx || y < my)
+				return x < mx && (m.scrollLeft = x), y < my && (m.scrollTop = y), re = true
 			var now = this.drag && this.hit || this.now, x = now.offsetX(), y = now.offsetY()
-			x = x - Math.max(mx, Math.min(x, mx + mw - now.w))
+			if (this.drag == 4)
+				x = x - Datum.SPACE - Math.max(mx, Math.min(x - Datum.SPACE, mx + mw - now.w))
+			else if (this.drag == 5)
+				x = x - Math.min(Math.max(mx, x), mx + mw - now.w - Datum.SPACE)
+			else
+				x = x - Math.max(mx, Math.min(x, mx + mw - now.w))
 			y = y - Math.max(my, Math.min(y, my + mh - now.h))
 			if (x || y)
 				return m.scrollLeft = mx + x, m.scrollTop = my + y, re = true
 		}
 		z._show(Util.draw(this.draw, mx, my, mw, mh), mx, my, mw, mh)
+		this.hitXY = false
 	}
 	finally
 	{
@@ -131,15 +145,15 @@ Hit: function (e)
 {
 	var ok = this.hitX != (this.hitX = e.clientX + pageXOffset - 1)
 		| this.hitY != (this.hitY = e.clientY + pageYOffset - 1) // fix key bug on safari
-	if (e.type == 'mousedown')
+	if (e.type == 'mousedown' && (ok = this.HitXY()))
 	{
-		ok = this.HitXY(), this.hitXY = false
-		if (this.now != ok)
+		this.hitXY = false
+		if (ok != this.nav)
 			this.Now(ok, true, e.shiftKey ? 3 : 2)
 		else
 			ok.nowUnfold && ok.nowUnfold(e.shiftKey ? 4 : 3) || this.show()
 	}
-	else if (ok) 
+	else if (ok || e.type == 'mousedown') 
 		this.hitXY = true, this.show()
 },
 
@@ -150,8 +164,7 @@ HitXY: function ()
 		x += m.scrollLeft - m.offsetLeft - m.clientLeft,
 		y += m.scrollTop - m.offsetTop - m.clientTop
 	while (m = m.offsetParent)
-	var h = this.zonest.hit([ x, y ])
-	return h || this.zonest
+	return this.zonest.hit([ x, y ])
 },
 
 ////////////////////////////////      ////////////////////////////////
@@ -160,47 +173,35 @@ HitXY: function ()
 
 key: function (e)
 {
-	var drag = this.drag, now = drag && this.hit || this.now, k = e.charCode
-	if ( !k)
-	K: {
+	var drag = this.drag, now = drag ? this.hit : this.now, k = e.charCode
+	if (k)
+		(e.ctrlKey || e.altKey || e.metaKey) && (k = -k)
+	else
+	{
 		k = e.keyCode
-		if (k == 13 && e.type == 'keypress')
-			break K
-		if (k != 9 && k != 27 && (k < 33 || k > 40))
-			return
-		e.preventDefault() // no scroll
 		if (this.keyType != 'keypress' && e.type == 'keypress')
 			return this.keyType = e.type // fix keydown repeat on Firefox
-		this.keyType = e.type
-
-		var shift = e.shiftKey, cam = e.ctrlKey || e.altKey || e.metaKey
-		if ( !shift && !cam)
-			switch (k)
-			{
-			case 37: now.nowLeft && now.nowLeft(); break // left
-			case 39: now.nowRight && now.nowRight(); break // right
-			case 38: now.nowUp && now.nowUp(); break // up
-			case 40: now.nowDown && now.nowDown(); break // down
-			case 36: now.nowHome && now.nowHome(); break // home
-			case 35: now.nowEnd && now.nowEnd(); break // end
-			case 9: now.nowInner && now.nowInner(); break // tab
-			case 27: this.Now(this.now, false); this.drag = false; break // esc
-			}
-
-		if (shift && k == 37 || cam && k == 90)
-			drag || this.com.undo() // shift-left cam-z
-		else if (shift && k == 39 || shift && cam && k == 90)
-			drag || this.com.redo() // shift-right shift-cam-z
-		else if (shift && k == 38) // shift-up
-			now.nowPrev && this.Now(now.nowPrev, false)
-		else if (shift && k == 40) // shift-down
-			now.nowNext && this.Now(now.nowNext, false)
-		return
+		k = e.shiftKey || e.ctrlKey || e.altKey || e.metaKey ? - k - 0.5 : k + 0.5
 	}
 	this.keyType = e.type
 
 	switch (k)
 	{
+	case 37.5: now.nowLeft && now.nowLeft(); break // left
+	case 39.5: now.nowRight && now.nowRight(); break // right
+	case 38.5: now.nowUp && now.nowUp(); break // up
+	case 40.5: now.nowDown && now.nowDown(); break // down
+	case -37.5: drag || this.com.undo(); break // func-left
+	case -39.5: drag || this.com.redo(); break // func-right 
+	case -38.5: var n = this.nav; now != n ? this.Now(n, false)
+				: n.navPrev && this.Now(n.navPrev, false); break // func-up
+	case -40.5: var n = this.nav; now != n ? this.Now(n, false)
+				: n.navNext && this.Now(n.navNext, false); break // func-down
+	case 36.5: now.nowHome && now.nowHome(); break // home
+	case 35.5: now.nowEnd && now.nowEnd(); break // end
+	case 9.5: now.nowInner && now.nowInner(); break // tab
+	case 27.5: this.Now(this.now, false, null, 0); break // esc
+
 	case 122: now.nowZone && now.nowZone(); break // z
 	case 32: now.nowInner && now.nowInner(); break // space
 	case 44: now.nowInput && now.nowInput(); break // ,
@@ -215,10 +216,13 @@ key: function (e)
 	case 105: case 73: drag || this.com.input(k == 105); break // i I
 	case 100: case 68: drag || this.com.datum(k == 100); break // d D
 	case 111: case 79: drag || this.com.output(k == 111); break // o O
-	case 13: drag || e.shiftKey && this.com.breakRow(); break // shift-enter
+	case -13.5: drag || this.com.breakRow(); break // func-enter
 	case 116: case 63: drag || this.com.trialVeto(-1); break // t ?
 	case 118: case 33: drag || this.com.trialVeto(1); break // v !
-	case 117: this.drag = true; this.Now(this.now, false); break; // u
+	case 117: this.now.io && this.Now(now, false, null, 1); break; // u
+	case 101: this.now.row && this.Now(now, false, null, 4); break; // e
+	case 108: this.now.row && this.Now(now, false, null, 5); break; // l
+
 	default: return
 	}
 	e.preventDefault() // key consumed
