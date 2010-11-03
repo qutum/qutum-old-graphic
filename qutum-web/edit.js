@@ -137,7 +137,12 @@ _show: function ()
 			if (x || y)
 				return m.scrollLeft = mx + x, m.scrollTop = my + y, re = true
 		}
-		z._show(Util.draw(this.draw, mx, my, mw, mh), mx, my, mw, mh)
+		var draw = Util.draw(this.draw, mx, my, mw, mh)
+		z._show(draw, mx, my, mw, mh)
+		if (this.drag)
+			draw.lineWidth = 1, draw.strokeStyle = '#666', draw.beginPath(),
+			draw.moveTo(this.now.offsetX(), this.now.offsetY()),
+			draw.lineTo(this.hit.offsetX(), this.hit.offsetY()), draw.stroke()
 		this.hitXY = false
 	}
 	finally
@@ -191,6 +196,8 @@ key: function (e)
 	}
 	this.keyType = e.type
 
+	try
+	{
 	switch (k)
 	{
 	case 37.5: now.nowLeft && now.nowLeft(); break // left
@@ -219,10 +226,12 @@ key: function (e)
 	case 43: case 61: now.nowUnfold && now.nowUnfold(k == 43 ? 4 : 3); break // + =
 	case 45: case 95: now.nowFold && now.nowFold(2); break // - _
 
-	case 105: case 73: drag || this.com.input(k == 105); break // i I
-	case 100: case 68: drag || this.com.datum(k == 100); break // d D
-	case 111: case 79: drag || this.com.output(k == 111); break // o O
+	case 105: case 73: drag || this.com.input(k == 73); break // i I
+	case 100: case 68: drag || this.com.datum(k == 68); break // d D
+	case 111: case 79: drag || this.com.output(k == 79); break // o O
 	case -13.5: drag || this.com.breakRow(); break // func-enter
+	case 8.5: drag || this.com.removeBefore(); break // backspace
+	case 46.5: drag || this.com.remove(); break // delete
 	case 116: case 63: drag || this.com.trialVeto(-1); break // t ?
 	case 118: case 33: drag || this.com.trialVeto(1); break // v !
 	case 117: this.Now(now, false, null, this.com.unity); break; // u
@@ -234,9 +243,13 @@ key: function (e)
 		: null;	
 		break // enter
 
-	default: return
+	default: return e = null
 	}
-	e.preventDefault() // key consumed
+	}
+	finally
+	{
+		e && e.preventDefault() // key consumed
+	}
 },
 
 Unsave: function (delta)

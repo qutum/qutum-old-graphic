@@ -95,11 +95,13 @@ input: function (inner)
 	if (now instanceof Wire)
 		return
 	var z, d = new Datum(-1), r, q
-	if (now.io < 0 && inner)
+	if (now.io < 0 && !inner)
 		z = now.zone, r = now.zone.rows.indexOf(now.row), q = now.row.indexOf(now) + 1
 	else
-		z = inner && now.zone || now,
+		z = !inner && now.zone || now,
 		r = 0, q = z.ox < 0 ? 0 : z.rows[r].length
+	if ((inner ? z : now).layer2)
+		return
 	this.go(function (redo)
 	{
 		if (redo)
@@ -115,12 +117,14 @@ datum: function (inner)
 	if (now instanceof Wire)
 		return
 	var z, d = new Datum(0), r, q
-	if (now.io || !inner || !now.zone)
-		z = inner && now.zone || now,
+	if (now.io || inner || !now.zone)
+		z = !inner && now.zone || now,
 		z.ox <= 1 ? (r = 1, q = -1) : (r = z.ox - 1, q = z.rows[r].length),
 		q >= 4 && (r++, q = -1)
 	else
 		z = now.zone, r = now.zone.rows.indexOf(now.row), q = now.row.indexOf(now) + 1
+	if ((inner ? now : z).layer2)
+		return
 	this.go(function (redo)
 	{
 		if (redo)
@@ -136,11 +140,13 @@ output: function (inner)
 	if (now instanceof Wire)
 		return
 	var z, d = new Datum(1), r, q
-	if (now.io > 0 && inner)
+	if (now.io > 0 && !inner)
 		z = now.zone, r = now.zone.rows.indexOf(now.row), q = now.row.indexOf(now) + 1
 	else
-		z = inner && now.zone || now,
+		z = !inner && now.zone || now,
 		r = z.ox < 0 ? 1 : z.ox, q = z.ox < 0 ? 0 : z.rows[r].length
+	if ((inner ? z : now).layer2)
+		return
 	this.go(function (redo)
 	{
 		if (redo)
@@ -153,7 +159,7 @@ output: function (inner)
 breakRow: function ()
 {
 	var now = this.edit.now, r, q
-	if (now.io !== 0 || now.row == null || (q = now.row.indexOf(now)) <= 0) // not wire
+	if (now.io !== 0 || !now.row || (q = now.row.indexOf(now)) <= 0) // not wire
 		return
 	r = now.zone.rows.indexOf(now.row)
 	this.go(function (redo)
@@ -167,8 +173,18 @@ breakRow: function ()
 
 remove: function ()
 {
+	return this.edit.now instanceof Wire ? this.removeWire() : this.removeDatum()
+},
+
+removeBefore: function ()
+{
+	return this.edit.now instanceof Wire ? this.removeWire() : this.removeBeforeDatum()
+},
+
+removeDatum: function ()
+{
 	var now = this.edit.now
-	if (now.row == null)
+	if (now.layer2 || !now.row) // now wire
 		return
 	var z = now.zone, rs = z.rows, r = rs.indexOf(now.row), q = now.row.indexOf(now), addRow
 	if (r > 0 && r < z.ox - 1 && q && q == now.row.length - 1)
@@ -194,10 +210,10 @@ remove: function ()
 		})
 },
 
-removeBefore: function ()
+removeBeforeDatum: function ()
 {
 	var now = this.edit.now
-	if (now.row == null)
+	if (now.layer2 || !now.row) // not wire
 		return
 	var z = now.zone, r = z.rows.indexOf(now.row), q = now.row.indexOf(now), d
 	if (r > 1 && r < z.ox && q == 0)
@@ -208,8 +224,7 @@ removeBefore: function ()
 			else
 				z.breakRow(r - 1, q), this.edit.Now(now)
 		})
-	else if (q)
-		d = z.rows[r][q - 1],
+	else if (q && !(d = z.rows[r][q - 1]).layer2)
 		this.go(function (redo)
 		{
 			if (redo)
@@ -222,7 +237,7 @@ removeBefore: function ()
 early: function (e, test)
 {
 	var now = this.edit.now, z = now.zone
-	if (now.layer2 || now.row == null || e.zone != z)
+	if (now.layer2 || !now.row || e.zone != z) // not wire
 		return
 	var rs = z.rows, nr = rs.indexOf(now.row), nq = now.row.indexOf(now),
 		r = rs.indexOf(e.row), q = e.row.indexOf(e),
@@ -249,7 +264,7 @@ early: function (e, test)
 later: function (l, test)
 {
 	var now = this.edit.now, z = now.zone
-	if (now.layer2 || now.row == null || l.zone != z)
+	if (now.layer2 || !now.row || l.zone != z) // not wire
 		return
 	var rs = z.rows, nr = rs.indexOf(now.row), nq = now.row.indexOf(now),
 		r = rs.indexOf(l.row), q = l.row.indexOf(l) + 1,
@@ -276,7 +291,7 @@ later: function (l, test)
 earlyRow: function (e, test)
 {
 	var now = this.edit.now, z = now.zone
-	if (now.layer2 || now.io != 0 || now.row == null || e.zone != z || e.io < 0)
+	if (now.layer2 || now.io != 0 || !z || e.zone != z || e.io < 0) // not wire
 		return
 	if (test)
 		return true
@@ -300,7 +315,7 @@ earlyRow: function (e, test)
 laterRow: function (l, test)
 {
 	var now = this.edit.now, z = now.zone
-	if (now.layer2 || now.io != 0 || now.row == null || l.zone != z || l.io > 0)
+	if (now.layer2 || now.io != 0 || !z || l.zone != z || l.io > 0) // not wire
 		return
 	if (test)
 		return true
@@ -324,7 +339,7 @@ laterRow: function (l, test)
 unity: function (u, test)
 {
 	var now = this.edit.now, nu = now.uNext, m = now.name, um = u.name
-	if (now.layer2 || now.io == 0 || now.io != u.io)
+	if (now.layer2 || now.io == 0 || !now.row || now.io != u.io) // not wire
 		return
 	if (test)
 		return true
@@ -341,8 +356,9 @@ unity: function (u, test)
 
 trialVeto: function (tv)
 {
-	var now = this.edit.now,
-		tv0 = now.tv
+	var now = this.edit.now, tv0 = now.tv
+	if (now.layer2 || !now.row) // not wire
+		return
 	tv0 == tv && (tv = 0)
 	this.go(function (redo)
 	{
@@ -398,6 +414,8 @@ agent: function (a)
 removeWire: function ()
 {
 	var now = this.edit.now
+	if (!(now instanceof Wire))
+		return
 	this.go(function (redo)
 	{
 		if (redo)

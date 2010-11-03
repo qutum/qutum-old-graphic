@@ -394,9 +394,10 @@ _show: function (draw, X, Y, W, H)
 		return
 	draw.translate(-X, -Y)
 
-	var edit = this.edit, io = this.io, s = this.rows, R, r, D, d, x, y, rh, dw, dh,
+	var edit = this.edit, now = edit.now, io = this.io, s = this.rows,
 		c0 = io < 0 ? '#f9f3ff' : io > 0 ? '#f3f9ff' : '#f5fff5',
-		c = this.err ? '#f00' : io < 0 ? '#a0c' : io > 0 ? '#07e' : '#080'
+		c = this.err ? '#f00' : io < 0 ? '#a0c' : io > 0 ? '#07e' : '#080',
+		R, r, D, d, x, y, rh, dw, dh
 
 	draw.fillStyle = c0, draw.strokeStyle = c
 // fill background
@@ -445,6 +446,7 @@ _show: function (draw, X, Y, W, H)
 			: io < 0 ? '#d7f' : io > 0 ? '#6af' : '#6c6' : '#fcc'
 		draw.lineWidth = 2.5 
 		draw.strokeRect(1.25, 1.25, w - 2.5, h - 2.5)
+		draw.globelAlpha = 1
 		if (edit.drag)
 			if (edit.drag == edit.com.early)
 				draw.strokeStyle = '#666', draw.strokeRect(- SPACE / 2, 0, 0, h)
@@ -456,7 +458,7 @@ _show: function (draw, X, Y, W, H)
 				draw.strokeStyle = '#666', draw.strokeRect(0, h + SPACE / 2, w, 0)
 		draw.translate(X, Y)
 	}
-	else if (this == edit.now)
+	else if (this == now)
 	{
 		draw.translate(-X, -Y)
 		draw.strokeStyle = c
