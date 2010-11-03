@@ -481,10 +481,10 @@ _show: function (draw, X, Y, W, H)
 
 hit: function (xy, wire)
 {
-	var x = xy[0], y = xy[1], i, n, d = this, w, r
+	var d = this, x = xy[0] - d.x, y = xy[1] - d.y, i, n, w, r
 	if (x < 0 || y < 0 || x >= this.w || y >= this.h)
 		return null
-	xy[0] = xy[1] = 0
+	xy[0] = d.x, xy[1] = d.y
 	for (;;)
 	{
 		if (wire !== false && d.detail >= 3)

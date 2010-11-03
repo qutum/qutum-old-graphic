@@ -16,7 +16,6 @@ Edit = function (dom)
 		css = getComputedStyle(whole, null)
 		font = css.fontWeight + ' ' + css.fontSize + ' "' + css.fontFamily + '"',
 	this.draw = Util.draw(Util.canvas(whole, font), 0, 0, 50, 50)
-	this.drawDrag = Util.canvas(whole, font)
 	this.nameH = parseInt(css.fontSize, 10)
 	this.nameTvW = this.draw.measureText('?').width | 0
 	css = font = null
@@ -28,15 +27,13 @@ Edit = function (dom)
 	Util.on(dom, 'keypress', this, this.key)
 
 	var z = this.zonest = new Datum(0)
-	z.edit = this
+	z.edit = this, z.x = z.y = Datum.SPACE + 4 >> 1
 	z.addTo(null, 0, 0)
 	this.Now(this.nav = this.hit = this.now = z)
 	Layer2(z)
 	z.show(4)
 	this.com = new Command(this)
-	ZSPACE = Datum.SPACE + 4 >> 1
 }
-var ZSPACE
 
 Edit.prototype =
 {
@@ -55,7 +52,6 @@ keyType: '',
 dom: null,
 whole: null,
 draw: null,
-drawDrag: null,
 nameH: 0,
 nameTvW: 0,
 name: null,
@@ -114,8 +110,8 @@ _show: function ()
 		if (this.layout)
 			z.layoutDetail(), z.layout(false),
 			this.layout = false, this.scroll = true,
-			this.whole.style.width = z.w + ZSPACE + ZSPACE + 'px',
-			this.whole.style.height = z.h + ZSPACE + ZSPACE + 'px'
+			this.whole.style.width = z.w + z.x + z.x + 'px',
+			this.whole.style.height = z.h + z.y + z.y + 'px'
 		this.hitXY && (this.hit = this.HitXY() || z)
 		var mx = m.scrollLeft, my = m.scrollTop, mw = m.clientWidth, mh = m.clientHeight
 		if (this.scroll)
@@ -141,12 +137,12 @@ _show: function ()
 				return m.scrollLeft = mx + x, m.scrollTop = my + y, re = true
 		}
 		var draw = Util.draw(this.draw, mx, my, mw, mh)
-		draw.translate(ZSPACE, ZSPACE)
-		z._show(draw, mx, my, mw, mh)
+		z._show(draw, mx - z.x, my - z.y, mw, mh)
 		if (this.drag)
 			draw.lineWidth = 1.5, draw.strokeStyle = '#666', draw.beginPath(),
-			draw.moveTo(this.now.offsetX() + 0.5, this.now.offsetY() + 0.5),
-			draw.lineTo(this.hit.offsetX() + 0.5, this.hit.offsetY() + 0.5), draw.stroke()
+			draw.moveTo(this.now.offsetX() + 0.5 - mx, this.now.offsetY() + 0.5 - my),
+			draw.lineTo(this.hit.offsetX() + 0.5 - mx, this.hit.offsetY() + 0.5 - my),
+			draw.stroke()
 		this.hitXY = false
 	}
 	finally
@@ -174,7 +170,7 @@ Hit: function (e)
 
 HitXY: function ()
 {
-	var x = this.hitX - ZSPACE, y = this.hitY - ZSPACE, m = this.dom
+	var x = this.hitX, y = this.hitY, m = this.dom
 	do
 		x += m.scrollLeft - m.offsetLeft - m.clientLeft,
 		y += m.scrollTop - m.offsetTop - m.clientTop
