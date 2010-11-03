@@ -181,33 +181,27 @@ removeBefore: function ()
 	return this.edit.now instanceof Wire ? this.removeWire() : this.removeBeforeDatum()
 },
 
+removeAfter: function ()
+{
+	return this.edit.now instanceof Wire ? this.removeWire() : this.removeAfterDatum()
+},
+
 removeDatum: function ()
 {
 	var now = this.edit.now
 	if (now.layer2 || !now.row) // now wire
 		return
 	var z = now.zone, rs = z.rows, r = rs.indexOf(now.row), q = now.row.indexOf(now), addRow
-	if (r > 0 && r < z.ox - 1 && q && q == now.row.length - 1)
-		this.go(function (redo)
-		{
-			if (redo)
-				now.unadd(r, q), z.mergeRow(r),
-				this.edit.Now(rs[r][q])
-			else
-				z.breakRow(r, q), now.addTo(z, r, q),
-				this.edit.Now(now)
-		})
-	else
-		this.go(function (redo)
-		{
-			if (redo)
-				addRow = now.unadd(r, q),
-				this.edit.Now(z.ox < 0 ? z
-					: rs[r][q] || rs[r + 1] && rs[r + 1][0]
-					|| rs[r][q - 1] || ArrayLast(rs[r - 1]))
-			else
-				now.addTo(z, r, addRow ? -1 : q), this.edit.Now(now)
-		})
+	this.go(function (redo)
+	{
+		if (redo)
+			addRow = now.unadd(r, q),
+			this.edit.Now(z.ox < 0 ? z
+				: rs[r][q] || rs[r + 1] && rs[r + 1][0]
+				|| rs[r][q - 1] || ArrayLast(rs[r - 1]))
+		else
+			now.addTo(z, r, addRow ? -1 : q), this.edit.Now(now)
+	})
 },
 
 removeBeforeDatum: function ()
@@ -224,13 +218,37 @@ removeBeforeDatum: function ()
 			else
 				z.breakRow(r - 1, q), this.edit.Now(now)
 		})
-	else if (q && !(d = z.rows[r][q - 1]).layer2)
+	else if ((d = z.rows[r][q - 1]) && !d.layer2)
 		this.go(function (redo)
 		{
 			if (redo)
 				d.unadd(r, q - 1), this.edit.Now(now)
 			else
 				d.addTo(z, r, q - 1), this.edit.Now(now)
+		})
+},
+
+removeAfterDatum: function ()
+{
+	var now = this.edit.now
+	if (now.layer2 || !now.row) // not wire
+		return
+	var z = now.zone, r = z.rows.indexOf(now.row), q = now.row.indexOf(now), d
+	if (r > 0 && r < z.ox - 1 && q == now.row.length - 1)
+		this.go(function (redo)
+		{
+			if (redo)
+				q = z.mergeRow(r), this.edit.Now(now)
+			else
+				z.breakRow(r, q), this.edit.Now(now)
+		})
+	else if ((d = z.rows[r][q + 1]) && !d.layer2)
+		this.go(function (redo)
+		{
+			if (redo)
+				d.unadd(r, q + 1), this.edit.Now(now)
+			else
+				d.addTo(z, r, q + 1), this.edit.Now(now)
 		})
 },
 
@@ -255,8 +273,8 @@ early: function (e, test)
 			empty && (z.ox--, rs.splice(nr, 1)),
 			z.show(-1), this.edit.Now(now)
 		else
-			empty && (z.ox++, rs.splice(nr, 0, now.row = Row(z, [ now ]))),
-			rs[r].splice(q, 1),
+			empty && (z.ox++, rs.splice(nr, 0, Row(z, []))),
+			rs[r].splice(q, 1), rs[nr].splice(nq, 0, now), now.row = rs[nr],
 			z.show(-1), this.edit.Now(now)
 	})
 },
@@ -282,8 +300,8 @@ later: function (l, test)
 			empty && (z.ox--, rs.splice(nr, 1)),
 			z.show(-1), this.edit.Now(now)
 		else
-			empty && (z.ox++, rs.splice(nr, 0, now.row = Row(z, [ now ]))),
-			rs[r].splice(q, 1),
+			empty && (z.ox++, rs.splice(nr, 0, Row(z, []))),
+			rs[r].splice(q, 1), rs[nr].splice(nq, 0, now), now.row = rs[nr],
 			z.show(-1), this.edit.Now(now)
 	})
 },

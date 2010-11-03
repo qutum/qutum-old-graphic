@@ -34,7 +34,9 @@ Edit = function (dom)
 	Layer2(z)
 	z.show(4)
 	this.com = new Command(this)
+	ZSPACE = Datum.SPACE + 4 >> 1
 }
+var ZSPACE
 
 Edit.prototype =
 {
@@ -112,7 +114,8 @@ _show: function ()
 		if (this.layout)
 			z.layoutDetail(), z.layout(false),
 			this.layout = false, this.scroll = true,
-			this.whole.style.width = z.w + 'px', this.whole.style.height = z.h + 'px'
+			this.whole.style.width = z.w + ZSPACE + ZSPACE + 'px',
+			this.whole.style.height = z.h + ZSPACE + ZSPACE + 'px'
 		this.hitXY && (this.hit = this.HitXY() || z)
 		var mx = m.scrollLeft, my = m.scrollTop, mw = m.clientWidth, mh = m.clientHeight
 		if (this.scroll)
@@ -138,11 +141,12 @@ _show: function ()
 				return m.scrollLeft = mx + x, m.scrollTop = my + y, re = true
 		}
 		var draw = Util.draw(this.draw, mx, my, mw, mh)
+		draw.translate(ZSPACE, ZSPACE)
 		z._show(draw, mx, my, mw, mh)
 		if (this.drag)
-			draw.lineWidth = 1, draw.strokeStyle = '#666', draw.beginPath(),
-			draw.moveTo(this.now.offsetX(), this.now.offsetY()),
-			draw.lineTo(this.hit.offsetX(), this.hit.offsetY()), draw.stroke()
+			draw.lineWidth = 1.5, draw.strokeStyle = '#666', draw.beginPath(),
+			draw.moveTo(this.now.offsetX() + 0.5, this.now.offsetY() + 0.5),
+			draw.lineTo(this.hit.offsetX() + 0.5, this.hit.offsetY() + 0.5), draw.stroke()
 		this.hitXY = false
 	}
 	finally
@@ -170,7 +174,7 @@ Hit: function (e)
 
 HitXY: function ()
 {
-	var x = this.hitX, y = this.hitY, m = this.dom
+	var x = this.hitX - ZSPACE, y = this.hitY - ZSPACE, m = this.dom
 	do
 		x += m.scrollLeft - m.offsetLeft - m.clientLeft,
 		y += m.scrollTop - m.offsetTop - m.clientTop
@@ -230,8 +234,9 @@ key: function (e)
 	case 100: case 68: drag || this.com.datum(k == 68); break // d D
 	case 111: case 79: drag || this.com.output(k == 79); break // o O
 	case -13.5: drag || this.com.breakRow(); break // func-enter
-	case 8.5: drag || this.com.removeBefore(); break // backspace
-	case 46.5: drag || this.com.remove(); break // delete
+	case 8.5: drag || this.com.removeBefore(); break // back
+	case 46.5: drag || this.com.remove(); break // del
+	case -8.5: case -46.5: drag || this.com.removeAfter(); break // func-del func-back
 	case 116: case 63: drag || this.com.trialVeto(-1); break // t ?
 	case 118: case 33: drag || this.com.trialVeto(1); break // v !
 	case 117: this.Now(now, false, null, this.com.unity); break; // u
