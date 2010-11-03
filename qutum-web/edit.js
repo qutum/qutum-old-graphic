@@ -46,7 +46,8 @@ hitX: 0, // relative to page
 hitY: 0, // relative to page
 hitXY: true, // use hitX and hitY
 nav: null, // navigable now or hit
-drag: 0, // 0 no drag 1 unity 2 base 3 agent 4 early 5 later
+drag: null, // null or a command
+dragable: true,
 keyType: '',
 
 dom: null,
@@ -80,15 +81,15 @@ Now: function (now, nav, show, drag)
 		now.navNext = null,
 		n.navNext && (n.navNext.navPrev = null),
 		n.navNext = now
-	if (drag != null)
+	if (drag !== undefined)
 		this.drag != drag && (this.scroll = true), this.drag = drag
 	else
 		this.scroll = this.scroll || n != now
 // TODO no name edit
 	if (this.drag)
-		this.nav = this.hit = now
+		this.nav = this.hit = now, this.dragable = this.drag.call(this.com, now, true)
 	else
-		this.nav = this.now = now, this.hitXY = true
+		this.nav = this.now = now, this.dragable = this.hitXY = true
 	now.nowUnfold && now.nowUnfold(show != null ? show : 2) || this.show()
 },
 
@@ -121,13 +122,18 @@ _show: function ()
 			if (x < mx || y < my)
 				return x < mx && (m.scrollLeft = x), y < my && (m.scrollTop = y), re = true
 			var now = this.drag && this.hit || this.now, x = now.offsetX(), y = now.offsetY()
-			if (this.drag == 4)
+			if (this.drag == this.com.early)
 				x = x - Datum.SPACE - Math.max(mx, Math.min(x - Datum.SPACE, mx + mw - now.w))
-			else if (this.drag == 5)
+			else if (this.drag == this.com.later)
 				x = x - Math.min(Math.max(mx, x), mx + mw - now.w - Datum.SPACE)
 			else
 				x = x - Math.max(mx, Math.min(x, mx + mw - now.w))
-			y = y - Math.max(my, Math.min(y, my + mh - now.h))
+			if (this.drag == this.com.earlyRow)
+				y = y - Datum.SPACE - Math.max(my, Math.min(y - Datum.SPACE, my + mh - now.h))
+			else if (this.drag == this.com.laterRow)
+				y = y - Math.min(Math.max(my, y), my + mh - now.h - Datum.SPACE)
+			else
+				y = y - Math.max(my, Math.min(y, my + mh - now.h))
 			if (x || y)
 				return m.scrollLeft = mx + x, m.scrollTop = my + y, re = true
 		}
@@ -200,13 +206,13 @@ key: function (e)
 	case 36.5: now.nowHome && now.nowHome(); break // home
 	case 35.5: now.nowEnd && now.nowEnd(); break // end
 	case 9.5: now.nowInner && now.nowInner(); break // tab
-	case 27.5: this.Now(this.now, false, null, 0); break // esc
+	case 27.5: this.Now(this.now, false, null, null); break // esc
 
 	case 122: now.nowZone && now.nowZone(); break // z
 	case 32: now.nowInner && now.nowInner(); break // space
 	case 44: now.nowInput && now.nowInput(); break // ,
 	case 96: now.nowDatum && now.nowDatum(); break // `
-	case 46: now.nowOuput && now.nowOutput(); break // .
+	case 46: now.nowOutput && now.nowOutput(); break // .
 	case 59: now.nowUnity && now.nowUnity(); break // ;
 	case 91: case 123: now.nowBase && now.nowBase(k == 91); break // [ {
 	case 93: case 125: now.nowAgent && now.nowAgent(k == 93); break // ] }
@@ -219,9 +225,14 @@ key: function (e)
 	case -13.5: drag || this.com.breakRow(); break // func-enter
 	case 116: case 63: drag || this.com.trialVeto(-1); break // t ?
 	case 118: case 33: drag || this.com.trialVeto(1); break // v !
-	case 117: this.now.io && this.Now(now, false, null, 1); break; // u
-	case 101: this.now.row && this.Now(now, false, null, 4); break; // e
-	case 108: this.now.row && this.Now(now, false, null, 5); break; // l
+	case 117: this.Now(now, false, null, this.com.unity); break; // u
+	case 101: this.Now(now, false, null, this.com.early); break; // e
+	case 108: this.Now(now, false, null, this.com.later); break; // l
+	case 69: this.Now(now, false, null, this.com.earlyRow); break; // E
+	case 76: this.Now(now, false, null, this.com.laterRow); break; // L
+	case 13.5: drag ? (this.Now(this.now, false, null, null), drag.call(this.com, now))
+		: null;	
+		break // enter
 
 	default: return
 	}

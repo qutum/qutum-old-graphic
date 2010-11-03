@@ -219,59 +219,121 @@ removeBefore: function ()
 		})
 },
 
-move: function (r, q)
+early: function (e, test)
 {
-	var now = this.edit.now
-	if (now.row == null)
+	var now = this.edit.now, z = now.zone
+	if (now.layer2 || now.row == null || e.zone != z)
 		return
-	var z = now.zone, rs = z.rows, nr = rs.indexOf(now.row), nq = now.row.indexOf(now),
-		empty = r != nr && rs[nr].length == 1
+	var rs = z.rows, nr = rs.indexOf(now.row), nq = now.row.indexOf(now),
+		r = rs.indexOf(e.row), q = e.row.indexOf(e),
+		empty = r != nr && now.row.length == 1
 	if (r == nr && q > nq)
 		q--
+	if ((now.io < 0) == (r > 0) || (now.io > 0) == (r < z.ox))
+		return
+	if (test)
+		return true
 	this.go(function (redo)
 	{
 		if (redo)
-			rs[nr].splice(nq, 1), rs[r].splice(q, 0, now),
+			rs[nr].splice(nq, 1), rs[r].splice(q, 0, now), now.row = rs[r],
 			empty && (z.ox--, rs.splice(nr, 1)),
 			z.show(-1), this.edit.Now(now)
 		else
-			empty && (z.ox++, rs.splice(nr, 0, Row(z, []))),
-			rs[r].splice(q, 1), rs[nr].splice(nq, 0, now),
+			empty && (z.ox++, rs.splice(nr, 0, now.row = Row(z, [ now ]))),
+			rs[r].splice(q, 1),
 			z.show(-1), this.edit.Now(now)
 	})
 },
 
-moveRow: function (r)
+later: function (l, test)
 {
-	var now = this.edit.now
-	if (now.row == null)
+	var now = this.edit.now, z = now.zone
+	if (now.layer2 || now.row == null || l.zone != z)
 		return
-	var z = now.zone, rs = z.rows, nr = rs.indexOf(now.row), nq = now.row.indexOf(now),
-		empty = rs[nr].length == 1
+	var rs = z.rows, nr = rs.indexOf(now.row), nq = now.row.indexOf(now),
+		r = rs.indexOf(l.row), q = l.row.indexOf(l) + 1,
+		empty = r != nr && rs[nr].length == 1
+	if (r == nr && q > nq)
+		q--
+	if ((now.io < 0) == (r > 0) || (now.io > 0) == (r < z.ox))
+		return
+	if (test)
+		return true
+	this.go(function (redo)
+	{
+		if (redo)
+			rs[nr].splice(nq, 1), rs[r].splice(q, 0, now), now.row = rs[r],
+			empty && (z.ox--, rs.splice(nr, 1)),
+			z.show(-1), this.edit.Now(now)
+		else
+			empty && (z.ox++, rs.splice(nr, 0, now.row = Row(z, [ now ]))),
+			rs[r].splice(q, 1),
+			z.show(-1), this.edit.Now(now)
+	})
+},
+
+earlyRow: function (e, test)
+{
+	var now = this.edit.now, z = now.zone
+	if (now.layer2 || now.io != 0 || now.row == null || e.zone != z || e.io < 0)
+		return
+	if (test)
+		return true
+	var rs = z.rows, nr = rs.indexOf(now.row), nq = now.row.indexOf(now),
+		r = rs.indexOf(e.row), empty = now.row.length == 1
 	if (empty && r > nr)
 		r--
 	this.go(function (redo)
 	{
 		if (redo)
-			empty ? rs.splice(r, 0, rs.splice(nr, 1))
-				: (z.ox++, rs[nr].splice(nq, 1), rs.splice(r, 0, Row(z, [ now ]))),
+			empty ? rs.splice(r, 0, rs.splice(nr, 1)[0]) :
+				(z.ox++, rs[nr].splice(nq, 1), rs.splice(r, 0, now.row = Row(z, [ now ]))),
 			z.show(-1), this.edit.Now(now)
 		else
-			empty ? z.addChildAt(z.removeChildAt(r), nr)
-				: (z.ox--, rs.splice(r, 1), rs[nr].splice(nq, 0, now)),
+			empty ? rs.splice(nr, 0, rs.splice(r, 1)[0]) :
+				(z.ox--, rs.splice(r, 1), rs[nr].splice(nq, 0, now), now.row = rs[nr]),
 			z.show(-1), this.edit.Now(now)
 	})
 },
 
-unity: function (u)
+laterRow: function (l, test)
 {
-	var now = this.edit.now, u = now.uNext, m = now.name, um = u.name
+	var now = this.edit.now, z = now.zone
+	if (now.layer2 || now.io != 0 || now.row == null || l.zone != z || l.io > 0)
+		return
+	if (test)
+		return true
+	var rs = z.rows, nr = rs.indexOf(now.row), nq = now.row.indexOf(now),
+		r = rs.indexOf(l.row) + 1, empty = now.row.length == 1
+	if (empty && r > nr)
+		r--
+	this.go(function (redo)
+	{
+		if (redo)
+			empty ? rs.splice(r, 0, rs.splice(nr, 1)[0]) :
+				(z.ox++, rs[nr].splice(nq, 1), rs.splice(r, 0, now.row = Row(z, [ now ]))),
+			z.show(-1), this.edit.Now(now)
+		else
+			empty ? rs.splice(nr, 0, rs.splice(r, 1)[0]) :
+				(z.ox--, rs.splice(r, 1), rs[nr].splice(nq, 0, now), now.row = rs[nr]),
+			z.show(-1), this.edit.Now(now)
+	})
+},
+
+unity: function (u, test)
+{
+	var now = this.edit.now, nu = now.uNext, m = now.name, um = u.name
+	if (now.layer2 || now.io == 0 || now.io != u.io)
+		return
+	if (test)
+		return true
 	this.go(function (redo)
 	{
 		if (redo)
 			now.unityTo(u)
 		else
-			now.unityTo(u),
+			now.unityTo(nu),
 			n == now.name || (now.name = m), um == u.name || (u.name = um)
 		this.edit.Now(now)
 	})

@@ -396,7 +396,7 @@ _show: function (draw, X, Y, W, H)
 
 	var edit = this.edit, io = this.io, s = this.rows, R, r, D, d, x, y, rh, dw, dh,
 		c0 = io < 0 ? '#f9f3ff' : io > 0 ? '#f3f9ff' : '#f5fff5',
-		c = this.err ? '#f00' : io < 0 ? '#80d' : io > 0 ? '#06d' : '#080'
+		c = this.err ? '#f00' : io < 0 ? '#a0c' : io > 0 ? '#07e' : '#080'
 
 	draw.fillStyle = c0, draw.strokeStyle = c
 // fill background
@@ -441,14 +441,19 @@ _show: function (draw, X, Y, W, H)
 	{
 		draw.translate(-X, -Y)
 		draw.globalAlpha = this.yield ? 0.5 : 1
-		draw.strokeStyle = this.err ? '#f00' : io < 0 ? '#b6f' : io > 0 ? '#6af' : '#6c6'
+		draw.strokeStyle = edit.dragable ? this.err ? '#f66'
+			: io < 0 ? '#d7f' : io > 0 ? '#6af' : '#6c6' : '#fcc'
 		draw.lineWidth = 2.5 
 		draw.strokeRect(1.25, 1.25, w - 2.5, h - 2.5)
-		if (this.zone)
-			if (edit.drag == 4)
+		if (edit.drag)
+			if (edit.drag == edit.com.early)
 				draw.strokeStyle = '#666', draw.strokeRect(- SPACE / 2, 0, 0, h)
-			else if (edit.drag == 5)
+			else if (edit.drag == edit.com.later)
 				draw.strokeStyle = '#666', draw.strokeRect(w + SPACE / 2, 0, 0, h)
+			else if (edit.drag == edit.com.earlyRow)
+				draw.strokeStyle = '#666', draw.strokeRect(0, - SPACE / 2, w, 0)
+			else if (edit.drag == edit.com.laterRow)
+				draw.strokeStyle = '#666', draw.strokeRect(0, h + SPACE / 2, w, 0)
 		draw.translate(X, Y)
 	}
 	else if (this == edit.now)
