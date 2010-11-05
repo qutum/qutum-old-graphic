@@ -122,7 +122,8 @@ _show: function ()
 			this.whole.style.width = z.x + z.w + z.x + 'px',
 			this.whole.style.height = z.y + z.h + z.y + 'px'
 		if (this.hitXY)
-			this.hit = this.HitXY() || z, this.drag && (this.foc = this.hit)
+			this.hit = this.HitXY() || z,
+			this.drag && (this.dragable = this.drag.call(this.com, this.foc = this.hit, true))
 		var mx = m.scrollLeft, my = m.scrollTop, mw = m.clientWidth, mh = m.clientHeight
 		if (this.scroll)
 		{
@@ -330,12 +331,12 @@ Naming: function ()
 // start if drag is a command, done if drag is true, cancel if drag is false 
 Drag: function (drag)
 {
-	var foc = this.foc
+	var foc = this.foc, d
 	if (drag instanceof Function)
 		this.Now(foc, false, null, drag)
-	else if (this.drag)
+	else if (d = this.drag)
 		this.Now(this.now, false, null, null),
-		drag===true && this.drag.call(this.com, foc)
+		drag===true && d.call(this.com, foc)
 },
 
 key: function (e)

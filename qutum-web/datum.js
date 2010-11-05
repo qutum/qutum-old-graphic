@@ -63,7 +63,7 @@ y: 0,
 w: 0,
 h: 0,
 ox: -1, // -1: no inner datum, >=1: output row index, == rows.length - 1
-detail: 1, // 1: hide, 2: only this, 3: this and inners
+detail: 2, // 1: hide, 2: only this, 3: this and inners
 showing: 0,
 navPrev: null,
 navNext: null,
@@ -114,7 +114,8 @@ addTo: function (z, r, q) // x < 0 to add row
 				: ArrayLast(z.rows[r - 1]).el + 1
 	}
 	this._addTo(this.deep)
-	this.show(this.layer2 ? z.layer2 ? 1 : 2 : 3)
+	this.showing = 0 // drop last showing to force layout for redo
+	this.show(this.layer2 ? z.layer2 ? 1 : 2 : this.detail)
 	return this
 },
 
@@ -444,8 +445,8 @@ _show: function (draw, X, Y, W, H)
 	if (this == edit.hit && (this != edit.now || edit.drag))
 	{
 		draw.translate(-X, -Y)
-		draw.strokeStyle = edit.dragable ? this.err ? '#f66'
-			: io < 0 ? '#d7e' : io > 0 ? '#6af' : '#6c6' : '#fcc'
+		draw.strokeStyle = edit.dragable
+			? this.err ? '#f66' : io < 0 ? '#d8f' : io > 0 ? '#8bf' : '#7d7' : '#fbb'
 		draw.lineWidth = this.yield ? 1 : 2, draw.strokeRect(-0.5, -0.5, w + 1, h + 1)
 		if (edit.drag)
 			if (edit.drag == edit.com.early)

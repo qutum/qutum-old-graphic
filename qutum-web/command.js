@@ -94,17 +94,14 @@ name: function (v)
 
 input: function (inner)
 {
-	var now = this.edit.now
-	if (this.edit.drag || now instanceof Wire)
+	var now = this.edit.now, z = !inner && now.zone || now
+	if (this.edit.drag || now instanceof Wire || z.layer2)
 		return
-	var z, d = new Datum(-1), r, q
-	if (now.io < 0 && !inner)
-		z = now.zone, r = now.zone.rows.indexOf(now.row), q = now.row.indexOf(now) + 1
-	else
-		z = !inner && now.zone || now,
+	var d = new Datum(-1), r, q
+	if (inner || now.io >= 0 || now.layer2)
 		r = 0, q = z.ox < 0 ? 0 : z.rows[r].length
-	if ((inner ? z : now).layer2)
-		return
+	else
+		r = now.zone.rows.indexOf(now.row), q = now.row.indexOf(now) + 1
 	this.go(function (redo)
 	{
 		if (redo)
@@ -116,18 +113,15 @@ input: function (inner)
 
 datum: function (inner)
 {
-	var now = this.edit.now
-	if (this.edit.drag || now instanceof Wire)
+	var now = this.edit.now, z = !inner && now.zone || now
+	if (this.edit.drag || now instanceof Wire || z.layer2)
 		return
-	var z, d = new Datum(0), r, q
-	if (now.io || inner || !now.zone)
-		z = !inner && now.zone || now,
+	var d = new Datum(0), r, q
+	if (inner || now.io || !now.zone)
 		z.ox <= 1 ? (r = 1, q = -1) : (r = z.ox - 1, q = z.rows[r].length),
 		q >= 4 && (r++, q = -1)
 	else
-		z = now.zone, r = now.zone.rows.indexOf(now.row), q = now.row.indexOf(now) + 1
-	if ((inner ? now : z).layer2)
-		return
+		r = now.zone.rows.indexOf(now.row), q = now.row.indexOf(now) + 1
 	this.go(function (redo)
 	{
 		if (redo)
@@ -139,17 +133,14 @@ datum: function (inner)
 
 output: function (inner)
 {
-	var now = this.edit.now
-	if (this.edit.drag || now instanceof Wire)
+	var now = this.edit.now, z = !inner && now.zone || now
+	if (this.edit.drag || now instanceof Wire || z.layer2)
 		return
-	var z, d = new Datum(1), r, q
-	if (now.io > 0 && !inner)
-		z = now.zone, r = now.zone.rows.indexOf(now.row), q = now.row.indexOf(now) + 1
-	else
-		z = !inner && now.zone || now,
+	var d = new Datum(1), r, q
+	if (inner || now.io <= 0 || now.layer2)
 		r = z.ox < 0 ? 1 : z.ox, q = z.ox < 0 ? 0 : z.rows[r].length
-	if ((inner ? z : now).layer2)
-		return
+	else
+		r = now.zone.rows.indexOf(now.row), q = now.row.indexOf(now) + 1
 	this.go(function (redo)
 	{
 		if (redo)
@@ -258,7 +249,7 @@ removeAfterDatum: function ()
 early: function (e, test)
 {
 	var now = this.edit.now, z = now.zone
-	if (this.edit.drag || now.layer2 || !now.row || e.zone != z)
+	if ( !test && this.edit.drag || now.layer2 || !now.row || e.zone != z)
 		return // not wire
 	var rs = z.rows, nr = rs.indexOf(now.row), nq = now.row.indexOf(now),
 		r = rs.indexOf(e.row), q = e.row.indexOf(e),
@@ -285,7 +276,7 @@ early: function (e, test)
 later: function (l, test)
 {
 	var now = this.edit.now, z = now.zone
-	if (this.edit.drag || now.layer2 || !now.row || l.zone != z)
+	if ( !test && this.edit.drag || now.layer2 || !now.row || l.zone != z)
 		return // not wire
 	var rs = z.rows, nr = rs.indexOf(now.row), nq = now.row.indexOf(now),
 		r = rs.indexOf(l.row), q = l.row.indexOf(l) + 1,
@@ -312,7 +303,7 @@ later: function (l, test)
 earlyRow: function (e, test)
 {
 	var now = this.edit.now, z = now.zone
-	if (this.edit.drag || now.layer2 || now.io != 0 || !z || e.zone != z || e.io < 0)
+	if ( !test && this.edit.drag || now.layer2 || now.io != 0 || !z || e.zone != z || e.io < 0)
 		return // not wire
 	if (test)
 		return true
@@ -336,7 +327,7 @@ earlyRow: function (e, test)
 laterRow: function (l, test)
 {
 	var now = this.edit.now, z = now.zone
-	if (this.edit.drag || now.layer2 || now.io != 0 || !z || l.zone != z || l.io > 0)
+	if ( !test && this.edit.drag || now.layer2 || now.io != 0 || !z || l.zone != z || l.io > 0)
 		return // not wire
 	if (test)
 		return true
