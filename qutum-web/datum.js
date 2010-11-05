@@ -396,7 +396,7 @@ _show: function (draw, X, Y, W, H)
 
 	var edit = this.edit, io = this.io, s = this.rows, R, r, D, d, x, y, rh, dw, dh,
 		c0 = io < 0 ? '#f9f3ff' : io > 0 ? '#f3f9ff' : '#f5fff5',
-		c = this.err ? '#f00' : io < 0 ? '#80d' : io > 0 ? '#06d' : '#080'
+		c = this.err ? '#f00' : io < 0 ? '#90c' : io > 0 ? '#06d' : '#080'
 
 	draw.fillStyle = c0, draw.strokeStyle = c
 // fill background
@@ -442,7 +442,7 @@ _show: function (draw, X, Y, W, H)
 		draw.translate(-X, -Y)
 		draw.globalAlpha = this.yield ? 0.5 : 1
 		draw.strokeStyle = edit.dragable ? this.err ? '#f66'
-			: io < 0 ? '#d7f' : io > 0 ? '#6af' : '#6c6' : '#fcc'
+			: io < 0 ? '#d7e' : io > 0 ? '#6af' : '#6c6' : '#fcc'
 		draw.lineWidth = 2.5 
 		draw.strokeRect(1.25, 1.25, w - 2.5, h - 2.5)
 		draw.globelAlpha = 1
@@ -539,87 +539,6 @@ searchRow: function (y)
 ////////////////////////////////      ////////////////////////////////
 //////////////////////////////// edit ////////////////////////////////
 ////////////////////////////////      ////////////////////////////////
-
-nowLeft: function ()
-{
-	var r = this.row, rs
-	if (r)
-		if (this != r[0])
-			this.edit.Now(r[r.indexOf(this) - 1])
-		else if (rs = this.zone.rows, (r = rs[rs.indexOf(r) - 1]) && r.length)
-			this.edit.Now(ArrayLast(r))
-},
-nowRight: function ()
-{
-	var r = this.row
-	if (r)
-		if (this != ArrayLast(r))
-			this.edit.Now(r[r.indexOf(this) + 1])
-		else if (rs = this.zone.rows, (r = rs[rs.indexOf(r) + 1]) && r.length)
-			this.edit.Now(r[0])
-},
-nowUp: function ()
-{
-	var r = this.zone, d
-	if (r && (r = r.rows[r.rows.indexOf(this.row) - 1]) && r.length)
-		d = r.searchDatumX(this.x + this.w / 2),
-		this.edit.Now(r[d ^ d >> 31] || ArrayLast(r))
-},
-nowDown: function ()
-{
-	var r = this.zone, d
-	if (r && (r = r.rows[r.rows.indexOf(this.row) + 1]) && r.length)
-		d = r.searchDatumX(this.x + this.w / 2),
-		this.edit.Now(r[d ^ d >> 31] || ArrayLast(r))
-},
-nowHome: function ()
-{
-	var x = this.row; x && this != x[0] && this.edit.Now(x[0])
-},
-nowEnd: function ()
-{
-	var x = this.row; x && this != (x = ArrayLast(x)) && this.edit.Now(x)
-},
-nowZone: function ()
-{
-	this.edit.Now(this.zone || this)
-},
-nowInner: function ()
-{
-	this.ox > 0 && this.edit.Now(this.rows[0][0] || this.rows[1][0])
-},
-nowInput: function ()
-{
-	this.ox > 0 && this.rows[0][0] && this.edit.Now(this.rows[0][0])
-},
-nowDatum: function ()
-{
-	this.ox > 1 && this.rows[1][0] && this.edit.Now(this.rows[1][0])
-},
-nowOutput: function ()
-{
-	this.ox > 0 && this.rows[this.ox][0] && this.edit.Now(this.rows[this.ox][0])
-},
-nowUnity: function ()
-{
-	this.uNext != this && this.edit.Now(this.uNext)
-},
-nowBase: function (next)
-{
-	this.bs[0] && this.edit.Now(this.bs[0])
-},
-nowAgent: function (next)
-{
-	this.as[0] && this.edit.Now(this.as[0])
-},
-nowUnfold: function (x)
-{
-	return (x >= 4 || this.detail < x) && this.show(x)
-},
-nowFold: function (x)
-{
-	return this.detail > 2 && this.show(2)
-},
 
 }
 

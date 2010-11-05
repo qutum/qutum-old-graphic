@@ -29,7 +29,7 @@ Edit = function (dom)
 	var z = this.zonest = new Datum(0)
 	z.edit = this, z.x = z.y = Datum.SPACE + 4 >> 1
 	z.addTo(null, 0, 0)
-	this.Now(this.nav = this.hit = this.now = z)
+	this.Now(this.now = this.hit = this.nav = this.foc = z)
 	Layer2(z)
 	z.show(4)
 	this.com = new Command(this)
@@ -44,7 +44,8 @@ hit: null,
 hitX: 0, // relative to page
 hitY: 0, // relative to page
 hitXY: true, // use hitX and hitY
-nav: null, // navigable now or hit
+nav: null, // navigable hit while dragging or now
+foc: null, // hit while dragging or now
 drag: null, // null or a command
 dragable: true,
 keyType: '',
@@ -85,10 +86,12 @@ Now: function (now, nav, show, drag)
 		this.scroll = this.scroll || n != now
 // TODO no name edit
 	if (this.drag)
-		this.nav = this.hit = now, this.dragable = this.drag.call(this.com, now, true)
+		this.hit = this.nav = this.foc = now,
+		this.dragable = this.drag.call(this.com, now, true)
 	else
-		this.nav = this.now = now, this.dragable = this.hitXY = true
-	now.nowUnfold && now.nowUnfold(show != null ? show : 2) || this.show()
+		this.now = this.nav = this.foc = now,
+		this.dragable = this.hitXY = true
+	this.focUnfold(show != null ? show : 2) || this.show()
 },
 
 ////////////////////////////////      ////////////////////////////////
@@ -112,7 +115,8 @@ _show: function ()
 			this.layout = false, this.scroll = true,
 			this.whole.style.width = z.w + z.x + z.x + 'px',
 			this.whole.style.height = z.h + z.y + z.y + 'px'
-		this.hitXY && (this.hit = this.HitXY() || z)
+		if (this.hitXY)
+			this.hit = this.HitXY() || z, this.drag && (this.foc = this.hit)
 		var mx = m.scrollLeft, my = m.scrollTop, mw = m.clientWidth, mh = m.clientHeight
 		if (this.scroll)
 		{
@@ -120,19 +124,19 @@ _show: function ()
 			var x = mx && z.w - mw, y = my && z.h - mh
 			if (x < mx || y < my)
 				return x < mx && (m.scrollLeft = x), y < my && (m.scrollTop = y), re = true
-			var now = this.drag && this.hit || this.now, x = now.offsetX(), y = now.offsetY()
+			var foc = this.foc, x = foc.offsetX(), y = foc.offsetY()
 			if (this.drag == this.com.early)
-				x = x - Datum.SPACE - Math.max(mx, Math.min(x - Datum.SPACE, mx + mw - now.w))
+				x = x - Datum.SPACE - Math.max(mx, Math.min(x - Datum.SPACE, mx + mw - foc.w))
 			else if (this.drag == this.com.later)
-				x = x - Math.min(Math.max(mx, x), mx + mw - now.w - Datum.SPACE)
+				x = x - Math.min(Math.max(mx, x), mx + mw - foc.w - Datum.SPACE)
 			else
-				x = x - Math.max(mx, Math.min(x, mx + mw - now.w))
+				x = x - Math.max(mx, Math.min(x, mx + mw - foc.w))
 			if (this.drag == this.com.earlyRow)
-				y = y - Datum.SPACE - Math.max(my, Math.min(y - Datum.SPACE, my + mh - now.h))
+				y = y - Datum.SPACE - Math.max(my, Math.min(y - Datum.SPACE, my + mh - foc.h))
 			else if (this.drag == this.com.laterRow)
-				y = y - Math.min(Math.max(my, y), my + mh - now.h - Datum.SPACE)
+				y = y - Math.min(Math.max(my, y), my + mh - foc.h - Datum.SPACE)
 			else
-				y = y - Math.max(my, Math.min(y, my + mh - now.h))
+				y = y - Math.max(my, Math.min(y, my + mh - foc.h))
 			if (x || y)
 				return m.scrollLeft = mx + x, m.scrollTop = my + y, re = true
 		}
@@ -162,7 +166,7 @@ Hit: function (e)
 		if (ok != this.nav)
 			this.Now(ok, true, e.shiftKey ? 3 : 2)
 		else
-			ok.nowUnfold && ok.nowUnfold(e.shiftKey ? 4 : 3) || this.show()
+			this.focUnfold(e.shiftKey ? 4 : 3) || this.show()
 	}
 	else if (ok || e.type == 'mousedown') 
 		this.hitXY = true, this.show()
@@ -182,9 +186,130 @@ HitXY: function ()
 //////////////////////////////// edit ////////////////////////////////
 ////////////////////////////////      ////////////////////////////////
 
+navPrev: function ()
+{
+	this.nav != this.foc ? this.Now(this.nav, false)
+		: this.nav.navPrev && this.Now(this.nav.navPrev, false)
+},
+navNext: function ()
+{
+	this.nav != this.foc ? this.Now(this.nav, false)
+		: this.nav.navNext && this.Now(this.nav.navNext, false)
+},
+focLeft: function ()
+{
+	var foc = this.foc, r = foc.row, rs
+	if (r) // not wire
+		if (foc != r[0])
+			this.Now(r[r.indexOf(foc) - 1])
+		else if (rs = foc.zone.rows, (r = rs[rs.indexOf(r) - 1]) && r.length)
+			this.Now(ArrayLast(r))
+},
+focRight: function ()
+{
+	var foc = this.foc, r = foc.row
+	if (r) // not wire
+		if (foc != ArrayLast(r))
+			this.Now(r[r.indexOf(foc) + 1])
+		else if (rs = foc.zone.rows, (r = rs[rs.indexOf(r) + 1]) && r.length)
+			this.Now(r[0])
+},
+focUp: function ()
+{
+	var foc = this.foc, r = foc.zone, d
+	if (foc instanceof Datum && r && (r = r.rows[r.rows.indexOf(foc.row) - 1]) && r.length)
+		d = r.searchDatumX(foc.x + foc.w / 2),
+		this.Now(r[d ^ d >> 31] || ArrayLast(r))
+},
+focDown: function ()
+{
+	var foc = this.foc, r = foc.zone, d
+	if (foc instanceof Datum && r && (r = r.rows[r.rows.indexOf(foc.row) + 1]) && r.length)
+		d = r.searchDatumX(foc.x + foc.w / 2),
+		this.Now(r[d ^ d >> 31] || ArrayLast(r))
+},
+focHome: function ()
+{
+	var x = this.foc.row
+	x && this.foc != x[0] && this.Now(x[0]) // not wire
+},
+focEnd: function ()
+{
+	var x = this.foc.row
+	x && this.foc != (x = ArrayLast(x)) && this.Now(x) // not wire
+},
+focZone: function ()
+{
+	this.Now(this.foc.zone || this.foc)
+},
+focInner: function ()
+{
+	var foc = this.foc
+	foc.ox > 0 && this.Now(foc.rows[0][0] || foc.rows[1][0]) // not wire
+},
+focInput: function ()
+{
+	var foc = this.foc
+	foc.ox > 0 && foc.rows[0][0] && this.Now(foc.rows[0][0]) // not wire
+},
+focDatum: function ()
+{
+	var foc = this.foc
+	foc.ox > 1 && foc.rows[1][0] && this.Now(foc.rows[1][0]) // not wire
+},
+focOutput: function ()
+{
+	var foc = this.foc
+	foc.ox > 0 && foc.rows[foc.ox][0] && this.Now(foc.rows[foc.ox][0]) // not wire
+},
+focUnity: function ()
+{
+	var foc = this.foc
+	foc instanceof Datum && foc.uNext != foc && this.Now(foc.uNext)
+},
+focBase: function (next)
+{
+	var foc = this.foc
+	if (foc instanceof Datum)
+		return foc.bs[0] && this.Now(foc.bs[0])
+	if ( !next)
+		return this.Now(foc.base)
+	var s = foc.agent.bs
+	this.Now(s[s.indexOf(foc) + 1] || s[0])
+},
+focAgent: function (next)
+{
+	var foc = this.foc
+	if (foc instanceof Datum)
+		return foc.as[0] && this.Now(foc.as[0])
+	if ( !next)
+		return this.Now(foc.agent)
+	var s = foc.base.as
+	this.Now(s[s.indexOf(foc) + 1] || s[0])
+},
+focUnfold: function (x)
+{
+	return (x >= 4 || this.foc.detail < x) && this.foc.show(x) // not wire
+},
+focFold: function (x)
+{
+	return this.foc.detail > 2 && this.foc.show(2) // not wire
+},
+
+// start if drag is a command, done if drag is true, cancel if drag is false 
+Drag: function (drag)
+{
+	var foc = this.foc
+	if (drag instanceof Function)
+		this.Now(foc, false, null, drag)
+	else if (this.drag)
+		this.Now(this.now, false, null, null),
+		drag===true && this.drag.call(this.com, foc)
+},
+
 key: function (e)
 {
-	var drag = this.drag, now = drag ? this.hit : this.now, k = e.charCode
+	var k = e.charCode
 	if (k)
 		(e.ctrlKey || e.altKey || e.metaKey) && (k = -k)
 	else
@@ -200,49 +325,45 @@ key: function (e)
 	{
 	switch (k)
 	{
-	case 37.5: now.nowLeft && now.nowLeft(); break // left
-	case 39.5: now.nowRight && now.nowRight(); break // right
-	case 38.5: now.nowUp && now.nowUp(); break // up
-	case 40.5: now.nowDown && now.nowDown(); break // down
-	case -37.5: drag || this.com.undo(); break // func-left
-	case -39.5: drag || this.com.redo(); break // func-right 
-	case -38.5: var n = this.nav; now != n ? this.Now(n, false)
-				: n.navPrev && this.Now(n.navPrev, false); break // func-up
-	case -40.5: var n = this.nav; now != n ? this.Now(n, false)
-				: n.navNext && this.Now(n.navNext, false); break // func-down
-	case 36.5: now.nowHome && now.nowHome(); break // home
-	case 35.5: now.nowEnd && now.nowEnd(); break // end
-	case 9.5: now.nowInner && now.nowInner(); break // tab
-	case 27.5: this.Now(this.now, false, null, null); break // esc
+	case 37.5: this.focLeft(); break // left
+	case 39.5: this.focRight(); break // right
+	case 38.5: this.focUp(); break // up
+	case 40.5: this.focDown(); break // down
+	case -37.5: this.com.undo(); break // func-left
+	case -39.5: this.com.redo(); break // func-right 
+	case -38.5: this.navPrev(); break // func-up
+	case -40.5: this.navNext(); break // func-down
+	case 36.5: this.focHome(); break // home
+	case 35.5: this.focEnd(); break // end
+	case 9.5: this.focInner(); break // tab
+	case 27.5: this.Drag(false); break // esc
 
-	case 122: now.nowZone && now.nowZone(); break // z
-	case 32: now.nowInner && now.nowInner(); break // space
-	case 44: now.nowInput && now.nowInput(); break // ,
-	case 96: now.nowDatum && now.nowDatum(); break // `
-	case 46: now.nowOutput && now.nowOutput(); break // .
-	case 59: now.nowUnity && now.nowUnity(); break // ;
-	case 91: case 123: now.nowBase && now.nowBase(k == 91); break // [ {
-	case 93: case 125: now.nowAgent && now.nowAgent(k == 93); break // ] }
-	case 43: case 61: now.nowUnfold && now.nowUnfold(k == 43 ? 4 : 3); break // + =
-	case 45: case 95: now.nowFold && now.nowFold(2); break // - _
+	case 122: this.focZone(); break // z
+	case 32: this.focInner(); break // space
+	case 44: this.focInput(); break // ,
+	case 96: this.focDatum(); break // `
+	case 46: this.focOutput(); break // .
+	case 59: this.focUnity(); break // ;
+	case 91: case 123: this.focBase(k == 91); break // [ {
+	case 93: case 125: this.focAgent(k == 93); break // ] }
+	case 43: case 61: this.focUnfold(k == 43 ? 4 : 3); break // + =
+	case 45: case 95: this.focFold(2); break // - _
 
-	case 105: case 73: drag || this.com.input(k == 73); break // i I
-	case 100: case 68: drag || this.com.datum(k == 68); break // d D
-	case 111: case 79: drag || this.com.output(k == 79); break // o O
-	case -13.5: drag || this.com.breakRow(); break // func-enter
-	case 8.5: drag || this.com.removeBefore(); break // back
-	case 46.5: drag || this.com.remove(); break // del
-	case -8.5: case -46.5: drag || this.com.removeAfter(); break // func-del func-back
-	case 116: case 63: drag || this.com.trialVeto(-1); break // t ?
-	case 118: case 33: drag || this.com.trialVeto(1); break // v !
-	case 117: this.Now(now, false, null, this.com.unity); break; // u
-	case 101: this.Now(now, false, null, this.com.early); break; // e
-	case 108: this.Now(now, false, null, this.com.later); break; // l
-	case 69: this.Now(now, false, null, this.com.earlyRow); break; // E
-	case 76: this.Now(now, false, null, this.com.laterRow); break; // L
-	case 13.5: drag ? (this.Now(this.now, false, null, null), drag.call(this.com, now))
-		: null;	
-		break // enter
+	case 105: case 73: this.com.input(k == 73); break // i I
+	case 100: case 68: this.com.datum(k == 68); break // d D
+	case 111: case 79: this.com.output(k == 79); break // o O
+	case -13.5: this.com.breakRow(); break // func-enter
+	case 8.5: this.com.removeBefore(); break // back
+	case 46.5: this.com.remove(); break // del
+	case -8.5: case -46.5: this.com.removeAfter(); break // func-del func-back
+	case 116: case 63: this.com.trialVeto(-1); break // t ?
+	case 118: case 33: this.com.trialVeto(1); break // v !
+	case 117: this.Drag(this.com.unity); break; // u
+	case 101: this.Drag(this.com.early); break; // e
+	case 108: this.Drag(this.com.later); break; // l
+	case 69: this.Drag(this.com.earlyRow); break; // E
+	case 76: this.Drag(this.com.laterRow); break; // L
+	case 13.5: this.Drag(true); break // enter
 
 	default: return e = null
 	}
