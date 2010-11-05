@@ -25,7 +25,7 @@ go: function (f)
 	var s = this.coms, x = this.x
 	if (x && this.edit.yields)
 		s[x - 1].ys || (s[x - 1].ys = this.edit.yields)
-	f(true)
+	f.call(this, true)
 	s[x++] = f, s.length = this.x = x
 	this.edit.Unsave(1)
 },
@@ -35,7 +35,7 @@ redo: function ()
 	var com = this.coms[this.x]
 	if ( !this.edit.drag && com)
 		this.unyield(this.edit.yields),
-		com(true), this.reyield(com.s), this.x++,
+		com.call(this, true), this.reyield(com.s), this.x++,
 		this.edit.Unsave(1)
 },
 
@@ -47,7 +47,7 @@ undo: function ()
 	var r = this.coms[x], com = this.coms[this.x = x - 1]
 	if (this.edit.yields)
 		r || com.ys ? this.unyield(this.edit.yields) : com.ys = this.edit.yields
-	this.unyield(com.ys), com(false)
+	this.unyield(com.ys), com.call(this, false)
 	this.edit.Unsave(-1)
 },
 
@@ -77,14 +77,17 @@ unyield: function (s)
 
 name: function (v)
 {
-	var now = this.edit.now, u = now.uNext, m = now.name, um = nu.name
+	var now = this.edit.now
+	if (now instanceof Wire)
+		return
+	var u = now.uNext, m = now.name, um = u.name
 	if (m != v && ( !v || !now.unity.d.layer2))
 		this.go(function (redo)
 		{
 			if (redo)
-				now != u && !v && now.unityTo(now), key.name = v
+				now != u && !v && now.unityTo(now), now.Name(v)
 			else
-				now != u && !v ? now.unityTo(u) : key.name = m
+				now != u && !v ? now.unityTo(u) : now.Name(m)
 			this.edit.Now(now)
 		})
 },
@@ -438,7 +441,7 @@ agent: function (a)
 removeWire: function ()
 {
 	var now = this.edit.now
-	if (this.edit.drag || !(now instanceof Wire))
+	if (this.edit.drag || !(now instanceof Wire) || now.zone.layer2)
 		return
 	this.go(function (redo)
 	{

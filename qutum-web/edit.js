@@ -8,23 +8,28 @@
 
 Edit = function (dom)
 {
-	this.mobileSafari = navigator.userAgent.search('Mobile') >= 0 && navigator.userAgent.search('Safari') >= 0
+	this.html = /Firefox/.test(navigator.userAgent) ? 'ff' : 'wk'
 	this.dom = dom
 	dom.style.overflow = 'scroll', dom.style.position = 'relative'
 	dom.tabIndex = 0
 	var whole = this.whole = dom.appendChild(document.createElement('div')),
-		css = getComputedStyle(whole, null)
-		font = css.fontWeight + ' ' + css.fontSize + ' "' + css.fontFamily + '"',
+		css = getComputedStyle(whole, null),
+		font = css.fontWeight + ' ' + css.fontSize + ' ' + css.fontFamily + ' '
 	this.draw = Util.draw(Util.canvas(whole, font), 0, 0, 50, 50)
 	this.nameH = parseInt(css.fontSize, 10)
 	this.nameTvW = this.draw.measureText('?').width | 0
 	css = font = null
+	var name = this.name = dom.appendChild(document.createElement('input'))
+	name.id = 'name', name.style.position = 'absolute', name.style.display = 'none'
 	Util.on(dom, 'scroll', this, this.show, null)
 	Util.on(window, 'resize', this, this.show, null)
 	Util.on(whole, 'mousemove', this, this.Hit)
 	Util.on(whole, 'mousedown', this, this.Hit)
-	Util.on(dom, 'keydown', this, this.key)
-	Util.on(dom, 'keypress', this, this.key)
+	Util.on(dom, 'keydown', this, this.key, false, true)
+	Util.on(dom, 'keypress', this, this.key, false, true)
+	Util.on(name, 'input', this, this.Naming)
+	Util.on(name, 'change', this, this.Naming)
+	Util.on(name, 'blur', this, this.Name, [ false ])
 
 	var z = this.zonest = new Datum(0)
 	z.edit = this, z.x = z.y = Datum.SPACE + 4 >> 1
@@ -50,6 +55,7 @@ drag: null, // null or a command
 dragable: true,
 keyType: '',
 
+html: '', // html engine
 dom: null,
 whole: null,
 draw: null,
@@ -296,6 +302,31 @@ focFold: function (x)
 	return this.foc.detail > 2 && this.foc.show(2) // not wire
 },
 
+// start by default, done if done is true, cancel if done is false
+Name: function (done)
+{
+	var now = this.now, name = this.name, d
+	if (done == null && now instanceof Datum)
+		name.style.display = '',
+		name.style.left = now.offsetX() + 1 + 'px', name.style.top = now.offsetY()
+			+ now.nameY - this.nameH - (this.html == 'ff' ? 1 : 5) + 'px',
+		name.value = now.name,
+		name.focus(), name.select(), this.Naming()
+	else
+		d = name.style.display, name.style.display = 'none',
+		d == '' && this.dom.focus(),
+		done && this.com.name(name.value)
+},
+Naming: function ()
+{
+	var name = this.name
+	if (this.html == 'ff') // scrollWidth bug on Firefox
+		name.size = Math.min(name.textLength || 1, 100)
+	else
+		name.style.width = '1px',
+		name.style.width = Math.min(name.scrollWidth, 800) + 'px'
+},
+
 // start if drag is a command, done if drag is true, cancel if drag is false 
 Drag: function (drag)
 {
@@ -309,8 +340,10 @@ Drag: function (drag)
 
 key: function (e)
 {
-	var k = e.charCode
-	if (k)
+	var k = e.keyCode
+	if (e.target == this.name && k != 13 && k != 27)
+		return // neither esc nor enter
+	if (k = e.charCode)
 		(e.ctrlKey || e.altKey || e.metaKey) && (k = -k)
 	else
 	{
@@ -336,7 +369,7 @@ key: function (e)
 	case 36.5: this.focHome(); break // home
 	case 35.5: this.focEnd(); break // end
 	case 9.5: this.focInner(); break // tab
-	case 27.5: this.Drag(false); break // esc
+	case 27.5: this.Name(false); this.Drag(false); break // esc
 
 	case 122: this.focZone(); break // z
 	case 32: this.focInner(); break // space
@@ -363,7 +396,8 @@ key: function (e)
 	case 108: this.Drag(this.com.later); break; // l
 	case 69: this.Drag(this.com.earlyRow); break; // E
 	case 76: this.Drag(this.com.laterRow); break; // L
-	case 13.5: this.Drag(true); break // enter
+	case 13.5: this.drag ? this.Drag(true)
+		: this.Name(this.name.style.display == '' ? true : null); break // enter
 
 	default: return e = null
 	}

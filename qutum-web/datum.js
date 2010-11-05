@@ -142,7 +142,7 @@ unadd: function (r, q)
 	this.io || this.row.length || (z.rows.splice(r, 1), z.ox--, unrow = true)
 	if (z.ox == 1 && z.rows[0].length + z.rows[1].length == 0)
 		z.rows = [], z.ox = -1
-	z.show(3)
+	this.showing = 0, z.show(3)
 	var p = this.navPrev, n = this.navNext
 	this.edit.now == this && this.edit.Now(p, false)
 	p && (p.navNext = n), n && (n.navPrev = p)
@@ -181,7 +181,7 @@ _Name: function (v)
 {
 	this.name = v
 	v = (this.tv ? this.edit.nameTvW : 0) + (v ? this.edit.draw.measureText(v).width | 0 : 0)
-	this.nameR = v && (v + 6), this.nameH = v && (this.edit.nameH + 6)
+	this.nameR = v && (v + 6), this.nameH = v && (this.edit.nameH + 5)
 	this.show(-1)
 },
 
@@ -342,7 +342,7 @@ layout: function (force)
 		this.w = Math.max(SIZE0, nr)
 		this.h = Math.max(SIZE0, nh + 6)
 		this.nameY = 3 + this.edit.nameH
-		w2 = this.w >> 1, h2 = nh || h >> 1
+		w2 = this.w >> 1, h2 = nh || this.h >> 1
 		rs[0].layout(0, w2, w2, 0)
 		for (x = 1; r = rs[x]; x++)
 			r.layout(0, w2, w2, h2)
@@ -361,11 +361,11 @@ layout: function (force)
 		r = rs[0]
 		if (r.length && nr > NAME_WIDTH)
 			r.layout(1, 0, w, 0),
-			h = r.h
+			h = r.h + 2
 		else
 			r.layout(1, nr, w, 0),
 			h = 0
-		this.nameY = h + 3 + this.edit.nameH
+		this.nameY = h + 2 + this.edit.nameH
 		h = Math.max(h + nh, r.h + SPACE)
 		for (x = 1; r = rs[x]; x++)
 			r.layout(x < this.ox ? 2 : 3, 0, w, h),
@@ -394,12 +394,11 @@ _show: function (draw, X, Y, W, H)
 		return
 	draw.translate(-X, -Y)
 
-	var edit = this.edit, io = this.io, s = this.rows, R, r, D, d, x, y, rh, dw, dh,
-		c0 = io < 0 ? '#f9f3ff' : io > 0 ? '#f3f9ff' : '#f5fff5',
-		c = this.err ? '#f00' : io < 0 ? '#90c' : io > 0 ? '#06d' : '#080'
+	var edit = this.edit, io = this.io, s = this.rows, R, r, D, d, x, y, rh, dw, dh
 
-	draw.fillStyle = c0, draw.strokeStyle = c
-// fill background
+//fill background
+//	var bc = io < 0 ? '#f9f3ff' : io > 0 ? '#f3f9ff' : '#f5fff5'
+//  draw.fillStyle = bc
 //	if (this.detail > 2 && this.ox > 0)
 //		for (R = this.searchRow(Y), R ^= R >> 31, y = 0; (r = s[R]) && y < Y + H; R++)
 //		{
@@ -417,10 +416,15 @@ _show: function (draw, X, Y, W, H)
 //	else
 //		draw.fillRect(0, 0, w, h)
 
-	draw.lineWidth = this.yield ? 0.25 : 1, draw.strokeRect(0.5, 0.5, w - 1, h - 1)
+	var c = this.err ? '#f00' : io < 0 ? '#90c' : io > 0 ? '#06d' : '#080'
+	draw.strokeStyle = c
+	draw.lineWidth = this.yield ? 0.5 : 1, draw.strokeRect(0.5, 0.5, w - 1, h - 1)
 	if (this.gene)
 		draw.fillStyle = c, draw.beginPath(),
-		draw.moveTo(1, 1), draw.lineTo(7, 1), draw.lineTo(1, 7), draw.fill()
+		draw.moveTo(1, 1), draw.lineTo(4, 1), draw.lineTo(1, 6), draw.fill()
+	if (this.yield)
+		draw.fillStyle = c, draw.beginPath(),
+		draw.moveTo(0, 0), draw.lineTo(-3, 0), draw.lineTo(0, 6), draw.fill()
 	if (this.detail == 2 && this.ox > 0)
 		draw.lineWidth = 2, draw.strokeRect((w >> 1) - 3, this.nameH || h >> 1, 6, 0)
 
@@ -430,7 +434,7 @@ _show: function (draw, X, Y, W, H)
 	if (x = this.tv)
 		draw.fillStyle = '#000', draw.fillText(x < 0 ? '?' : '!', 3, this.nameY)
 	if (y = this.name)
-		draw.fillStyle = '#000', draw.fillText(y, 3 + (x && edit.nameTvW), this.nameY)
+		draw.fillStyle = '#000', draw.fillText(y, (x && edit.nameTvW) + 3, this.nameY)
 
 	draw.translate(X, Y)
 	for (R = 0; r = s[R]; R++)
@@ -440,12 +444,9 @@ _show: function (draw, X, Y, W, H)
 	if (this == edit.hit && (this != edit.now || edit.drag))
 	{
 		draw.translate(-X, -Y)
-		draw.globalAlpha = this.yield ? 0.5 : 1
 		draw.strokeStyle = edit.dragable ? this.err ? '#f66'
 			: io < 0 ? '#d7e' : io > 0 ? '#6af' : '#6c6' : '#fcc'
-		draw.lineWidth = 2.5 
-		draw.strokeRect(1.25, 1.25, w - 2.5, h - 2.5)
-		draw.globelAlpha = 1
+		draw.lineWidth = this.yield ? 1 : 2, draw.strokeRect(-0.5, -0.5, w + 1, h + 1)
 		if (edit.drag)
 			if (edit.drag == edit.com.early)
 				draw.strokeStyle = '#666', draw.strokeRect(- SPACE / 2, 0, 0, h)
@@ -458,16 +459,9 @@ _show: function (draw, X, Y, W, H)
 		draw.translate(X, Y)
 	}
 	else if (this == edit.now)
-	{
-		draw.translate(-X, -Y)
-		draw.strokeStyle = c
-		if (this.yield)
-			draw.lineWidth = 0.5, draw.strokeRect(1.5, 1.5, w - 3, h - 3),
-			draw.lineWidth = 0.375, draw.strokeRect(2.5, 2.5, w - 5, h - 5)
-		else
-			draw.lineWidth = 2.5, draw.strokeRect(1.25, 1.25, w - 2.5, h - 2.5)
+		draw.translate(-X, -Y), draw.strokeStyle = c,
+		draw.lineWidth = this.yield ? 1 : 2, draw.strokeRect(-0.5, -0.5, w + 1, h + 1),
 		draw.translate(X, Y)
-	}
 // hit
 //	if (err)
 //		edit.tip.str(err).color(0xfff8f8, 0xaa6666, 0x880000)

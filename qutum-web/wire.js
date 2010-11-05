@@ -185,10 +185,10 @@ show: function (draw, X, Y, W, H)
 		return
 	if (this == edit.hit && (this != edit.now || edit.drag))
 		draw.strokeStyle = edit.dragable ? this.err ? '#f00' : '#6c6' : '#fcc',
-		draw.lineWidth = this.yield ? 2.125 : 2.5
+		draw.lineWidth = this.yield ? 2.125 : 2.75
 	else if (this == edit.now)
 		draw.strokeStyle = this.err ? '#f00' : '#080',
-		draw.lineWidth = this.yield ? 1.875 : 2.5
+		draw.lineWidth = this.yield ? 1.875 : 2.75
 	else
 		draw.strokeStyle = this.err ? '#f33' : '#555',
 		draw.lineWidth = this.yield ? 1.125 : 2

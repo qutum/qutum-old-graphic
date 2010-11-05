@@ -13,7 +13,12 @@
 <style>
 * { box-sizing:border-box; -webkit-box-sizing:border-box; -moz-box-sizing:border-box; }
 html, body { width:100%; height:100%; padding:0; margin:0; overflow:hidden; }
-#edit { width:100%; height:100%; font-size:15px; }
+body { padding:2px; }
+#edit { width:100%; height:100%; font:15px Times,serif; }
+#edit:focus { outline:2px solid #99f; }
+#edit #name {
+	font:15px Times,serif; border:1px solid #ccf; padding:0; outline:0;
+	box-sizing:content-box; -webkit-box-sizing:content-box; }
 #Log {
 	box-sizing:content-box; -webkit-box-sizing:content-box; -moz-box-sizing:content-box;
 	position:fixed; right:0; bottom:0; max-width:40em; max-height:20em; overflow:scroll;
@@ -28,7 +33,9 @@ html, body { width:100%; height:100%; padding:0; margin:0; overflow:hidden; }
 <script>
 onload = function ()
 {
-	edit = new Edit(document.getElementById('edit'))
+	edit = document.getElementById('edit')
+	new Edit(edit)
+	setTimeout(function () { edit.focus() }, 0)
 }
 </script>
 </body>
