@@ -81,9 +81,9 @@ Now: function (now, nav, show, drag)
 		n.navNext && (n.navNext.navPrev = null),
 		n.navNext = now
 	if (drag !== undefined)
-		this.drag != drag && (this.scroll = true), this.drag = drag
+		this.drag != drag && (this.scroll = true, this.drag = drag)
 	else
-		this.scroll = this.scroll || n != now
+		n != now && (this.scroll = true)
 // TODO no name edit
 	if (this.drag)
 		this.hit = this.nav = this.foc = now,
@@ -113,17 +113,17 @@ _show: function ()
 		if (this.layout)
 			z.layoutDetail(), z.layout(false),
 			this.layout = false, this.scroll = true,
-			this.whole.style.width = z.w + z.x + z.x + 'px',
-			this.whole.style.height = z.h + z.y + z.y + 'px'
+			this.whole.style.width = z.x + z.w + z.x + 'px',
+			this.whole.style.height = z.y + z.h + z.y + 'px'
 		if (this.hitXY)
 			this.hit = this.HitXY() || z, this.drag && (this.foc = this.hit)
 		var mx = m.scrollLeft, my = m.scrollTop, mw = m.clientWidth, mh = m.clientHeight
 		if (this.scroll)
 		{
-			this.scroll = false
-			var x = mx && z.w - mw, y = my && z.h - mh
+			var x = mx && z.x + z.w + z.x - mw, y = my && z.y + z.h + z.y - mh
 			if (x < mx || y < my)
 				return x < mx && (m.scrollLeft = x), y < my && (m.scrollTop = y), re = true
+			this.scroll = false
 			var foc = this.foc, x = foc.offsetX(), y = foc.offsetY()
 			if (this.drag == this.com.early)
 				x = x - Datum.SPACE - Math.max(mx, Math.min(x - Datum.SPACE, mx + mw - foc.w))
