@@ -33,7 +33,7 @@ go: function (f)
 redo: function ()
 {
 	var com = this.coms[this.x]
-	if ( !this.edit.drag && com)
+	if (com && !this.edit.drag)
 		this.unyield(this.edit.yields),
 		com.call(this, true), this.reyield(com.s), this.x++,
 		this.edit.Unsave(1)
@@ -42,7 +42,7 @@ redo: function ()
 undo: function ()
 {
 	var x = this.x
-	if (this.edit.drag || !x)
+	if ( !x || this.edit.drag)
 		return
 	var r = this.coms[x], com = this.coms[this.x = x - 1]
 	if (this.edit.yields)
@@ -77,28 +77,27 @@ unyield: function (s)
 
 name: function (v)
 {
-	var now = this.edit.now
-	if (now instanceof Wire)
+	var now = this.edit.now, m = now.name
+	if ( !now.deep || m == v || (now.io ? now.unity.d.layer : now.layer))
 		return
-	var u = now.uNext, m = now.name, um = u.name
-	if (m != v && ( !v || !now.unity.d.layer2))
-		this.go(function (redo)
-		{
-			if (redo)
-				now != u && !v && now.unityTo(now), now.Name(v)
-			else
-				now != u && !v ? now.unityTo(u) : now.Name(m)
-			this.edit.Now(now)
-		})
+	var u = now.uNext, um = u.name
+	this.go(function (redo)
+	{
+		if (redo)
+			now != u && !v && now.unityTo(now), now.Name(v)
+		else
+			now != u && !v ? now.unityTo(u) : now.Name(m)
+		this.edit.Now(now)
+	})
 },
 
 input: function (inner)
 {
 	var now = this.edit.now, z = !inner && now.zone || now
-	if (this.edit.drag || now instanceof Wire || z.layer2)
+	if ( !now.deep || z.layer || inner && z.yield || this.edit.drag)
 		return
 	var d = new Datum(-1), r, q
-	if (inner || now.io >= 0 || now.layer2)
+	if (inner || now.io >= 0 || now.layer)
 		r = 0, q = z.ox < 0 ? 0 : z.rows[r].length
 	else
 		r = now.zone.rows.indexOf(now.row), q = now.row.indexOf(now) + 1
@@ -114,7 +113,7 @@ input: function (inner)
 datum: function (inner)
 {
 	var now = this.edit.now, z = !inner && now.zone || now
-	if (this.edit.drag || now instanceof Wire || z.layer2)
+	if ( !now.deep || z.layer || inner && z.yield || this.edit.drag)
 		return
 	var d = new Datum(0), r, q
 	if (inner || now.io || !now.zone)
@@ -134,10 +133,10 @@ datum: function (inner)
 output: function (inner)
 {
 	var now = this.edit.now, z = !inner && now.zone || now
-	if (this.edit.drag || now instanceof Wire || z.layer2)
+	if ( !now.deep || z.layer || inner && z.yield || this.edit.drag)
 		return
 	var d = new Datum(1), r, q
-	if (inner || now.io <= 0 || now.layer2)
+	if (inner || now.io <= 0 || now.layer)
 		r = z.ox < 0 ? 1 : z.ox, q = z.ox < 0 ? 0 : z.rows[r].length
 	else
 		r = now.zone.rows.indexOf(now.row), q = now.row.indexOf(now) + 1
@@ -153,8 +152,8 @@ output: function (inner)
 breakRow: function ()
 {
 	var now = this.edit.now, r, q
-	if (this.edit.drag || now.io !== 0 || !now.row || (q = now.row.indexOf(now)) <= 0)
-		return // not wire
+	if (now.io || !now.row || (q = now.row.indexOf(now)) <= 0 || this.edit.drag)
+		return
 	r = now.zone.rows.indexOf(now.row)
 	this.go(function (redo)
 	{
@@ -167,24 +166,24 @@ breakRow: function ()
 
 remove: function ()
 {
-	return this.edit.now instanceof Wire ? this.removeWire() : this.removeDatum()
+	return this.edit.now.deep ? this.removeDatum() : this.removeWire()
 },
 
 removeBefore: function ()
 {
-	return this.edit.now instanceof Wire ? this.removeWire() : this.removeBeforeDatum()
+	return this.edit.now.deep ? this.removeBeforeDatum() : this.removeWire()
 },
 
 removeAfter: function ()
 {
-	return this.edit.now instanceof Wire ? this.removeWire() : this.removeAfterDatum()
+	return this.edit.now.deep ? this.removeAfterDatum() : this.removeWire()
 },
 
 removeDatum: function ()
 {
 	var now = this.edit.now
-	if (this.edit.drag || now.layer2 || !now.row)
-		return // now wire
+	if ( !now.row || now.layer || this.edit.drag)
+		return
 	var z = now.zone, rs = z.rows, r = rs.indexOf(now.row), q = now.row.indexOf(now), addRow
 	this.go(function (redo)
 	{
@@ -201,8 +200,8 @@ removeDatum: function ()
 removeBeforeDatum: function ()
 {
 	var now = this.edit.now
-	if (this.edit.drag || now.layer2 || !now.row)
-		return // not wire
+	if ( !now.row || now.layer || this.edit.drag)
+		return
 	var z = now.zone, r = z.rows.indexOf(now.row), q = now.row.indexOf(now), d
 	if (r > 1 && r < z.ox && q == 0)
 		this.go(function (redo)
@@ -212,7 +211,7 @@ removeBeforeDatum: function ()
 			else
 				z.breakRow(r - 1, q), this.edit.Now(now)
 		})
-	else if ((d = z.rows[r][q - 1]) && !d.layer2)
+	else if ((d = z.rows[r][q - 1]) && !d.layer)
 		this.go(function (redo)
 		{
 			if (redo)
@@ -225,8 +224,8 @@ removeBeforeDatum: function ()
 removeAfterDatum: function ()
 {
 	var now = this.edit.now
-	if (this.edit.drag || now.layer2 || !now.row)
-		return // not wire
+	if ( !now.row || now.layer || this.edit.drag)
+		return
 	var z = now.zone, r = z.rows.indexOf(now.row), q = now.row.indexOf(now), d
 	if (r > 0 && r < z.ox - 1 && q == now.row.length - 1)
 		this.go(function (redo)
@@ -236,7 +235,7 @@ removeAfterDatum: function ()
 			else
 				z.breakRow(r, q), this.edit.Now(now)
 		})
-	else if ((d = z.rows[r][q + 1]) && !d.layer2)
+	else if ((d = z.rows[r][q + 1]) && !d.layer)
 		this.go(function (redo)
 		{
 			if (redo)
@@ -249,17 +248,16 @@ removeAfterDatum: function ()
 early: function (e, test)
 {
 	var now = this.edit.now, z = now.zone
-	if ( !test && this.edit.drag || now.layer2 || !now.row || e.zone != z)
-		return // not wire
+	if ( !now.row || now.layer || e.zone != z || e.io != now.io || e.layer
+		|| !test && this.edit.drag)
+		return
+	if (test)
+		return true
 	var rs = z.rows, nr = rs.indexOf(now.row), nq = now.row.indexOf(now),
 		r = rs.indexOf(e.row), q = e.row.indexOf(e),
 		empty = r != nr && now.row.length == 1
 	if (r == nr && q > nq)
 		q--
-	if ((now.io < 0) == (r > 0) || (now.io > 0) == (r < z.ox))
-		return
-	if (test)
-		return true
 	this.go(function (redo)
 	{
 		if (redo)
@@ -276,17 +274,16 @@ early: function (e, test)
 later: function (l, test)
 {
 	var now = this.edit.now, z = now.zone
-	if ( !test && this.edit.drag || now.layer2 || !now.row || l.zone != z)
-		return // not wire
+	if ( !now.row || now.layer || l.zone != z || l.io != now.io || l.layer
+		|| !test && this.edit.drag)
+		return
+	if (test)
+		return true
 	var rs = z.rows, nr = rs.indexOf(now.row), nq = now.row.indexOf(now),
 		r = rs.indexOf(l.row), q = l.row.indexOf(l) + 1,
 		empty = r != nr && rs[nr].length == 1
 	if (r == nr && q > nq)
 		q--
-	if ((now.io < 0) == (r > 0) || (now.io > 0) == (r < z.ox))
-		return
-	if (test)
-		return true
 	this.go(function (redo)
 	{
 		if (redo)
@@ -303,8 +300,9 @@ later: function (l, test)
 earlyRow: function (e, test)
 {
 	var now = this.edit.now, z = now.zone
-	if ( !test && this.edit.drag || now.layer2 || now.io != 0 || !z || e.zone != z || e.io < 0)
-		return // not wire
+	if ( !now.row || now.io || now.layer || e.zone != z || !(e.io >= 0)
+		|| !test && this.edit.drag)
+		return
 	if (test)
 		return true
 	var rs = z.rows, nr = rs.indexOf(now.row), nq = now.row.indexOf(now),
@@ -327,8 +325,9 @@ earlyRow: function (e, test)
 laterRow: function (l, test)
 {
 	var now = this.edit.now, z = now.zone
-	if ( !test && this.edit.drag || now.layer2 || now.io != 0 || !z || l.zone != z || l.io > 0)
-		return // not wire
+	if ( !now.row || now.io || now.layer || l.zone != z || !(l.io <= 0)
+		|| !test && this.edit.drag)
+		return
 	if (test)
 		return true
 	var rs = z.rows, nr = rs.indexOf(now.row), nq = now.row.indexOf(now),
@@ -351,8 +350,8 @@ laterRow: function (l, test)
 unity: function (u, test)
 {
 	var now = this.edit.now, nu = now.uNext, m = now.name, um = u.name
-	if (this.edit.drag || now.layer2 || now.io == 0 || !now.row || now.io != u.io)
-		return // not wire
+	if ( !now.io || now.layer || u.io != now.io || !m && !um || !test && this.edit.drag)
+		return
 	if (test)
 		return true
 	this.go(function (redo)
@@ -369,8 +368,8 @@ unity: function (u, test)
 trialVeto: function (tv)
 {
 	var now = this.edit.now, tv0 = now.tv
-	if (this.edit.drag || now.layer2 || !now.row)
-		return // not wire
+	if ( !now.row || now.layer || this.edit.drag)
+		return
 	tv0 == tv && (tv = 0)
 	this.go(function (redo)
 	{
@@ -399,11 +398,25 @@ nonyield: function ()
 	})
 },
 
-base: function (b)
+base: function (b, test)
 {
-	var now = this.edit.now, w0, w = new Wire
-	if (this.edit.drag)
+	return this.edit.now.deep ? this.baseDatum(b, test) : this.baseWire(b, test)
+},
+
+agent: function (a, test)
+{
+	return this.edit.now.deep ? this.agentDatum(a, test) : this.agentWire(a, test)
+},
+
+baseDatum: function (b, test)
+{
+	var now = this.edit.now
+	if ( !now.deep || now.azer.bzer.layer || now.yield
+		|| !b.deep || b.yield || b == now || b.bzer.azer.layer || !test && this.edit.drag)
 		return
+	if (test)
+		return true
+	var w = new Wire, w0
 	this.go(function (redo)
 	{
 		if (redo)
@@ -414,11 +427,15 @@ base: function (b)
 	})
 },
 
-agent: function (a)
+agentDatum: function (a, test)
 {
-	var now = this.edit.now, w0, w = new Wire
-	if (this.edit.drag)
+	var now = this.edit.now
+	if ( !now.deep || now.bzer.azer.layer || now.yield
+		|| !a.deep || a.yield || a == now || a.azer.bzer.layer || !test && this.edit.drag)
 		return
+	if (test)
+		return true
+	var w = new Wire, w0
 	this.go(function (redo)
 	{
 		if (redo)
@@ -432,7 +449,7 @@ agent: function (a)
 removeWire: function ()
 {
 	var now = this.edit.now
-	if (this.edit.drag || !(now instanceof Wire) || now.zone.layer2)
+	if (now.deep || now.zone.layer || this.edit.drag)
 		return
 	this.go(function (redo)
 	{
@@ -445,11 +462,15 @@ removeWire: function ()
 	})
 },
 
-moveBase: function (b)
+baseWire: function (b, test)
 {
-	var now = this.edit.now, w0, w = new Wire
-	if (this.edit.drag)
+	var now = this.edit.now
+	if (now.deep || now.zone.layer || !b.deep || b.yield || b == now.agent
+		|| !test && this.edit.drag)
 		return
+	if (test)
+		return true
+	var w = new Wire, w0
 	this.go(function (redo)
 	{
 		if (redo)
@@ -465,11 +486,15 @@ moveBase: function (b)
 	})
 },
 
-moveAgent: function (a)
+agentWire: function (a, test)
 {
-	var now = this.edit.now, w0, w = new Wire
-	if (this.edit.drag)
+	var now = this.edit.now
+	if (now.deep || now.zone.layer || !a.deep || a.yield || a == now.base
+		|| !test && this.edit.drag)
 		return
+	if (test)
+		return true
+	var w = new Wire, w0
 	this.go(function (redo)
 	{
 		if (redo)

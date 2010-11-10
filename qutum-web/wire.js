@@ -59,7 +59,7 @@ unadd: function ()
 {
 	ArrayRem(this.zone.wires, this) // no zone layout
 	var p = this.navPrev, n = this.navNext
-	this.edit.now == this && (this.edit.now = navPrev)
+	this.edit.now == this && this.edit.Now(p, false)
 	p && (p.navNext = n), n && (n.navPrev = p)
 	this.navPrev = this.navNext = null
 },
@@ -168,8 +168,8 @@ layout: function (force)
 		}
 		xys.push(bx, by)
 	}
-	var x0 = Infinity, y0 = Infinity, x9 = 0, y9 = 0
-	for (i = xys.length - 1; i > 0; )
+	var i = xys.length - 1, y0 = xys[i--], x0 = xys[i--], y9 = y0, x9 = x0
+	while (i > 0)
 		y = xys[i--], x = xys[i--],
 		x < x0 ? x0 = x : x > x9 && (x9 = x),
 		y < y0 ? y0 = y : y > y9 && (y9 = y)
@@ -202,7 +202,7 @@ show: function (draw, X, Y, W, H)
 hit: function (x, y)
 {
 	var s
-	if (x < this.x || y < this.y || x >= this.x + this.w || y >= this.y + this.h)
+	if (x < this.x || x >= this.x + this.w || y < this.y || y >= this.y + this.h)
 		return null
 	if ( !(s = this.xys))
 		return null

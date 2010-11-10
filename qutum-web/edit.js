@@ -397,6 +397,8 @@ key: function (e)
 	case 108: this.Drag(this.com.later); break; // l
 	case 69: this.Drag(this.com.earlyRow); break; // E
 	case 76: this.Drag(this.com.laterRow); break; // L
+	case 98: this.Drag(this.com.base); break; // b
+	case 97: this.Drag(this.com.agent); break; // a
 	case 13.5: this.drag ? this.Drag(true)
 		: this.Name(this.name.style.display == '' ? true : null); break // enter
 

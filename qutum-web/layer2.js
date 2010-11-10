@@ -52,18 +52,18 @@ Layer2 = function (zonest)
 function input(z, nameOrU)
 {
 	var d = new Datum(-1)
-	d.layer2 = true
+	d.layer = 2
 	d.addTo(z, 0, z.ox < 0 ? 0 : z.rows[0].length)
-	nameOrU.unity ? d.unityTo(nameOrU) : d.Name(nameOrU)
+	nameOrU.deep ? d.unityTo(nameOrU) : d.Name(nameOrU)
 	return d
 }
 
 function output(z, nameOrU)
 {
 	var d = new Datum(1)
-	d.layer2 = true
+	d.layer = 2
 	d.addTo(z, 1, z.ox < 0 ? 0 : z.rows[1].length)
-	nameOrU.unity ? d.unityTo(nameOrU) : d.Name(nameOrU)
+	nameOrU.deep ? d.unityTo(nameOrU) : d.Name(nameOrU)
 	return d
 }
 

@@ -9,7 +9,8 @@
 Datum = function (io)
 {
 	this.io = io
-	this.unity = new String(++Unity), this.unity.d = this.uNext = this.uPrev = this
+	io && (this.unity = new String(++Unity), this.unity.d = this)
+	this.uNext = this.uPrev = this
 	this.rows = []
 	this.wires = []
 	this.bs = []
@@ -23,7 +24,7 @@ Datum.prototype =
 
 edit: null,
 zone: null,
-deep: 0, // zone.deep + 1
+deep: 1, // zone.deep + 1
 io: 0, // <0 input >0 output 0 neither input nor output
 unity: null, // which d is one datum of same unity
 uNext: null, // next unity
@@ -37,8 +38,8 @@ bs: null, // [Wire]
 as: null, // [Wire]
 cycle: null, // cycle base
 el: 0, // early or later in the zone, [ x-0x400000, x, x+0x400000 ]
-layer2: false,
-row: null,
+layer: 0, // 0 for layer 1, 2 for layer 2
+row: null, // null for zonest
 rows: null, // []
 wires: null, // []
 
@@ -115,14 +116,14 @@ addTo: function (z, r, q) // x < 0 to add row
 	}
 	this._addTo(this.deep)
 	this.showing = 0 // drop last showing to force layout for redo
-	this.show(this.layer2 ? z.layer2 ? 1 : 2 : this.detail)
+	this.show(this.layer ? z.layer ? 1 : 2 : this.detail)
 	return this
 },
 
 _addTo: function (deep)
 {
-	var u = this.unity.d, x, w, r, q, d
-	u != this && this.unityTo(u, true)
+	var u = this.unity, x, w, r, q, d
+	u && (u = u.d) != this && this.unityTo(u, true)
 	for (x = 0; w = this.bs[x]; x++)
 		if (w.zone.deep < deep)
 			w.base.as.push(w), w.addTo()
@@ -252,7 +253,7 @@ mergeRow: function (r)
 
 unityTo: function (u, undoRedo)
 {
-	if (this.io != u.io)
+	if (this.io != u.io || !u.io)
 		throw 'must be input or output both'
 	if (this.unity.d == this)
 		this.unity.d = this.uNext
@@ -294,7 +295,7 @@ layoutDetail: function ()
 		for (r = this.rows[x], y = 0; d = r[y]; y++)
 		{
 			if (dd > 0)
-				if (dd >= 4 && !d.layer2)
+				if (dd >= 4 && !d.layer)
 					d.showing = 4
 				else if (dd <= 2)
 					d.showing = 1
