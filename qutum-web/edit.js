@@ -6,27 +6,30 @@
 //
 (function(){
 
-Edit = function (dom)
+Edit = function (box)
 {
 	this.html = /Firefox/.test(navigator.userAgent) ? 'ff' : 'wk'
-	this.dom = dom
-	dom.style.overflow = 'scroll', dom.style.position = 'relative'
-	dom.tabIndex = 0
-	var whole = this.whole = dom.appendChild(document.createElement('div')),
-		css = getComputedStyle(whole, null),
-		font = css.fontWeight + ' ' + css.fontSize + ' ' + css.fontFamily + ' '
-	this.draw = Util.draw(Util.canvas(whole, font), 0, 0, 50, 50)
+	box.tabIndex >= 0 || (box.tabIndex = 0)
+	var dom = this.dom = box.appendChild(document.createElement('div'))
+	with (dom.style)
+		position = 'relative', overflow = 'scroll',
+		width = height = '100%', minWidth = minHeight = '10em'
+	var whole = this.whole = dom.appendChild(document.createElement('div'))
+	whole.style.position = 'absolute'
+	var css = getComputedStyle(whole, null),
+		f = css.fontWeight + ' ' + css.fontSize + ' ' + css.fontFamily
+	this.draw = Util.draw(Util.canvas(whole, f), 0, 0, 50, 50)
 	this.nameH = parseInt(css.fontSize, 10)
 	this.nameTvW = this.draw.measureText('?').width | 0
-	css = font = null
 	var name = this.name = dom.appendChild(document.createElement('input'))
-	name.id = 'name', name.style.position = 'absolute', name.style.display = 'none'
-	Util.on(dom, 'scroll', this, this.show, null)
+	with (name.style) font = f, position = 'absolute', display = 'none'
+	css = f = null
 	Util.on(window, 'resize', this, this.show, null)
+	Util.on(dom, 'scroll', this, this.show, null)
 	Util.on(whole, 'mousemove', this, this.Hit)
 	Util.on(whole, 'mousedown', this, this.Hit)
-	Util.on(dom, 'keydown', this, this.key, false, true)
-	Util.on(dom, 'keypress', this, this.key, false, true)
+	Util.on(box, 'keydown', this, this.key, false, true)
+	Util.on(box, 'keypress', this, this.key, false, true)
 	Util.on(name, 'input', this, this.Naming)
 	Util.on(name, 'change', this, this.Naming)
 	Util.on(name, 'blur', this, this.Name, [ false ])
@@ -182,6 +185,7 @@ Hit: function (e)
 HitXY: function ()
 {
 	var x = this.hitX, y = this.hitY, m = this.dom
+	this.html == 'ff' && (m = m.offsetParent) // offsetTop bug on Firefox
 	do
 		x += m.scrollLeft - m.offsetLeft - m.clientLeft,
 		y += m.scrollTop - m.offsetTop - m.clientTop
@@ -309,13 +313,14 @@ Name: function (done)
 	var now = this.now, name = this.name, d
 	if (done == null && now instanceof Datum)
 		name.style.display = '',
-		name.style.left = now.offsetX() + 1 + 'px', name.style.top = now.offsetY()
-			+ now.nameY - this.nameH - (this.html == 'ff' ? 1 : 5) + 'px',
+		name.style.left = now.offsetX() + 1 + 'px',
+		name.style.top = now.offsetY() +
+			now.nameY - this.nameH - (this.html == 'ff' ? 1 : 5) + 'px',
 		name.value = now.name,
 		name.focus(), name.select(), this.Naming()
 	else
 		d = name.style.display, name.style.display = 'none',
-		d == '' && this.dom.focus(),
+		d == '' && this.dom.parentNode.focus(),
 		done && this.com.name(name.value)
 },
 Naming: function ()
@@ -342,7 +347,8 @@ Drag: function (drag)
 key: function (e)
 {
 	var k = e.keyCode
-	if (e.target == this.name && k != 13 && k != 27)
+	if (e.target == this.name
+		&& (k != 13 && k != 27 || e.ctrlKey || e.altKey || e.metaKey || e.shiftKey))
 		return // neither esc nor enter
 	if (k = e.charCode)
 		(e.ctrlKey || e.altKey || e.metaKey) && (k = -k)

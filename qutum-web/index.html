@@ -11,32 +11,34 @@
 <script src=command.js></script>
 <script src=layer2.js></script>
 <style>
-* { box-sizing:border-box; -webkit-box-sizing:border-box; -moz-box-sizing:border-box; }
-html, body { width:100%; height:100%; padding:0; margin:0; overflow:hidden; }
-body { padding:2px; }
-#edit { width:100%; height:100%; font:15px Times,serif; }
-#edit:focus { outline:2px solid #99f; }
-#edit #name {
-	font:15px Times,serif; border:1px solid #ccf; padding:0; outline:0;
-	box-sizing:content-box; -webkit-box-sizing:content-box; }
-#Log {
-	box-sizing:content-box; -webkit-box-sizing:content-box; -moz-box-sizing:content-box;
-	position:fixed; right:0; bottom:0; max-width:40em; max-height:20em; overflow:scroll;
-	padding: 1ex; border:1px solid #99f; background: rgba(192,192,255,0.6);
-}
-#Log div { white-space:nowrap; min-height: 1ex; }
+html, body { width:100%; height:100%; padding:0; margin:0; }
+banner, help, edit { display:block; width:100%; height:100%; position:absolute;
+	box-sizing:border-box;-webkit-box-sizing:border-box;-moz-box-sizing:border-box; }
+help { width:7ex; z-index:10; }
+banner { height:3ex; border-left:7ex solid rgba(0,0,0,0); z-index:9; }
+edit { border:2px solid #fff; border-top:3ex solid #fff; border-left:7ex solid #fff; }
+edit > div { font:15px Times,serif; }
+edit:focus > div { outline:2px solid #ccf; }
+edit input { border:1px solid #ccf; padding:0; outline:0; }
+
+#Log { position:fixed; right:0; bottom:0; max-width:40em; max-height:20em; overflow:scroll; }
+#Log { padding: 1ex; border:1px solid #99f; background:rgba(192,192,255,0.6); }
+#Log .line { white-space:nowrap; min-height: 1ex; }
 #Log .err { color:red }
+
 </style>
-</head>
-<body>
-<div id=edit></div>
 <script>
 onload = function ()
 {
-	edit = document.getElementById('edit')
+	var edit = document.getElementsByTagName('edit')[0]
 	new Edit(edit)
 	setTimeout(function () { edit.focus() }, 0)
 }
 </script>
+</head>
+<body>
+<banner>the editing zonest</banner>
+<help>Qutum 10</help>
+<edit></edit>
 </body>
 </html>

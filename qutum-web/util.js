@@ -9,10 +9,12 @@
 Log = function (s, clazz)
 {
 	var dom = document.getElementById('Log')
-	if ( !dom)
-		document.body.appendChild(dom = document.createElement('div')), dom.id = 'Log'
-	dom = dom.appendChild(document.createElement('div'))
-	clazz && (dom.className = clazz), dom.textContent = s, dom.scrollIntoView()
+	if (dom)
+		with (dom.appendChild(document.createElement('div')))
+			className = clazz ? 'line ' + clazz : 'line', textContent = s, scrollIntoView()
+	else
+		document.body.appendChild(document.createElement('div')).id = 'Log',
+		setTimeout(Log, 0, s, clazz) // size rendering bug on WebKit
 }
 $info = function (v)
 {
