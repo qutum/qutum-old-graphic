@@ -25,8 +25,8 @@ yield: 0, // yield, with error
 err: '',
 showing: false,
 xys: null, // [] based on zone rather than wire
-x: 0,
-y: 0,
+x: 0, // minimal x
+y: 0, // minimal y
 w: 0,
 h: 0,
 navPrev: null,
@@ -206,13 +206,16 @@ hit: function (x, y)
 		return null
 	if ( !(s = this.xys))
 		return null
-	var x1 = s[0], y1 = s[1], x2, y2
+	var x1 = s[0], y1 = s[1], x2, y2, p, q
 	for (var i = 2, n = s.length; i < n; )
 	{
 		x2 = s[i++], y2 = s[i++]
-		if (y1 == y2
-			? y - y1 > -3 && y - y1 < 3 && (x1 < x2 ? x >= x1 && x <= x2 : x >= x2 && x <= x1)
-			: x - x1 > -3 && x - x1 < 3 && (y1 < y2 ? y >= y1 && y <= y2 : y >= y2 && y <= y1))
+		if (y1 == y2 ? y > y1 -3 && y < y1 +3 && (x >= x1 && x <= x2 || x >= x2 && x <= x1)
+		: x1 == x2 ? x > x1 -3 && x < x1 +3 && (y >= y1 && y <= y2 || y >= y2 && y <= y1)
+		: (x > x1 -2 && x < x2 +2 || x > x2 -2 && x < x1 +2)
+			&& (y > y1 -2 && y < y2 +2 || y > y2 -2 && y < y1 +2)
+			&& (p = (x1 - x2) / (y1 - y2), x > (q = (y - y2) * p + x2) -3 && x < q +3
+				|| y > (q = (x - x2) / p + y2) -3 && y < q +3))
 			return this
 		x1 = x2, y1 = y2
 	}
