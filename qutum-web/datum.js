@@ -444,22 +444,10 @@ _show: function (draw, X, Y, W, H)
 			for (D = 0; d = r[D]; D++)
 				d._show(draw, X - d.x, Y - d.y, W, H)
 	if (this == edit.hit && (this != edit.now || edit.drag))
-	{
-		draw.translate(-X, -Y)
-		draw.strokeStyle = edit.dragable
-			? this.err ? '#f66' : io < 0 ? '#d8f' : io > 0 ? '#8bf' : '#7d7' : '#fbb'
-		draw.lineWidth = this.yield ? 1 : 2, draw.strokeRect(-0.5, -0.5, w + 1, h + 1)
-		if (edit.drag)
-			if (edit.drag == edit.com.early)
-				draw.strokeStyle = '#666', draw.strokeRect(- SPACE / 2, 0, 0, h)
-			else if (edit.drag == edit.com.later)
-				draw.strokeStyle = '#666', draw.strokeRect(w + SPACE / 2, 0, 0, h)
-			else if (edit.drag == edit.com.earlyRow)
-				draw.strokeStyle = '#666', draw.strokeRect(0, - SPACE / 2, w, 0)
-			else if (edit.drag == edit.com.laterRow)
-				draw.strokeStyle = '#666', draw.strokeRect(0, h + SPACE / 2, w, 0)
+		draw.translate(-X, -Y),
+		draw.strokeStyle = this.err ? '#f66' : io < 0 ? '#d8f' : io > 0 ? '#8bf' : '#7d7',
+		draw.lineWidth = this.yield ? 1 : 2, draw.strokeRect(-0.5, -0.5, w + 1, h + 1),
 		draw.translate(X, Y)
-	}
 	else if (this == edit.now)
 		draw.translate(-X, -Y), draw.strokeStyle = c,
 		draw.lineWidth = this.yield ? 1 : 2, draw.strokeRect(-0.5, -0.5, w + 1, h + 1),

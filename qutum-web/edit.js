@@ -55,7 +55,6 @@ hitXY: true, // use hitX and hitY
 nav: null, // navigable hit while dragging or now
 foc: null, // hit while dragging or now
 drag: null, // null or a command
-dragable: true,
 keyType: '',
 
 html: '', // html engine
@@ -91,13 +90,13 @@ Now: function (now, nav, show, drag)
 		n.navNext = now
 	if (drag !== undefined)
 		this.drag != drag && (this.scroll = true, this.drag = drag)
-	else
-		n != now && (this.scroll = true)
-// TODO no name edit
+	this.Name(false)
 	if (this.drag)
+		now != this.foc && (this.scroll = true),
 		this.hit = this.nav = this.foc = now,
 		this.dragable = this.drag.call(this.com, now, true)
 	else
+		now != n && (this.scroll = true),
 		this.now = this.nav = this.foc = now,
 		this.dragable = this.hitXY = true
 	this.focUnfold(show != null ? show : 2) || this.show()
@@ -126,8 +125,40 @@ _show: function ()
 			this.whole.style.height = z.y + z.h + z.y + 'px'
 		var drag = this.drag, com = this.com
 		if (this.hitXY)
-			this.hit = this.HitXY() || z,
-			drag && (this.dragable = drag.call(com, this.foc = this.hit, true))
+			this.hitXY = false, this.hit = this.HitXY() || z,
+			drag && (this.foc = this.hit)
+		var dx, dy, Dx, Dy
+		if (drag)
+		{
+			var n = this.now, h = this.hit, xys, d, D = Infinity, xys,
+				xs = [], ys = [], Xs = [], Ys = [], i, I
+			if (n.deep)
+				xs[1] = (xs[0] = n.offsetX()) + n.w, ys[0] = ys[1] = n.offsetY(),
+				drag == com.agent ? ys[0] = ys[1] += n.h : drag != com.base
+				&& (xs[2] = xs[0], xs[3] = xs[1], ys[2] = ys[3] = ys[0] + n.h)
+			else
+				xs[0] = n.zone.offsetX(), ys[0] = n.zone.offsetY(), xys = n.xys,
+				drag == com.agent ? (xs[0] += xys[0], ys[0] += xys[1]) :
+				drag == com.base ? (xs[0] += xys[xys.length -2], ys[0] += xys[xys.length -1])
+				: (xs[1] = xs[0] + xys[xys.length -2], ys[1] = ys[0] + xys[xys.length -1],
+					xs[0] += xys[0], ys[0] += xys[1])
+			if (h.deep)
+				Xs[0] = h.offsetX(), Ys[0] = h.offsetY(),
+				drag == com.early ? (Xs[0] -= Datum.SPACE / 2, Ys[0] += h.h >> 1) :
+				drag == com.later ? (Xs[0] += h.w + Datum.SPACE / 2, Ys[0] += h.h >> 1) :
+				drag == com.earlyRow ? (Xs[0] += h.w >> 1, Ys[0] -= Datum.SPACE / 2) :
+				drag == com.laterRow ? (Xs[0] += h.w >> 1, Ys[0] += h.h + Datum.SPACE / 2) :
+				drag == com.unity ? Ys[0] += h.nameY - (h.nameH >> 1 || this.nameH >> 1) :
+				(Xs[1] = Xs[0] + h.w, Ys[1] = Ys[0] += drag == com.base ? h.h : 0)
+			else
+				xys = h.xys, Xs[1] = (Xs[0] = h.zone.offsetX()) + xys[xys.length -2],
+				Ys[1] = (Ys[0] = h.zone.offsetY()) + xys[xys.length -1],
+				Xs[0] += xys[0], Ys[0] += xys[1]
+			for (i = 0; i < xs.length; i++)
+				for (I = 0; I < Xs.length; I++)
+					if ((d = (d = xs[i] - Xs[I]) * d + (d = ys[i] - Ys[I]) * d) < D)
+						D = d, dx = xs[i], dy = ys[i], Dx = Xs[I], Dy = Ys[I]
+		}
 		var mx = m.scrollLeft, my = m.scrollTop, mw = m.clientWidth, mh = m.clientHeight
 		if (this.scroll)
 		{
@@ -136,58 +167,30 @@ _show: function ()
 				return x < mx && (m.scrollLeft = x), y < my && (m.scrollTop = y), re = true
 			this.scroll = false
 			var foc = this.foc, x = foc.offsetX(), y = foc.offsetY()
-			if (drag == com.early)
-				x = x - Datum.SPACE - Math.max(mx, Math.min(x - Datum.SPACE, mx + mw - foc.w))
-			else if (drag == com.later)
-				x = x - Math.min(Math.max(mx, x), mx + mw - foc.w - Datum.SPACE)
-			else
-				x = x - Math.max(mx, Math.min(x, mx + mw - foc.w))
-			if (drag == com.earlyRow)
-				y = y - Datum.SPACE - Math.max(my, Math.min(y - Datum.SPACE, my + mh - foc.h))
-			else if (drag == com.laterRow)
-				y = y - Math.min(Math.max(my, y), my + mh - foc.h - Datum.SPACE)
-			else
-				y = y - Math.max(my, Math.min(y, my + mh - foc.h))
-			if (x || y)
-				return m.scrollLeft = mx + x, m.scrollTop = my + y, re = true
+			x = Math.min(x - 2, Math.max(mx, x + 2 + foc.w - mw))
+			y = Math.min(y - 2, Math.max(my, y + 2 + foc.h - mh))
+			if (drag)
+				x = Math.min(Dx - 3, Math.max(x, Dx + 3 - mw)),
+				y = Math.min(Dy - 3, Math.max(y, Dy + 3 - mh))
+			if (x != mx || y != my)
+				return m.scrollLeft = x, m.scrollTop = y, $info(re = true)
 		}
 		var draw = Util.draw(this.draw, mx, my, mw, mh)
 		z._show(draw, mx - z.x, my - z.y, mw, mh)
 		if (drag)
 		{
-			var n = this.now, h = this.hit, D = Infinity,
-				d = n.deep ? n : n.zone, xs = [ d.offsetX() ], ys = [ d.offsetY() ], i, j,
-				d = h.deep ? h : h.zone, Xs = [ d.offsetX() ], Ys = [ d.offsetY() ], I, J
-			if (drag == com.base)
-				n.deep ? (xs[1] = xs[0] + n.w, ys[1] = ys[0]) :
-					(xs[0] += n.xys[0], ys[0] += n.xys[1]),
-				h.deep ? (Xs[1] = Xs[0] + h.w, Ys[1] = Ys[0] += h.h) :
-					(Xs[0] += h.xys[0], Ys[0] += h.xys[1])
-			else if (drag == com.agent)
-				n.deep ? (xs[1] = xs[0] + n.w, ys[1] = ys[0] += n.h) :
-					(xs[0] += n.xys[n.xys.length - 2], ys[0] += n.xys[n.xys.length - 1]),
-				h.deep ? (Xs[1] = Xs[0] + h.w, Ys[1] = Ys[0]) :
-					(Xs[0] += h.xys[h.xys.length - 2], Ys[0] += h.xys[h.xys.length - 1])
-			else
-				n.deep ? (xs[1] = xs[3] = (xs[2] = xs[0]) + n.w,
-					ys[2] = ys[3] = (ys[1] = ys[0]) + n.h) :
-					(xs[1] = xs[0] + n.xys[n.xys.length - 2], xs[0] += n.xys[0],
-					ys[1] = ys[0] + n.xys[n.xys.length - 1], ys[0] += n.xys[1]),
-				h.deep ? (Xs[1] = Xs[3] = (Xs[2] = Xs[0]) + h.w,
-					Ys[2] = Ys[3] = (Ys[1] = Ys[0]) + h.h) :
-					(Xs[1] = Xs[0] + h.xys[h.xys.length - 2], Xs[0] += h.xys[0],
-					Ys[1] = Ys[0] + h.xys[h.xys.length - 1], Ys[0] += h.xys[1])
-			for (i = 0; i < xs.length; i++)
-				for (I = 0; I < Xs.length; I++)
-					if ((d = (d = xs[i] - Xs[I]) * d + (d = ys[i] - Ys[I]) * d) < D)
-						D = d, j = i, J = I
-			draw.globalAlpha = 0.2, draw.strokeStyle = '#000'
-			draw.lineWidth = 6.5, draw.beginPath()
-			draw.moveTo(xs[j] + 0.5 - mx, ys[j] + 0.5 - my)
-			draw.lineTo(Xs[J] + 0.5 - mx, Ys[J] + 0.5 - my)
+ 			draw.beginPath()
+			draw.strokeStyle = drag.call(com, h, true) ? '#333' : '#f33'
+			draw.lineWidth = 2.5
+			if (h.deep)
+				if (drag == com.early || drag == com.later)
+					draw.strokeRect(Dx - mx, Dy - h.h / 2 - my, 0, h.h)
+				else if (drag == com.earlyRow || drag == com.laterRow)
+					draw.strokeRect(Dx - h.w / 2 - mx, Dy - my, h.w, 0)
+			draw.lineWidth = 5, draw.lineCap = 'round', draw.globalAlpha = 0.375
+			draw.moveTo(dx - mx, dy - my), draw.lineTo(Dx - mx, Dy - my)
 			draw.stroke()
 		}
-		this.hitXY = false
 	}
 	finally
 	{
@@ -342,8 +345,8 @@ focFold: function (x)
 // start by default, done if done is true, cancel if done is false
 Name: function (done)
 {
-	var now = this.now, name = this.name, d
-	if (done == null && now.deep)
+	var name = this.name, now, d
+	if (done == null && (now = this.now).deep)
 		name.style.display = '',
 		name.style.left = now.offsetX() + 1 + 'px',
 		name.style.top = now.offsetY() +
@@ -410,7 +413,7 @@ key: function (e)
 	case 9.5: this.focInner(); break // tab
 	case 27.5: this.Name(false); this.Drag(false); break // esc
 
-	case 122: this.focZone(); break // z
+	case 122: case -9.5: this.focZone(); break // z func-tab
 	case 32: this.focInner(); break // space
 	case 44: this.focInput(); break // ,
 	case 96: this.focDatum(); break // `

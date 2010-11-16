@@ -24,7 +24,7 @@ yield: 0, // yield, with error
 
 err: '',
 showing: false,
-xys: null, // [] based on zone rather than wire
+xys: null, // [ x, y, ... ] relative to zone
 x: 0, // minimal x
 y: 0, // minimal y
 w: 0,
@@ -184,7 +184,7 @@ show: function (draw, X, Y, W, H)
 	if ( !s)
 		return
 	if (this == edit.hit && (this != edit.now || edit.drag))
-		draw.strokeStyle = edit.dragable ? this.err ? '#f00' : '#6c6' : '#fcc',
+		draw.strokeStyle = this.err ? '#f00' : '#6c6',
 		draw.lineWidth = this.yield ? 2.125 : 2.75
 	else if (this == edit.now)
 		draw.strokeStyle = this.err ? '#f00' : '#080',
