@@ -156,8 +156,8 @@ _show: function ()
 		if (drag)
 		{
 			var n = this.now, h = this.hit, D = Infinity,
-				d = n.deep ? n : n.zone, xs = [ d.offsetX() ], ys = [ d.offsetY() ], x, y,
-				d = h.deep ? h : h.zone, Xs = [ d.offsetX() ], Ys = [ d.offsetY() ], X, Y
+				d = n.deep ? n : n.zone, xs = [ d.offsetX() ], ys = [ d.offsetY() ], i, j,
+				d = h.deep ? h : h.zone, Xs = [ d.offsetX() ], Ys = [ d.offsetY() ], I, J
 			if (drag == com.base)
 				n.deep ? (xs[1] = xs[0] + n.w, ys[1] = ys[0]) :
 					(xs[0] += n.xys[0], ys[0] += n.xys[1]),
@@ -177,14 +177,14 @@ _show: function ()
 					Ys[2] = Ys[3] = (Ys[1] = Ys[0]) + h.h) :
 					(Xs[1] = Xs[0] + h.xys[h.xys.length - 2], Xs[0] += h.xys[0],
 					Ys[1] = Ys[0] + h.xys[h.xys.length - 1], Ys[0] += h.xys[1])
-			for (x = 0; x < xs.length; x++)
-				for (X = 0; X < Xs.length; X++)
-					if ((d = (d = xs[x] - Xs[X]) * d + (d = ys[x] - Ys[X]) * d) < D)
-						D = d, y = x, Y = X
+			for (i = 0; i < xs.length; i++)
+				for (I = 0; I < Xs.length; I++)
+					if ((d = (d = xs[i] - Xs[I]) * d + (d = ys[i] - Ys[I]) * d) < D)
+						D = d, j = i, J = I
 			draw.globalAlpha = 0.2, draw.strokeStyle = '#000'
 			draw.lineWidth = 6.5, draw.beginPath()
-			draw.moveTo(xs[y] + 0.5 - mx, ys[y] + 0.5 - my)
-			draw.lineTo(Xs[Y] + 0.5 - mx, Ys[Y] + 0.5 - my)
+			draw.moveTo(xs[j] + 0.5 - mx, ys[j] + 0.5 - my)
+			draw.lineTo(Xs[J] + 0.5 - mx, Ys[J] + 0.5 - my)
 			draw.stroke()
 		}
 		this.hitXY = false
