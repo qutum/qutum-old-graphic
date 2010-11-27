@@ -21,8 +21,10 @@ Edit = function (box)
 	this.draw = Util.draw(Util.canvas(whole, f), 0, 0, 50, 50)
 	this.nameH = parseInt(css.fontSize, 10)
 	this.nameTvW = this.draw.measureText('?').width | 0
-	var name = this.name = dom.appendChild(document.createElement('input'))
-	with (name.style) font = f, position = 'absolute', display = 'none'
+	var name = this.name = dom.appendChild(document.createElement('span'))
+		.appendChild(document.createElement('input'))
+	name.parentNode.style.position = 'absolute'
+	with (name.style) font = f, display = 'none'
 	css = f = null
 	Util.on(window, 'resize', this, this.show, null)
 	Util.on(dom, 'scroll', this, this.show, null)
@@ -173,23 +175,37 @@ _show: function ()
 				x = Math.min(Dx - 3, Math.max(x, Dx + 3 - mw)),
 				y = Math.min(Dy - 3, Math.max(y, Dy + 3 - mh))
 			if (x != mx || y != my)
-				return m.scrollLeft = x, m.scrollTop = y, $info(re = true)
+				return m.scrollLeft = x, m.scrollTop = y, re = true
 		}
 		var draw = Util.draw(this.draw, mx, my, mw, mh)
 		z._show(draw, mx - z.x, my - z.y, mw, mh)
 		if (drag)
 		{
- 			draw.beginPath()
-			draw.strokeStyle = drag.call(com, h, true) ? '#333' : '#f33'
+			draw.fillStyle = draw.strokeStyle = drag.call(com, h, true) ? '#333' : '#f33'
 			draw.lineWidth = 2.5
 			if (h.deep)
 				if (drag == com.early || drag == com.later)
 					draw.strokeRect(Dx - mx, Dy - h.h / 2 - my, 0, h.h)
 				else if (drag == com.earlyRow || drag == com.laterRow)
 					draw.strokeRect(Dx - h.w / 2 - mx, Dy - my, h.w, 0)
-			draw.lineWidth = 5, draw.lineCap = 'round', draw.globalAlpha = 0.375
+			if (drag == com.base)
+				x = Dx - dx, y = Dy - dy, z = Math.sqrt(x * x + y * y),
+				x *= 5 / z, y *= 5 / z, draw.beginPath(),
+				draw.moveTo(dx - mx, dy - my),
+				draw.lineTo(dx + x + x - y, dy + y + y + x),
+				draw.lineTo(dx + x + x + y, dy + y + y - x),
+				draw.fill()
+			else if (drag == com.agent)
+				x = dx - Dx, y = dy - Dy, z = Math.sqrt(x * x + y * y),
+				x *= 5 / z, y *= 5 / z, draw.beginPath(),
+				draw.moveTo(Dx - mx, Dy - my),
+				draw.lineTo(Dx + x + x - y, Dy + y + y + x),
+				draw.lineTo(Dx + x + x + y, Dy + y + y - x),
+				draw.fill()
+ 			draw.beginPath(), draw.globalAlpha = 0.375
+			draw.lineWidth = 5, draw.lineCap = 'round'
 			draw.moveTo(dx - mx, dy - my), draw.lineTo(Dx - mx, Dy - my)
-			draw.stroke()
+			draw.stroke(), draw.globalAlpha = 1
 		}
 	}
 	finally
@@ -232,114 +248,119 @@ HitXY: function ()
 //////////////////////////////// edit ////////////////////////////////
 ////////////////////////////////      ////////////////////////////////
 
-navPrev: function ()
+navPrev: function (test)
 {
-	this.nav != this.foc ? this.Now(this.nav, false)
-		: this.nav.navPrev && this.Now(this.nav.navPrev, false)
+	return this.nav != this.foc ? test || this.Now(this.nav, false)
+		: this.nav.navPrev ? test || this.Now(this.nav.navPrev, false) : false
 },
-navNext: function ()
+navNext: function (test)
 {
-	this.nav != this.foc ? this.Now(this.nav, false)
-		: this.nav.navNext && this.Now(this.nav.navNext, false)
+	return this.nav != this.foc ? test || this.Now(this.nav, false)
+		: this.nav.navNext ? test || this.Now(this.nav.navNext, false) : false
 },
-focLeft: function ()
+focLeft: function (test)
 {
 	var foc = this.foc, r = foc.row, rs
 	if (r) // not wire
 		if (foc != r[0])
-			this.Now(r[r.indexOf(foc) - 1])
+			return test || this.Now(r[r.indexOf(foc) - 1])
 		else if (rs = foc.zone.rows, (r = rs[rs.indexOf(r) - 1]) && r.length)
-			this.Now(ArrayLast(r))
+			return test || this.Now(ArrayLast(r))
+	return false
 },
-focRight: function ()
+focRight: function (test)
 {
 	var foc = this.foc, r = foc.row
 	if (r) // not wire
 		if (foc != ArrayLast(r))
-			this.Now(r[r.indexOf(foc) + 1])
+			return test || this.Now(r[r.indexOf(foc) + 1])
 		else if (rs = foc.zone.rows, (r = rs[rs.indexOf(r) + 1]) && r.length)
-			this.Now(r[0])
+			return test || this.Now(r[0])
+	return false
 },
-focUp: function ()
+focUp: function (test)
 {
 	var foc = this.foc, r = foc.zone, d
 	if (foc.deep && r && (r = r.rows[r.rows.indexOf(foc.row) - 1]) && r.length)
-		d = r.searchDatumX(foc.x + foc.w / 2),
-		this.Now(r[d ^ d >> 31] || ArrayLast(r))
+		return d = r.searchDatumX(foc.x + foc.w / 2),
+			test || this.Now(r[d ^ d >> 31] || ArrayLast(r))
+	return false
 },
-focDown: function ()
+focDown: function (test)
 {
 	var foc = this.foc, r = foc.zone, d
 	if (foc.deep && r && (r = r.rows[r.rows.indexOf(foc.row) + 1]) && r.length)
-		d = r.searchDatumX(foc.x + foc.w / 2),
-		this.Now(r[d ^ d >> 31] || ArrayLast(r))
+		return d = r.searchDatumX(foc.x + foc.w / 2),
+			test || this.Now(r[d ^ d >> 31] || ArrayLast(r))
+	return false
 },
-focHome: function ()
+focHome: function (test)
 {
 	var x = this.foc.row
-	x && this.foc != x[0] && this.Now(x[0]) // not wire
+	return x && this.foc != x[0] && (test || this.Now(x[0])) // not wire
 },
-focEnd: function ()
+focEnd: function (test)
 {
 	var x = this.foc.row
-	x && this.foc != (x = ArrayLast(x)) && this.Now(x) // not wire
+	return x && this.foc != (x = ArrayLast(x)) && (test || this.Now(x)) // not wire
 },
-focZone: function ()
+focZone: function (test)
 {
-	this.Now(this.foc.zone || this.foc)
+	return test || this.Now(this.foc.zone || this.foc)
 },
-focInner: function ()
-{
-	var foc = this.foc
-	foc.ox > 0 && this.Now(foc.rows[0][0] || foc.rows[1][0]) // not wire
-},
-focInput: function ()
+focInner: function (test)
 {
 	var foc = this.foc
-	foc.ox > 0 && foc.rows[0][0] && this.Now(foc.rows[0][0]) // not wire
+	return foc.ox > 0 && (test || this.Now(foc.rows[0][0] || foc.rows[1][0])) // not wire
 },
-focDatum: function ()
+focInput: function (test)
 {
 	var foc = this.foc
-	foc.ox > 1 && foc.rows[1][0] && this.Now(foc.rows[1][0]) // not wire
+	return foc.ox > 0 && foc.rows[0][0] && (test || this.Now(foc.rows[0][0])) // not wire
 },
-focOutput: function ()
+focDatum: function (test)
 {
 	var foc = this.foc
-	foc.ox > 0 && foc.rows[foc.ox][0] && this.Now(foc.rows[foc.ox][0]) // not wire
+	return foc.ox > 1 && foc.rows[1][0] && (test || this.Now(foc.rows[1][0])) // not wire
 },
-focUnity: function ()
+focOutput: function (test)
+{
+	var foc = this.foc
+	return foc.ox > 0 && foc.rows[foc.ox][0]
+		&& (test || this.Now(foc.rows[foc.ox][0])) // not wire
+},
+focUnity: function (test)
 {
 	var foc = this.foc
 	foc.deep && foc.uNext != foc && this.Now(foc.uNext)
 },
-focBase: function (next)
+focBase: function (next, test)
 {
 	var foc = this.foc
 	if (foc.deep)
-		return foc.bs[0] && this.Now(foc.bs[0])
+		return foc.bs[0] && (test || this.Now(foc.bs[0]))
 	if ( !next)
-		return this.Now(foc.base)
+		return test || this.Now(foc.base)
 	var s = foc.agent.bs
-	this.Now(s[s.indexOf(foc) + 1] || s[0])
+	return test || this.Now(s[s.indexOf(foc) + 1] || s[0])
 },
-focAgent: function (next)
+focAgent: function (next, test)
 {
 	var foc = this.foc
 	if (foc.deep)
-		return foc.as[0] && this.Now(foc.as[0])
+		return foc.as[0] && (test || this.Now(foc.as[0]))
 	if ( !next)
-		return this.Now(foc.agent)
+		return test || this.Now(foc.agent)
 	var s = foc.base.as
-	this.Now(s[s.indexOf(foc) + 1] || s[0])
+	return test || this.Now(s[s.indexOf(foc) + 1] || s[0])
 },
-focUnfold: function (x)
+focUnfold: function (x, test)
 {
-	return (x >= 4 || this.foc.detail < x) && this.foc.show(x) // not wire
+	return (x >= 4 || this.foc.detail < x) && (test || this.foc.show(x)) // not wire
 },
-focFold: function (x)
+focFold: function (test)
 {
-	return this.foc.detail > 2 && this.foc.show(2) // not wire
+	return this.foc.detail > 2 && (test || this.foc.show(2)) // not wire
 },
 
 // start by default, done if done is true, cancel if done is false
@@ -347,12 +368,10 @@ Name: function (done)
 {
 	var name = this.name, now, d
 	if (done == null && (now = this.now).deep)
-		name.style.display = '',
-		name.style.left = now.offsetX() + 1 + 'px',
-		name.style.top = now.offsetY() +
-			now.nameY - this.nameH - (this.html == 'ff' ? 1 : 5) + 'px',
-		name.value = now.name,
-		name.focus(), name.select(), this.Naming()
+		name.parentNode.style.left = now.offsetX() + 1 + 'px',
+		name.parentNode.style.top = now.offsetY() + now.nameY - this.nameH + 'px',
+		name.style.display = '', name.focus(),
+		name.value = now.name, name.select(), this.Naming()
 	else
 		d = name.style.display, name.style.display = 'none',
 		d == '' && this.dom.parentNode.focus(),
@@ -422,7 +441,7 @@ key: function (e)
 	case 91: case 123: this.focBase(k == 91); break // [ {
 	case 93: case 125: this.focAgent(k == 93); break // ] }
 	case 43: case 61: this.focUnfold(k == 43 ? 4 : 3); break // + =
-	case 45: case 95: this.focFold(2); break // - _
+	case 45: case 95: this.focFold(); break // - _
 
 	case 105: case 73: this.com.input(k == 73); break // i I
 	case 100: case 68: this.com.datum(k == 68); break // d D

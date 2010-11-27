@@ -431,7 +431,7 @@ _show: function (draw, X, Y, W, H)
 		draw.lineWidth = 2, draw.strokeRect((w >> 1) - 3, this.nameH || h >> 1, 6, 0)
 
 	if (this.uNext != this && this.unity == edit.nav.unity)
-		draw.fillStyle = io < 0 ? '#ebf' : io > 0 ? '#bdf' : '#000',
+		draw.fillStyle = io < 0 ? '#ecf' : '#cce3ff',
 		draw.fillRect(2, 2, this.nameR - 4, this.nameY - 1)
 	if (x = this.tv)
 		draw.fillStyle = '#000', draw.fillText(x < 0 ? '?' : '!', 3, this.nameY)
@@ -452,7 +452,7 @@ _show: function (draw, X, Y, W, H)
 		draw.translate(-X, -Y), draw.strokeStyle = c,
 		draw.lineWidth = this.yield ? 1 : 2, draw.strokeRect(-0.5, -0.5, w + 1, h + 1),
 		draw.translate(X, Y)
-// hit
+
 //	if (err)
 //		edit.tip.str(err).color(0xfff8f8, 0xaa6666, 0x880000)
 //			.xy(stage.mouseX + 1, stage.mouseY - edit.tip.height).visible = true
