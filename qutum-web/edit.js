@@ -30,6 +30,7 @@ Edit = function (box)
 	Util.on(dom, 'scroll', this, this.show, null)
 	Util.on(whole, 'mousemove', this, this.Hit)
 	Util.on(whole, 'mousedown', this, this.Hit)
+	Util.on(whole, 'mouseup', this, this.Hit)
 	Util.on(box, 'keydown', this, this.key, false, true)
 	Util.on(box, 'keypress', this, this.key, false, true)
 	Util.on(name, 'input', this, this.Naming)
@@ -54,6 +55,7 @@ hit: null,
 hitX: 0, // relative to page
 hitY: 0, // relative to page
 hitXY: true, // use hitX and hitY
+hiting: 0, // the timer for long press
 nav: null, // navigable hit while dragging or now
 foc: null, // hit while dragging or now
 drag: null, // null or a command
@@ -181,30 +183,28 @@ _show: function ()
 		z._show(draw, mx - z.x, my - z.y, mw, mh)
 		if (drag)
 		{
+			dx -= mx, dy -= my, Dx -= mx, Dy -= my
 			draw.fillStyle = draw.strokeStyle = drag.call(com, h, true) ? '#333' : '#f33'
 			draw.lineWidth = 2.5
 			if (h.deep)
 				if (drag == com.early || drag == com.later)
-					draw.strokeRect(Dx - mx, Dy - h.h / 2 - my, 0, h.h)
+					draw.strokeRect(Dx, Dy - h.h / 2, 0, h.h)
 				else if (drag == com.earlyRow || drag == com.laterRow)
-					draw.strokeRect(Dx - h.w / 2 - mx, Dy - my, h.w, 0)
+					draw.strokeRect(Dx - h.w / 2, Dy, h.w, 0)
 			if (drag == com.base)
 				x = Dx - dx, y = Dy - dy, z = Math.sqrt(x * x + y * y),
-				x *= 5 / z, y *= 5 / z, draw.beginPath(),
-				draw.moveTo(dx - mx, dy - my),
-				draw.lineTo(dx + x + x - y, dy + y + y + x),
+				x *= 5 / z, y *= 5 / z, draw.beginPath(), 
+				draw.moveTo(dx + x + x - y, dy + y + y + x),
 				draw.lineTo(dx + x + x + y, dy + y + y - x),
-				draw.fill()
+				draw.lineTo(dx, dy), draw.fill()
 			else if (drag == com.agent)
 				x = dx - Dx, y = dy - Dy, z = Math.sqrt(x * x + y * y),
 				x *= 5 / z, y *= 5 / z, draw.beginPath(),
-				draw.moveTo(Dx - mx, Dy - my),
-				draw.lineTo(Dx + x + x - y, Dy + y + y + x),
+				draw.moveTo(Dx + x + x - y, Dy + y + y + x),
 				draw.lineTo(Dx + x + x + y, Dy + y + y - x),
-				draw.fill()
- 			draw.beginPath(), draw.globalAlpha = 0.375
-			draw.lineWidth = 5, draw.lineCap = 'round'
-			draw.moveTo(dx - mx, dy - my), draw.lineTo(Dx - mx, Dy - my)
+				draw.moveTo(Dx, Dy), draw.fill()
+			draw.lineWidth = 5, draw.lineCap = 'round', draw.globalAlpha = 0.375
+			draw.beginPath(), draw.moveTo(dx, dy), draw.lineTo(Dx, Dy)
 			draw.stroke(), draw.globalAlpha = 1
 		}
 	}
@@ -217,8 +217,9 @@ _show: function ()
 
 Hit: function (e)
 {
+	this.hiting && clearTimeout(this.hiting)
 	var ok = this.hitX != (this.hitX = e.clientX + pageXOffset - 1)
-		| this.hitY != (this.hitY = e.clientY + pageYOffset - 1) // fix key bug on safari
+		| this.hitY != (this.hitY = e.clientY + pageYOffset - 1) // fix key bug on Safari
 	if (e.type == 'mousedown' && (ok = this.HitXY()))
 	{
 		this.hitXY = false
@@ -226,8 +227,9 @@ Hit: function (e)
 			this.Now(ok, true, e.shiftKey ? 3 : 2)
 		else
 			this.focUnfold(e.shiftKey ? 4 : 3) || this.show()
+		this.hiting = Util.timer(400, this, this.focOk)
 	}
-	else if (ok || e.type == 'mousedown') 
+	else if (ok || e.type == 'mousedown')
 		this.hitXY = true, this.show()
 },
 
@@ -362,6 +364,11 @@ focFold: function (test)
 {
 	return this.foc.detail > 2 && (test || this.foc.show(2)) // not wire
 },
+focOk: function (test)
+{
+	return test || (this.drag ? this.Drag(true)
+		: this.Name(this.name.style.display == '' ? true : null))
+},
 
 // start by default, done if done is true, cancel if done is false
 Name: function (done)
@@ -459,8 +466,7 @@ key: function (e)
 	case 76: this.Drag(this.com.laterRow); break; // L
 	case 98: this.Drag(this.com.base); break; // b
 	case 97: this.Drag(this.com.agent); break; // a
-	case 13.5: this.drag ? this.Drag(true)
-		: this.Name(this.name.style.display == '' ? true : null); break // enter
+	case 13.5: this.focOk(); break; // enter
 
 	default: return e = null
 	}
