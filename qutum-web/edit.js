@@ -6,33 +6,37 @@
 //
 (function(){
 
-Edit = function (box)
+Edit = function (dom)
 {
-	this.html = /Firefox/.test(navigator.userAgent) ? 'ff' : 'wk'
-	box.tabIndex >= 0 || (box.tabIndex = 0)
-	var dom = this.dom = box.appendChild(document.createElement('div'))
-	with (dom.style)
-		position = 'relative', overflow = 'scroll',
-		width = height = '100%', minWidth = minHeight = '10em'
+	this.html = /WebKit/.test(navigator.userAgent) ? 'w' // Chrome, Safari, etc
+		: /Gecko/.test(navigator.userAgent) ? 'g' // Firefox, etc
+		: /Presto/.test(navigator.userAgent) ? 'p' // Opera, etc
+		: 'w'
+	this.dom = dom, dom.tabIndex >= 1 || (dom.tabIndex = 1)
 	var whole = this.whole = dom.appendChild(document.createElement('div'))
-	whole.style.position = 'absolute'
+	whole.className = 'whole'
 	var css = getComputedStyle(whole, null),
 		f = css.fontWeight + ' ' + css.fontSize + ' ' + css.fontFamily
-	this.draw = Util.draw(Util.canvas(whole, f), 0, 0, 50, 50)
+	this.draw = Util.draw(Util.canvas(whole, f, true), 0, 0, 50, 50)
+
+	var name = this.name = whole.appendChild(document.createElement('span'))
+			.appendChild(document.createElement('input'))
+	with (name.parentNode.style) position = 'absolute', display = 'none'
+	name.style.font = f
 	this.nameH = parseInt(css.fontSize, 10)
 	this.nameTvW = this.draw.measureText('?').width | 0
-	var name = this.name = dom.appendChild(document.createElement('span'))
-		.appendChild(document.createElement('input'))
-	name.parentNode.style.position = 'absolute'
-	with (name.style) font = f, display = 'none'
 	css = f = null
+	var err = this.err = whole.appendChild(document.createElement('div'))
+	err.className = 'err'
+	with (err.style) position = 'absolute', display = 'none', left = top = '0'
+
 	Util.on(window, 'resize', this, this.show, null)
 	Util.on(dom, 'scroll', this, this.show, null)
 	Util.on(whole, 'mousemove', this, this.Hit)
 	Util.on(whole, 'mousedown', this, this.Hit)
 	Util.on(whole, 'mouseup', this, this.Hit)
-	Util.on(box, 'keydown', this, this.key, false, true)
-	Util.on(box, 'keypress', this, this.key, false, true)
+	Util.on(dom, 'keypress', this, this.key, false, true)
+	this.html == 'w' && Util.on(dom, 'keydown', this, this.key, false, true)
 	Util.on(name, 'input', this, this.Naming)
 	Util.on(name, 'change', this, this.Naming)
 	Util.on(name, 'blur', this, this.Name, [ false ])
@@ -50,29 +54,30 @@ Edit.prototype =
 {
 
 zonest: null,
-now: null,
-hit: null,
+now: null, // being edited
+hit: null, // hit by mouse pointer or changed now
 hitX: 0, // relative to page
 hitY: 0, // relative to page
 hitXY: true, // use hitX and hitY
-hiting: 0, // the timer for long press
-nav: null, // navigable hit while dragging or now
-foc: null, // hit while dragging or now
-drag: null, // null or a command
-keyType: '',
+hiting: 0, // timer for long mouse press
+nav: null, // navigable hit while dragging or else now
+foc: null, // hit while dragging or else now
+drag: null, // null or command for dragging
+keyType: 'keypress', // key event type
 
 html: '', // html engine
-dom: null,
-whole: null,
-draw: null,
-nameH: 0,
-nameTvW: 0,
-name: null,
+dom: null, // scroll area
+whole: null, // whole area
+draw: null, // drawing area
+name: null, // name input
+err: null, // error info
+nameH: 0, // name text height
+nameTvW: 0, // trial/veto name width
 showing: 0, // to show in milliseconds
-layout: false,
-scroll: false,
+layout: false, // to layout while showing
+scroll: false, // to scroll while showing
 
-com: null,
+com: null, // commands
 unsave: 0, // >0 saved and redos <0 saved and undos
 saveUs: null, // {}
 errorN: 0, // number of errors
@@ -101,8 +106,8 @@ Now: function (now, nav, show, drag)
 		this.dragable = this.drag.call(this.com, now, true)
 	else
 		now != n && (this.scroll = true),
-		this.now = this.nav = this.foc = now,
-		this.dragable = this.hitXY = true
+		this.now = this.hit = this.nav = this.foc = now,
+		this.dragable = true
 	this.focUnfold(show != null ? show : 2) || this.show()
 },
 
@@ -121,21 +126,21 @@ _show: function ()
 {
 	try
 	{
-		var re = false, time = Date.now(), z = this.zonest, m = this.dom
+		var re = false, time = Date.now(), z = this.zonest
 		if (this.layout)
 			z.layoutDetail(), z.layout(false),
 			this.layout = false, this.scroll = true,
 			this.whole.style.width = z.x + z.w + z.x + 'px',
-			this.whole.style.height = z.y + z.h + z.y + 'px'
-		var drag = this.drag, com = this.com
+			this.whole.style.height = z.y + z.h + z.y + 'px',
+			this.err.style.display = 'none'
+		var drag = this.drag, com = this.com, hited = true
 		if (this.hitXY)
-			this.hitXY = false, this.hit = this.HitXY() || z,
-			drag && (this.foc = this.hit)
-		var dx, dy, Dx, Dy
+			(hited = this.HitXY()) && (this.hit = hited),
+			drag && (this.foc = this.hit), this.hitXY = false
+		var n = this.now, h = this.hit, dx, dy, Dx, Dy, x, y
 		if (drag)
 		{
-			var n = this.now, h = this.hit, xys, d, D = Infinity, xys,
-				xs = [], ys = [], Xs = [], Ys = [], i, I
+			var xys, d, D = Infinity, xs = [], ys = [], Xs = [], Ys = [], i, I
 			if (n.deep)
 				xs[1] = (xs[0] = n.offsetX()) + n.w, ys[0] = ys[1] = n.offsetY(),
 				drag == com.agent ? ys[0] = ys[1] += n.h : drag != com.base
@@ -152,7 +157,7 @@ _show: function ()
 				drag == com.later ? (Xs[0] += h.w + Datum.SPACE / 2, Ys[0] += h.h >> 1) :
 				drag == com.earlyRow ? (Xs[0] += h.w >> 1, Ys[0] -= Datum.SPACE / 2) :
 				drag == com.laterRow ? (Xs[0] += h.w >> 1, Ys[0] += h.h + Datum.SPACE / 2) :
-				drag == com.unity ? Ys[0] += h.nameY - (h.nameH >> 1 || this.nameH >> 1) :
+				drag == com.unity ? Ys[0] += h.nameY + (this.nameH >> 1) :
 				(Xs[1] = Xs[0] + h.w, Ys[1] = Ys[0] += drag == com.base ? h.h : 0)
 			else
 				xys = h.xys, Xs[1] = (Xs[0] = h.zone.offsetX()) + xys[xys.length -2],
@@ -163,27 +168,28 @@ _show: function ()
 					if ((d = (d = xs[i] - Xs[I]) * d + (d = ys[i] - Ys[I]) * d) < D)
 						D = d, dx = xs[i], dy = ys[i], Dx = Xs[I], Dy = Ys[I]
 		}
-		var mx = m.scrollLeft, my = m.scrollTop, mw = m.clientWidth, mh = m.clientHeight
+		var dom = this.dom, X = dom.scrollLeft, Y = dom.scrollTop,
+			W = Math.max(dom.clientWidth, 1), H = Math.max(dom.clientHeight, 1)
 		if (this.scroll)
 		{
-			var x = mx && z.x + z.w + z.x - mw, y = my && z.y + z.h + z.y - mh
-			if (x < mx || y < my)
-				return x < mx && (m.scrollLeft = x), y < my && (m.scrollTop = y), re = true
+			x = X && z.x + z.w + z.x - W, y = Y && z.y + z.h + z.y - H
+			if (x < X || y < Y)
+				return x < X && (dom.scrollLeft = x), y < Y && (dom.scrollTop = y), re = true
 			this.scroll = false
 			var foc = this.foc, x = foc.offsetX(), y = foc.offsetY()
-			x = Math.min(x - 2, Math.max(mx, x + 2 + foc.w - mw))
-			y = Math.min(y - 2, Math.max(my, y + 2 + foc.h - mh))
+			x = Math.min(x - 2, Math.max(X, x + 2 + foc.w - W))
+			y = Math.min(y - 2, Math.max(Y, y + 2 + foc.h - H))
 			if (drag)
-				x = Math.min(Dx - 3, Math.max(x, Dx + 3 - mw)),
-				y = Math.min(Dy - 3, Math.max(y, Dy + 3 - mh))
-			if (x != mx || y != my)
-				return m.scrollLeft = x, m.scrollTop = y, re = true
+				x = Math.min(Dx - 3, Math.max(x, Dx + 3 - W)),
+				y = Math.min(Dy - 3, Math.max(y, Dy + 3 - H))
+			if (x != X || y != Y)
+				return dom.scrollLeft = x, dom.scrollTop = y, re = true
 		}
-		var draw = Util.draw(this.draw, mx, my, mw, mh)
-		z._show(draw, mx - z.x, my - z.y, mw, mh)
+		var draw = Util.draw(this.draw, X, Y, W, H)
+		z._show(draw, X - z.x, Y - z.y, W, H)
 		if (drag)
 		{
-			dx -= mx, dy -= my, Dx -= mx, Dy -= my
+			dx -= X, dy -= Y, Dx -= X, Dy -= Y
 			draw.fillStyle = draw.strokeStyle = drag.call(com, h, true) ? '#333' : '#f33'
 			draw.lineWidth = 2.5
 			if (h.deep)
@@ -207,6 +213,18 @@ _show: function ()
 			draw.beginPath(), draw.moveTo(dx, dy), draw.lineTo(Dx, Dy)
 			draw.stroke(), draw.globalAlpha = 1
 		}
+		this.err.style.display = hited && h.err ? '' : 'none'
+		if (hited && h.err)
+		{
+			Util.text(this.err, h.err)
+			dx = this.hitX - Util.pageX(this.dom), dy = this.hitY - Util.pageY(this.dom)
+			Dx = this.err.offsetWidth, Dy = this.err.offsetHeight
+			if ((x = dx + 10) + Dx > W && (dx = dx - 1 - Dx) >= 0)
+				x = dx
+			if ((y = dy + 3) + Dy > H && (dy = dy - 1 - Dy) >= 0)
+				y = dy
+			this.err.style.left = x + X + 'px', this.err.style.top = y + Y + 'px'
+		}
 	}
 	finally
 	{
@@ -218,8 +236,10 @@ _show: function ()
 Hit: function (e)
 {
 	this.hiting && clearTimeout(this.hiting)
-	var ok = this.hitX != (this.hitX = e.clientX + pageXOffset - 1)
-		| this.hitY != (this.hitY = e.clientY + pageYOffset - 1) // fix key bug on Safari
+	if (e.target == this.name || e.target == this.name.parentNode)
+		return
+	var ok = this.hitX != (this.hitX = e.pageX - 1) | this.hitY != (this.hitY = e.pageY - 1)
+			// fix key bug on Safari
 	if (e.type == 'mousedown' && (ok = this.HitXY()))
 	{
 		this.hitXY = false
@@ -235,15 +255,11 @@ Hit: function (e)
 
 HitXY: function ()
 {
-	var x = this.hitX, y = this.hitY, m = this.dom
-	this.html == 'ff' && (x += m.offsetLeft, y += m.offsetTop) // offsetLeft/Top bug on Firefox
-	do
-		x += m.scrollLeft - m.offsetLeft - m.clientLeft,
-		y += m.scrollTop - m.offsetTop - m.clientTop
-	while (m = m.offsetParent)
-	var t = Date.now(), m = this.zonest.hit([ x, y ]), t = Date.now() - t
-	t > 50 && $info('slow script: hit')
-	return m
+	var t = Date.now(), h = this.zonest.hit(
+		[ this.hitX - Util.pageX(this.whole), this.hitY - Util.pageY(this.whole) ]),
+		t = Date.now() - t
+	t > 50 && $info('slow: zonest.hit')
+	return h
 },
 
 ////////////////////////////////      ////////////////////////////////
@@ -367,34 +383,36 @@ focFold: function (test)
 focOk: function (test)
 {
 	return test || (this.drag ? this.Drag(true)
-		: this.Name(this.name.style.display == '' ? true : null))
+		: this.Name(this.name.parentNode.style.display == '' ? true : null))
 },
 
 // start by default, done if done is true, cancel if done is false
 Name: function (done)
 {
-	var name = this.name, now, d
-	if (done == null && (now = this.now).deep)
-		name.parentNode.style.left = now.offsetX() + 1 + 'px',
-		name.parentNode.style.top = now.offsetY() + now.nameY - this.nameH + 'px',
-		name.style.display = '', name.focus(),
-		name.value = now.name, name.select(), this.Naming()
+	var now
+	if (done == null && this.now.deep)
+	{
+		with (this.name.parentNode.style)
+			top = this.now.offsetY() + this.now.nameY + 'px',
+			left = this.now.offsetX() + 3 + 'px', display = ''
+		this.name.focus(), this.name.value = this.now.name, this.name.select()
+		this.Naming()
+	}
 	else
-		d = name.style.display, name.style.display = 'none',
-		d == '' && this.dom.parentNode.focus(),
-		done && this.com.name(name.value)
+		this.name.parentNode.style.display != (this.name.parentNode.style.display = 'none')
+			&& this.dom.focus(),
+		done && this.com.name(this.name.value)
 },
 Naming: function ()
 {
-	var name = this.name
-	if (this.html == 'ff') // scrollWidth bug on Firefox
-		name.size = Math.min(name.textLength || 1, 100)
+	if (this.html == 'w')
+		this.name.style.width = '10px',
+		this.name.style.width = this.name.scrollWidth + 'px'
 	else
-		name.style.width = '1px',
-		name.style.width = Math.min(name.scrollWidth, 800) + 'px'
+		this.name.size = this.name.textLength || 1
 },
 
-// start if drag is a command, done if drag is true, cancel if drag is false 
+// start if drag is a command, done if drag is true, cancel if drag is false
 Drag: function (drag)
 {
 	var foc = this.foc, d
@@ -407,20 +425,15 @@ Drag: function (drag)
 
 key: function (e)
 {
-	var k = e.keyCode
-	if (e.target == this.name
-		&& (k != 13 && k != 27 || e.ctrlKey || e.altKey || e.metaKey || e.shiftKey))
+	if (e.target == this.name &&
+		(e.keyCode != 13 && e.keyCode != 27 || e.ctrlKey || e.altKey || e.metaKey || e.shiftKey))
 		return // neither esc nor enter
-	if (k = e.charCode)
+	var k = e.type == 'keypress' && e.which // charCode uncompatible
+	if (k >= 32)
 		(e.ctrlKey || e.altKey || e.metaKey) && (k = -k)
 	else
-	{
-		k = e.keyCode
-		if (this.keyType != 'keypress' && e.type == 'keypress')
-			return this.keyType = e.type // fix keydown repeat on Firefox
-		k = e.shiftKey || e.ctrlKey || e.altKey || e.metaKey ? - k - 0.5 : k + 0.5
-	}
-	this.keyType = e.type
+		k = e.keyCode + 0.5,
+		(e.shiftKey || e.ctrlKey || e.altKey || e.metaKey) && (k = -k)
 
 	try
 	{

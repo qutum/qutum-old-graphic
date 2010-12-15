@@ -368,7 +368,7 @@ unity: function (u, test)
 trialVeto: function (tv)
 {
 	var now = this.edit.now, tv0 = now.tv
-	if ( !now.row || now.layer || this.edit.drag)
+	if ( !now.deep || now.layer || this.edit.drag)
 		return
 	tv0 == tv && (tv = 0)
 	this.go(function (redo)

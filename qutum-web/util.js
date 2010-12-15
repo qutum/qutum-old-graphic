@@ -8,9 +8,9 @@
 
 Log = function (s, clazz)
 {
-	var dom = document.getElementById('Log')
-	if (dom)
-		with (dom.appendChild(document.createElement('div')))
+	var log = document.getElementById('Log')
+	if (log)
+		with (log.appendChild(document.createElement('div')))
 			className = clazz ? 'line ' + clazz : 'line', textContent = s, scrollIntoView()
 	else
 		document.body.appendChild(document.createElement('div')).id = 'Log',
@@ -39,24 +39,6 @@ ArrayRem = function (s, v)
 
 Util =
 {
-
-canvas: function (o, font)
-{
-	var canv = o.appendChild(document.createElement('canvas')), draw = canv.getContext('2d')
-	canv.style.display = 'block', canv.style.position = 'absolute'
-	draw.font0 = font
-	return draw
-},
-
-draw: function (draw, x, y, w, h)
-{
-	var canv = draw.canvas
-	canv.style.left = x + 'px', canv.style.top = y + 'px'
-	canv.width = w, canv.height = h
-	draw.textBaseline = 'bottom' // 'top' 'baseline' uncompatible
-	draw.font = draw.font0
-	return draw
-},
 
 on: function (dom, event, This, func, args, capture)
 {
@@ -89,6 +71,44 @@ timer: function (time, This, func, args)
 			try { var _; func.call(This); _ = true } finally { _ || $err('timer error') }
 		},
 		time >= 0 ? time : 0)
+},
+
+canvas: function (o, font, absolute)
+{
+	var canv = o.appendChild(document.createElement('canvas')), draw = canv.getContext('2d')
+	absolute && (canv.style.display = 'block', canv.style.position = 'absolute')
+	draw.font0 = font
+	return draw
+},
+
+draw: function (draw, x, y, w, h)
+{
+	var canv = draw.canvas
+	canv.style.left = x + 'px', canv.style.top = y + 'px'
+	canv.width = w, canv.height = h
+	draw.textBaseline = 'bottom'
+	draw.font = draw.font0
+	return draw
+},
+
+text: function (dom, text)
+{
+	dom.innerHTML = text.replace(/&/g, '&amp;').replace(/</g, '&lt;')
+		.replace(/\n|\r\n/g, '<br>').replace(/\t/g, '\u00a0 \u00a0 ').replace(/  /g, '\u00a0 ')
+},
+
+pageX: function (o)
+{
+	for (var p = o.offsetParent, x = p ? o.scrollLeft : 0; p; p = (o = p).offsetParent)
+		x += o.offsetLeft - o.scrollLeft
+	return x
+},
+
+pageY: function (o)
+{
+	for (var p = o.offsetParent, y = p ? o.scrollTop : 0; p; p = (o = p).offsetParent)
+		y += o.offsetTop - o.scrollTop
+	return y
 },
 
 }

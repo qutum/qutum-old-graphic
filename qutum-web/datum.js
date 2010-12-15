@@ -55,9 +55,9 @@ base0: 0, // the maximum deep of all outermost bases
 mn: 0, // match iteration
 
 name: '',
-nameY: 0, // text bottom
-nameR: 0, // with left and right padding
-nameH: 0, // with top and bottom padding
+nameY: 0, // text top
+nameR: 0, // with left and right margin of around 3px each
+nameH: 0, // with top and bottom margin of around 3px each
 err: '',
 x: 0,
 y: 0,
@@ -81,7 +81,6 @@ addTo: function (z, r, q) // x < 0 to add row
 		this.gene = true
 		this.bzer = this
 		this.azer = this
-		this.err = ''
 		return this // zonest
 	}
 	if (z.ox < 0)
@@ -337,13 +336,13 @@ layout: function (force)
 	{
 		this.w = Math.max(SIZE0, nr)
 		this.h = Math.max(SIZE0, nh)
-		this.nameY = 3 + this.edit.nameH
+		this.nameY = 2
 	}
 	else if (this.detail == 2)
 	{
 		this.w = Math.max(SIZE0, nr)
 		this.h = Math.max(SIZE0, nh + 6)
-		this.nameY = 3 + this.edit.nameH
+		this.nameY = 2
 		w2 = this.w >> 1, h2 = nh || this.h >> 1
 		rs[0].layout(0, w2, w2, 0)
 		for (x = 1; r = rs[x]; x++)
@@ -363,11 +362,11 @@ layout: function (force)
 		r = rs[0]
 		if (r.length && nr > NAME_WIDTH)
 			r.layout(1, 0, w, 0),
-			h = r.h + 2
+			h = r.h + 3
 		else
 			r.layout(1, nr, w, 0),
 			h = 0
-		this.nameY = h + 2 + this.edit.nameH
+		this.nameY = h + 2
 		h = Math.max(h + nh, r.h + SPACE)
 		for (x = 1; r = rs[x]; x++)
 			r.layout(x < this.ox ? 2 : 3, 0, w, h),
@@ -432,11 +431,11 @@ _show: function (draw, X, Y, W, H)
 
 	if (this.uNext != this && this.unity == edit.nav.unity)
 		draw.fillStyle = io < 0 ? '#ecf' : '#cce3ff',
-		draw.fillRect(2, 2, this.nameR - 4, this.nameY - 1)
-	if (x = this.tv)
-		draw.fillStyle = '#000', draw.fillText(x < 0 ? '?' : '!', 3, this.nameY)
-	if (y = this.name)
-		draw.fillStyle = '#000', draw.fillText(y, (x && edit.nameTvW) + 3, this.nameY)
+		draw.fillRect(2, this.nameY, this.nameR - 4, edit.nameH + 1)
+	if (D = this.tv)
+		draw.fillStyle = '#000', draw.fillText(D < 0 ? '?' : '!', 3, this.nameY + edit.nameH)
+	if (d = this.name)
+		draw.fillStyle = '#000', draw.fillText(d, (D && edit.nameTvW) + 3, this.nameY + edit.nameH)
 
 	draw.translate(X, Y)
 	for (R = 0; r = s[R]; R++)

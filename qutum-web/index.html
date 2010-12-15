@@ -10,36 +10,55 @@
 <script src=wire.js></script>
 <script src=command.js></script>
 <script src=layer2.js></script>
+</head>
+<body>
+<table>
+<tr><td id=banner colspan=99>Qutum 10 Editor</td>
+<tr><td id=zonest>Zonest List</td>
+	<td id=edit-box><div id=edit></div></td>
+</table>
+<script>
+onload = function ()
+{
+	var edit = document.getElementById('edit')
+	new Edit(edit)
+	setTimeout(function () { edit.focus() }, 0)
+}
+</script>
 <style>
 html, body { width:100%; height:100%; padding:0; margin:0; }
-banner, help, edit
+body { font:16px Times,serif; }
+table { width:100%; height:100%; border-spacing:0; }
+tr { vertical-align:top; }
+td { padding:0; }
+#banner
 {
-	display:block; width:100%; height:100%; position:absolute;
+	height:45px;
+}
+#zonest
+{
+	width:123px;
+}
+#edit-box
+{
+	height:100%; padding:2px;
 	box-sizing:border-box;-webkit-box-sizing:border-box;-moz-box-sizing:border-box;
 }
-
-help
+#edit { position:relative; width:100%; height:100%; overflow:scroll; }
+#edit:focus { outline:2px solid #ccf; }
+#edit .whole { position:absolute; }
+#edit * { font:15px Times,serif; }
+#edit input
 {
-	width:7ex; z-index:10;
+	position:relative; top:-4px; left:-3px; margin:0; padding:1px;
+	border:1px solid rgb(120,200,120); outline:1px solid rgba(120,200,120,0.6);
 }
-
-banner
+@-moz-document url-prefix() { #edit input { top:-2px; } }
+#edit .err
 {
-	height:3ex; border-left:7ex solid rgba(0,0,0,0); z-index:9;
+	color:#700; background: rgba(255,240,240,0.8); padding:3px;
+	border:1px solid red; border-radius:5px; -moz-border-radius:5px;
 }
-
-edit
-{
-	border:2px solid #fff; border-top:3ex solid #fff; border-left:7ex solid #fff;
-}
-edit * { font:15px Times,serif; }
-edit:focus > div { outline:2px solid #ccf; }
-edit input
-{
-	padding:1px; border:1px solid #aaf; outline:1px solid #ddf;
-	position:relative; top:-6px; left:-1px;
-}
-@-moz-document url-prefix() { edit input { top:-2px; } }
 
 #Log
 {
@@ -49,19 +68,7 @@ edit input
 #Log .line { white-space:nowrap; min-height: 1ex; }
 #Log .err { color:red }
 
+/* box-sizing:border-box;-webkit-box-sizing:border-box;-moz-box-sizing:border-box; */
 </style>
-<script>
-onload = function ()
-{
-	var edit = document.getElementsByTagName('edit')[0]
-	new Edit(edit)
-	setTimeout(function () { edit.focus() }, 0)
-}
-</script>
-</head>
-<body>
-<banner>the editing zonest</banner>
-<help>Qutum 10</help>
-<edit></edit>
 </body>
 </html>
