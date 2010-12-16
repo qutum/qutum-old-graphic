@@ -126,29 +126,29 @@ _show: function ()
 {
 	try
 	{
-		var re = false, time = Date.now(), z = this.zonest
+		var re = false, time = Date.now(), drag = this.drag, z = this.zonest, h = this.hit
 		if (this.layout)
 			z.layoutDetail(), z.layout(false),
-			this.layout = false, this.scroll = true,
 			this.whole.style.width = z.x + z.w + z.x + 'px',
 			this.whole.style.height = z.y + z.h + z.y + 'px',
-			this.err.style.display = 'none'
-		var drag = this.drag, com = this.com, hited = true
+			this.err.style.display = 'none',
+			this.layout = false, this.scroll = true
 		if (this.hitXY)
-			(hited = this.HitXY()) && (this.hit = hited),
-			drag && (this.foc = this.hit), this.hitXY = false
-		var n = this.now, h = this.hit, dx, dy, Dx, Dy, x, y
+			(h = this.HitXY()) ? this.hit = h : h = this.hit,
+			drag && (this.foc = h), this.hitXY = false
+		var com = this.com, n = this.now, dx, dy, Dx, Dy, x, y
 		if (drag)
 		{
 			var xys, d, D = Infinity, xs = [], ys = [], Xs = [], Ys = [], i, I
 			if (n.deep)
 				xs[1] = (xs[0] = n.offsetX()) + n.w, ys[0] = ys[1] = n.offsetY(),
-				drag == com.agent ? ys[0] = ys[1] += n.h : drag != com.base
-				&& (xs[2] = xs[0], xs[3] = xs[1], ys[2] = ys[3] = ys[0] + n.h)
+				drag == com.base ? null :
+				drag == com.agent ? ys[0] = ys[1] += n.h
+				: (xs[2] = xs[0], xs[3] = xs[1], ys[2] = ys[3] = ys[0] + n.h)
 			else
 				xs[0] = n.zone.offsetX(), ys[0] = n.zone.offsetY(), xys = n.xys,
-				drag == com.agent ? (xs[0] += xys[0], ys[0] += xys[1]) :
-				drag == com.base ? (xs[0] += xys[xys.length -2], ys[0] += xys[xys.length -1])
+				drag == com.base ? (xs[0] += xys[0], ys[0] += xys[1]) :
+				drag == com.agent ? (xs[0] += xys[xys.length -2], ys[0] += xys[xys.length -1])
 				: (xs[1] = xs[0] + xys[xys.length -2], ys[1] = ys[0] + xys[xys.length -1],
 					xs[0] += xys[0], ys[0] += xys[1])
 			if (h.deep)
@@ -197,34 +197,36 @@ _show: function ()
 					draw.strokeRect(Dx, Dy - h.h / 2, 0, h.h)
 				else if (drag == com.earlyRow || drag == com.laterRow)
 					draw.strokeRect(Dx - h.w / 2, Dy, h.w, 0)
-			if (drag == com.base)
-				x = Dx - dx, y = Dy - dy, z = Math.sqrt(x * x + y * y),
+			if (drag == com.base
+				&& (x = Dx - dx, y = Dy - dy, z = Math.sqrt(x * x + y * y)) >= 1)
 				x *= 5 / z, y *= 5 / z, draw.beginPath(), 
 				draw.moveTo(dx + x + x - y, dy + y + y + x),
 				draw.lineTo(dx + x + x + y, dy + y + y - x),
 				draw.lineTo(dx, dy), draw.fill()
-			else if (drag == com.agent)
-				x = dx - Dx, y = dy - Dy, z = Math.sqrt(x * x + y * y),
+			else if (drag == com.agent
+				&& (x = dx - Dx, y = dy - Dy, z = Math.sqrt(x * x + y * y)) >= 1)
 				x *= 5 / z, y *= 5 / z, draw.beginPath(),
 				draw.moveTo(Dx + x + x - y, Dy + y + y + x),
 				draw.lineTo(Dx + x + x + y, Dy + y + y - x),
-				draw.moveTo(Dx, Dy), draw.fill()
+				draw.lineTo(Dx, Dy), draw.fill()
 			draw.lineWidth = 5, draw.lineCap = 'round', draw.globalAlpha = 0.375
 			draw.beginPath(), draw.moveTo(dx, dy), draw.lineTo(Dx, Dy)
 			draw.stroke(), draw.globalAlpha = 1
 		}
-		this.err.style.display = hited && h.err ? '' : 'none'
-		if (hited && h.err)
+		if (h.err &&
+			(dx = this.hitX - Util.pageX(this.whole), dy = this.hitY - Util.pageY(this.whole),
+			dx >= z.x && dx < z.x + z.w && dy >= z.y && dy < z.y + z.h))
 		{
-			Util.text(this.err, h.err)
-			dx = this.hitX - Util.pageX(this.dom), dy = this.hitY - Util.pageY(this.dom)
+			this.err.style.display = '', this.err.textContent = h.err
 			Dx = this.err.offsetWidth, Dy = this.err.offsetHeight
-			if ((x = dx + 10) + Dx > W && (dx = dx - 1 - Dx) >= 0)
+			if ((x = dx + 10) + Dx > X + W && (dx = dx - 1 - Dx) >= X)
 				x = dx
-			if ((y = dy + 3) + Dy > H && (dy = dy - 1 - Dy) >= 0)
+			if ((y = dy + 3) + Dy > Y + H && (dy = dy - 1 - Dy) >= Y)
 				y = dy
-			this.err.style.left = x + X + 'px', this.err.style.top = y + Y + 'px'
+			this.err.style.left = x + 'px', this.err.style.top = y + 'px'
 		}
+		else
+			this.err.style.display = 'none'
 	}
 	finally
 	{
