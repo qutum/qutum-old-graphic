@@ -13,39 +13,182 @@
 </head>
 <body>
 <table>
-<tr><td id=banner colspan=99>Qutum 10 Editor</td>
-<tr><td id=zonest>Zonest List</td>
-	<td id=edit-box><div id=edit></div></td>
+<tr>
+<td id='panel-left' rowspan=99>
+<table>
+<tr><td id=banner>Qutum 10 Editor</td>
+<tr><td id=zonest rowspan=99>Zonest List</td>
+</table>
+<td id=split rowspan=99><div><div></div></div></td>
+<td id=tools1 colspan=99
+	><a id='tool-undo'>^lt<div>Undo<br>key: func-left</div></a
+	><a id='tool-redo'>^rt<div>Redo<br>key: func-right</div></a
+	><a id='tool-prev'>^up<div>Previous focus<br>key: func-up</div></a
+	><a id='tool-next'>^dn<div>Next focus<br>key: func-down</div></a
+	><a id='tool-z'>z<div>Zone<br>key: z</div></a
+	><a id='tool-foci'>,<div>Inner Input<br>key: ,</div></a
+	><a id='tool-focd'>`<div>Inner Datum<br>key: `</div></a
+	><a id='tool-foco'>.<div>Inner Output<br>key: .</div></a
+	><a id='tool-focu'>;<div>Next Unity<br>key: ;</div></a
+	><a id='tool-nextb'>[<div>Next Base<br>key: [</div></a
+	><a id='tool-nexta'>]<div>Next Agent<br>key: ]</div></a
+	><a id='tool-focb'>{<div>Base<br>key: {</div></a
+	><a id='tool-foca'>}<div>Agent<br>key: }</div></a
+	><a id='tool-unfold'>=<div>Unfold<br>key: =</div></a
+	><a id='tool-unfolds'>+<div>Unfold deeply<br>key: +</div></a
+	><a id='tool-fold'>-<div>Fold<br>key: - or _</div></a
+	><a id='tool-left'>lt<div>Left<br>key: left</div></a
+	><a id='tool-right'>rt<div>Right<br>key: right</div></a
+	><a id='tool-up'>up<div>Up<br>key: up</div></a
+	><a id='tool-down'>dn<div>Down<br>key: down</div></a
+	><a id='tool-home'>hm<div>Leftmost<br>key: home</div></a
+	><a id='tool-end'>en<div>Rightmost<br>key: end</div></a
+></td>
+<tr>
+<td id=tools2
+	><a>i</a
+	><a>d</a
+	><a>o</a
+></td>
+<td id=edit-box><div id=edit></div></td>
 </table>
 <script>
 onload = function ()
 {
-	var edit = document.getElementById('edit')
-	new Edit(edit)
-	setTimeout(function () { edit.focus() }, 0)
+	var edit = new Edit(document.getElementById('edit'))
+	setTimeout(function () { edit.dom.focus() }, 0)
+	function tool(id, foc, cmd, drag, args)
+	{
+		document.getElementById(id).onclick = function ()
+		{
+			edit.dom.focus()
+			foc && edit[foc].apply(edit, args)
+			cmd && edit.com[cmd].apply(edit.com, args)
+			drag && edit.Drag(edit.com[cmd])
+		}
+	}
+	tool('tool-undo', null, 'undo'), tool('tool-redo', null, 'redo')
+	tool('tool-prev', 'navPrev'), tool('tool-next', 'navNext')
+	tool('tool-z', 'focZone'), tool('tool-foci', 'focInput')
+	tool('tool-focd', 'focDatum'), tool('tool-foco', 'focOutput')
+	tool('tool-focu', 'focUnity')
+	tool('tool-nextb', 'focBase', null, null, [ true ])
+	tool('tool-nexta', 'focAgent', null, null, [ true ])
+	tool('tool-focb', 'focBase'), tool('tool-foca', 'focAgent')
+	tool('tool-unfold', 'focUnfold', null, null, [ 3 ])
+	tool('tool-unfolds', 'focUnfold', null, null, [ 4 ]), tool('tool-fold', 'focFold')
+	tool('tool-left', 'focLeft'), tool('tool-right', 'focRight')
+	tool('tool-up', 'focUp'), tool('tool-down', 'focDown')
+	tool('tool-home', 'focHome'), tool('tool-end', 'focEnd')
 }
 </script>
 <style>
 html, body { width:100%; height:100%; padding:0; margin:0; }
 body { font:16px Times,serif; }
-table { width:100%; height:100%; border-spacing:0; }
+body table { width:100%; height:100%; border-spacing:0; }
 tr { vertical-align:top; }
 td { padding:0; }
+#panel-left { width:123px; }
 #banner
 {
-	height:45px;
+	height:32px;
 }
-#zonest
+#split { width:1px; vertical-align:middle; background:#ccf; }
+	#split > div { position:relative; }
+	#split > div > div
+	{
+		width:8px; height:24px; position:absolute; left:-8px;
+		border-radius:6px 0 0 4px; -moz-border-radius:4px 0 0 4px;
+		background:linear-gradient(left,#e8edf,#d0d9ff 50%,#bdcaff 50%,#d1daff);
+		background:-moz-linear-gradient(left,#e8edff,#d0d9ff 50%,#bdcaff 50%,#d1daff);
+		background:-webkit-gradient(linear,left top,right top,
+			color-stop(0,#e8edff),color-stop(0.5,#d0d9ff),
+			color-stop(0.5,#bdcaff),color-stop(1,#d1daff));
+		opacity:0.6;
+	}
+	#split > div > div:hover { opacity:1; }
+#tools1
 {
-	width:123px;
+	height:28px; padding:0 28px 0 28px; font-size:18px;
+	background:linear-gradient(top,#f7f7f7,#e9e9e9 50%,#dfdfdf 50%,#eee);
+	background:-moz-linear-gradient(top,#f7f7f7,#e9e9e9 50%,#dfdfdf 50%,#eee);
+	background:-webkit-gradient(linear,left top,left bottom,
+		color-stop(0,#f7f7f7),color-stop(0.5,#e9e9e9),
+		color-stop(0.5,#dfdfdf),color-stop(1,#eee));
+	user-select:none; -moz-user-select:none; -webkit-user-select:none;
 }
+#tools2
+{
+	width:28px; padding:0 0 28px; font-size:18px;
+	background:linear-gradient(left,#f7f7f7 0,#e9e9e9 50%,#dfdfdf 50%,#eee 100%);
+	background:-moz-linear-gradient(left,#f7f7f7 0,#e9e9e9 50%,#dfdfdf 50%,#eee 100%);
+	background:-webkit-gradient(linear,left top,right top,
+		color-stop(0,#f7f7f7),color-stop(0.5,#e9e9e9),
+		color-stop(0.5,#dfdfdf),color-stop(1,#eee));
+	user-select:none; -moz-user-select:none; -webkit-user-select:none;
+}
+	#tools1 > a, #tools2 > a
+	{
+		display:inline-block; position:relative; cursor:default;
+		width:28px; line-height:28px; text-align:center; outline:0;
+	}
+	#tools1 > a:hover
+	{
+		background:linear-gradient(top,#f2f5ff,#d1daff 50%,#bdcaff 50%,#e0e6ff);
+		background:-moz-linear-gradient(top,#f2f5ff,#d1daff 50%,#bdcaff 50%,#e0e6ff);
+		background:-webkit-gradient(linear,left top,left bottom,
+			color-stop(0,#f2f5ff),color-stop(0.5,#d1daff),
+			color-stop(0.5,#bdcaff),color-stop(1,#e0e6ff));
+	}
+	#tools1 > a:active
+	{
+		background:linear-gradient(top,#e8edff,#bdcaff 50%,#a3b7ff 50%,#c7d2ff);
+		background:-moz-linear-gradient(top,#e8edff,#bdcaff 50%,#a3b7ff 50%,#c7d2ff);
+		background:-webkit-gradient(linear,left top,left bottom,
+			color-stop(0,#e8edff),color-stop(0.5,#bdcaff),
+			color-stop(0.5,#a3b7ff),color-stop(1,#c7d2ff));
+	}
+	#tools2 > a:hover
+	{
+		background:linear-gradient(left,#f2f5ff,#d1daff 50%,#bdcaff 50%,#e0e6ff);
+		background:-moz-linear-gradient(left,#f2f5ff,#d1daff 50%,#bdcaff 50%,#e0e6ff);
+		background:-webkit-gradient(linear,left top,right top,
+			color-stop(0,#f2f5ff),color-stop(0.5,#d1daff),
+			color-stop(0.5,#bdcaff),color-stop(1,#e0e6ff));
+	}
+	#tools2 > a:active
+	{
+		background:linear-gradient(left,#e8edff,#bdcaff 50%,#a3b7ff 50%,#c7d2ff);
+		background:-moz-linear-gradient(left,#e8edff,#bdcaff 50%,#a3b7ff 50%,#c7d2ff);
+		background:-webkit-gradient(linear,left top,right top,
+			color-stop(0,#e8edff),color-stop(0.5,#bdcaff),
+			color-stop(0.5,#a3b7ff),color-stop(1,#c7d2ff));
+	}
+	#tools1 > a > div, #tools2 > a > div
+	{
+		position:absolute; padding:0.5ex 1ex;
+		background:#fff3ee; border:1px solid #dca;
+		white-space:nowrap; text-align:left; font-weight:bold; font-size:15px; line-height:16px;
+		visibility:hidden; opacity:0; z-index:10;
+	}
+	#tools2 > a > div { left:100%; top:0; }
+	#tools1 > a:hover > div:not(:hover), #tools2 > a:hover > div:not(:hover)
+	{
+		visibility:visible; opacity:0.85;
+		transition:opacity 1s cubic-bezier(0.6,0,0,0.8);
+		-webkit-transition:opacity 1s cubic-bezier(0.6,0,0,0.8);
+		-moz-transition:opacity 1s cubic-bezier(0.6,0,0,0.8);
+	}
+	#tool-z, #tool-left { margin-left:1ex; }
+
 #edit-box
 {
 	height:100%; padding:2px;
 	box-sizing:border-box;-webkit-box-sizing:border-box;-moz-box-sizing:border-box;
+	user-select:none; -moz-user-select:none; -webkit-user-select:none;
 }
 #edit { position:relative; width:100%; height:100%; overflow:scroll; }
-#edit:focus { outline:2px solid #ccf; }
+#edit:focus { outline:2px solid #99e; }
 #edit .whole { position:absolute; }
 #edit * { font:15px Times,serif; }
 #edit input
