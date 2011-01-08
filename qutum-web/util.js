@@ -100,17 +100,23 @@ text: function (dom, text)
 pageX: function (o)
 {
 	for (var p = o.offsetParent, x = p ? o.scrollLeft : 0; p; p = (o = p).offsetParent)
-		x += o.offsetLeft - o.scrollLeft
+		x += o.offsetLeft - o.scrollLeft + (HTML == 'w' ? o.clientLeft : 0)
 	return x
 },
 
 pageY: function (o)
 {
 	for (var p = o.offsetParent, y = p ? o.scrollTop : 0; p; p = (o = p).offsetParent)
-		y += o.offsetTop - o.scrollTop
+		y += o.offsetTop - o.scrollTop + (HTML == 'w' ? o.clientTop : 0)
 	return y
 },
 
 }
+
+var HTML = Util.HTML
+	= /WebKit/.test(navigator.userAgent) ? 'w' // Chrome, Safari, etc
+	: /Gecko/.test(navigator.userAgent) ? 'g' // Firefox, etc
+	: /Presto/.test(navigator.userAgent) ? 'p' // Opera, etc
+	: 'w'
 
 })()

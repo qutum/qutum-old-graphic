@@ -8,10 +8,6 @@
 
 Edit = function (dom)
 {
-	this.html = /WebKit/.test(navigator.userAgent) ? 'w' // Chrome, Safari, etc
-		: /Gecko/.test(navigator.userAgent) ? 'g' // Firefox, etc
-		: /Presto/.test(navigator.userAgent) ? 'p' // Opera, etc
-		: 'w'
 	this.dom = dom, dom.tabIndex >= 1 || (dom.tabIndex = 1)
 	var whole = this.whole = dom.appendChild(document.createElement('div'))
 	whole.className = 'whole'
@@ -36,7 +32,7 @@ Edit = function (dom)
 	Util.on(whole, 'mousedown', this, this.Hit)
 	Util.on(whole, 'mouseup', this, this.Hit)
 	Util.on(dom, 'keypress', this, this.key, false, true)
-	this.html == 'w' && Util.on(dom, 'keydown', this, this.key, false, true)
+	Util.HTML == 'w' && Util.on(dom, 'keydown', this, this.key, false, true)
 	Util.on(name, 'input', this, this.Naming)
 	Util.on(name, 'change', this, this.Naming)
 	Util.on(name, 'blur', this, this.Name, [ false ])
@@ -65,7 +61,6 @@ foc: null, // hit while dragging or else now
 drag: null, // null or command for dragging
 keyType: 'keypress', // key event type
 
-html: '', // html engine
 dom: null, // scroll area
 whole: null, // whole area
 draw: null, // drawing area
@@ -407,7 +402,7 @@ Name: function (done)
 },
 Naming: function ()
 {
-	if (this.html == 'w')
+	if (Util.HTML == 'w')
 		this.name.style.width = '10px',
 		this.name.style.width = this.name.scrollWidth + 'px'
 	else
