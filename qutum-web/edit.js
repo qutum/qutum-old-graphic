@@ -369,13 +369,13 @@ focAgent: function (next, test)
 	var s = foc.base.as
 	return test || this.Now(s[s.indexOf(foc) + 1] || s[0])
 },
-focUnfold: function (x, test)
-{
-	return (x >= 4 || this.foc.detail < x) && (test || this.foc.show(x)) // not wire
-},
 focFold: function (test)
 {
 	return this.foc.detail > 2 && (test || this.foc.show(2)) // not wire
+},
+focUnfold: function (x, test)
+{
+	return (x >= 4 || this.foc.detail < x) && (test || this.foc.show(x)) // not wire
 },
 focOk: function (test)
 {
@@ -457,8 +457,8 @@ key: function (e)
 	case 59: this.focUnity(); break // ;
 	case 91: case 123: this.focBase(k == 91); break // [ {
 	case 93: case 125: this.focAgent(k == 93); break // ] }
-	case 43: case 61: this.focUnfold(k == 43 ? 4 : 3); break // + =
 	case 45: case 95: this.focFold(); break // - _
+	case 43: case 61: this.focUnfold(k == 43 ? 4 : 3); break // + =
 
 	case 105: case 73: this.com.input(k == 73); break // i I
 	case 100: case 68: this.com.datum(k == 68); break // d D

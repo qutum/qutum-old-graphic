@@ -95,6 +95,7 @@ text: function (dom, text)
 {
 	dom.innerHTML = text.replace(/&/g, '&amp;').replace(/</g, '&lt;')
 		.replace(/\n|\r\n/g, '<br>').replace(/\t/g, '\u00a0 \u00a0 ').replace(/  /g, '\u00a0 ')
+	return dom
 },
 
 pageX: function (o)

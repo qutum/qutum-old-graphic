@@ -18,6 +18,7 @@
 <script src=wire.js></script>
 <script src=command.js></script>
 <script src=layer2.js></script>
+<script src=toolbar.js></script>
 </head>
 <body class='mid'>
 
@@ -29,35 +30,8 @@
 <div id='right'>
 <div id='split' class='reduce'><div></div></div>
 <div>
-<div id='tools1'
-	><a id='tool-undo'>^lt<div>Undo<br>key: func-left</div></a
-	><a id='tool-redo'>^rt<div>Redo<br>key: func-right</div></a
-	><a id='tool-prev'>^up<div>Previous focus<br>key: func-up</div></a
-	><a id='tool-next'>^dn<div>Next focus<br>key: func-down</div></a
-	><a id='tool-z'>z<div>Zone<br>key: z</div></a
-	><a id='tool-foci'>,<div>Inner Input<br>key: ,</div></a
-	><a id='tool-focd'>`<div>Inner Datum<br>key: `</div></a
-	><a id='tool-foco'>.<div>Inner Output<br>key: .</div></a
-	><a id='tool-focu'>;<div>Next Unity<br>key: ;</div></a
-	><a id='tool-nextb'>[<div>Next Base<br>key: [</div></a
-	><a id='tool-nexta'>]<div>Next Agent<br>key: ]</div></a
-	><a id='tool-focb'>{<div>Base<br>key: {</div></a
-	><a id='tool-foca'>}<div>Agent<br>key: }</div></a
-	><a id='tool-unfold'>=<div>Unfold<br>key: =</div></a
-	><a id='tool-unfolds'>+<div>Unfold deeply<br>key: +</div></a
-	><a id='tool-fold'>-<div>Fold<br>key: - or _</div></a
-	><a id='tool-left'>lt<div>Left<br>key: left</div></a
-	><a id='tool-right'>rt<div>Right<br>key: right</div></a
-	><a id='tool-up'>up<div>Up<br>key: up</div></a
-	><a id='tool-down'>dn<div>Down<br>key: down</div></a
-	><a id='tool-home'>hm<div>Leftmost<br>key: home</div></a
-	><a id='tool-end'>en<div>Rightmost<br>key: end</div></a
-></div>
-<div id='tools2'
-	><a>i</a
-	><a>d</a
-	><a>o</a
-></div>
+<div id='tools1'></div>
+<div id='tools2'></div>
 <div id='edit-box'><div id='edit'></div></div>
 </div>
 </div>
@@ -73,30 +47,6 @@ onload = function ()
 	var edit = new Edit(byId('edit'))
 	setTimeout(function () { edit.dom.focus() }, 0)
 
-	function tool(id, foc, cmd, drag, args)
-	{
-		byId(id).onclick = function ()
-		{
-			edit.dom.focus()
-			foc && edit[foc].apply(edit, args)
-			cmd && edit.com[cmd].apply(edit.com, args)
-			drag && edit.Drag(edit.com[cmd])
-		}
-	}
-	tool('tool-undo', null, 'undo'), tool('tool-redo', null, 'redo')
-	tool('tool-prev', 'navPrev'), tool('tool-next', 'navNext')
-	tool('tool-z', 'focZone'), tool('tool-foci', 'focInput')
-	tool('tool-focd', 'focDatum'), tool('tool-foco', 'focOutput')
-	tool('tool-focu', 'focUnity')
-	tool('tool-nextb', 'focBase', null, null, [ true ])
-	tool('tool-nexta', 'focAgent', null, null, [ true ])
-	tool('tool-focb', 'focBase'), tool('tool-foca', 'focAgent')
-	tool('tool-unfold', 'focUnfold', null, null, [ 3 ])
-	tool('tool-unfolds', 'focUnfold', null, null, [ 4 ]), tool('tool-fold', 'focFold')
-	tool('tool-left', 'focLeft'), tool('tool-right', 'focRight')
-	tool('tool-up', 'focUp'), tool('tool-down', 'focDown')
-	tool('tool-home', 'focHome'), tool('tool-end', 'focEnd')
-
 	var split = byId('split')
 	split.firstChild.onclick = function ()
 	{
@@ -105,6 +55,8 @@ onload = function ()
 		: body.className == 'max' ? (body.className = 'mid', split.className = 'reduce')
 		: null
 	}
+
+	Toolbar(edit, byId('tools1'), byId('tools2'))
 
 	// force no scroll
 	setTimeout(function () { body.scrollIntoView(); }, 50)
@@ -239,7 +191,7 @@ body.max > #right { left:35%; width:75%; }
 		-webkit-transition:opacity 1s cubic-bezier(0.6,0,0,0.8);
 		-moz-transition:opacity 1s cubic-bezier(0.6,0,0,0.8);
 	}
-	#tool-z, #tool-left { margin-left:1ex; }
+	#tools1 > span, #tools2 > span { margin-left:1ex; }
 
 #edit-box
 {
