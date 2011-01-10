@@ -35,7 +35,6 @@ Edit = function (dom)
 	Util.HTML == 'w' && Util.on(dom, 'keydown', this, this.key, false, true)
 	Util.on(name, 'input', this, this.Naming)
 	Util.on(name, 'change', this, this.Naming)
-	Util.on(name, 'blur', this, this.Name, [ false ])
 
 	var z = this.zonest = new Datum(0)
 	z.edit = this, z.x = z.y = Datum.SPACE + 4 >> 1
@@ -94,7 +93,7 @@ Now: function (now, nav, show, drag)
 		n.navNext = now
 	if (drag !== undefined)
 		this.drag != drag && (this.scroll = true, this.drag = drag)
-	this.Name(false)
+	this.Name(false) // cancel naming
 	if (this.drag)
 		now != this.foc && (this.scroll = true),
 		this.hit = this.nav = this.foc = now,
@@ -244,7 +243,7 @@ Hit: function (e)
 			this.Now(ok, true, e.shiftKey ? 3 : 2)
 		else
 			this.focUnfold(e.shiftKey ? 4 : 3) || this.show()
-		this.hiting = Util.timer(400, this, this.focOk)
+		this.hiting = Util.timer(400, this, this.nowOk, [ true ])
 	}
 	else if (ok || e.type == 'mousedown')
 		this.hitXY = true, this.show()
@@ -375,19 +374,25 @@ focFold: function (test)
 },
 focUnfold: function (x, test)
 {
-	return (x >= 4 || this.foc.detail < x) && (test || this.foc.show(x)) // not wire
+	return this.foc.deep && (x >= 4 || this.foc.detail < x) && (test || this.foc.show(x))
 },
-focOk: function (test)
+nowName: function (ok, test)
 {
-	return test || (this.drag ? this.Drag(true)
-		: this.Name(this.name.parentNode.style.display == '' ? true : null))
+	if ( !this.drag && this.now.deep)
+		return ok ? test || this.Name(this.name.parentNode.style.display == '' || null)
+		: this.name.parentNode.style.display == '' && (test || this.Name(false))
+},
+nowOk: function (ok, test)
+{
+	return this.drag ? test || this.Drag(ok) : this.nowName(ok, test)
 },
 
-// start by default, done if done is true, cancel if done is false
+// start by defult, done if done is true, cancel if done is false
 Name: function (done)
 {
-	var now
-	if (done == null && this.now.deep)
+	if ( !this.now.deep)
+		return
+	if (done == null)
 	{
 		with (this.name.parentNode.style)
 			top = this.now.offsetY() + this.now.nameY + 'px',
@@ -410,14 +415,16 @@ Naming: function ()
 },
 
 // start if drag is a command, done if drag is true, cancel if drag is false
-Drag: function (drag)
+Drag: function (drag, sameDone)
 {
 	var foc = this.foc, d
+	if (sameDone && drag == this.drag)
+		drag = true
 	if (drag instanceof Function)
 		this.Now(foc, false, null, drag)
 	else if (d = this.drag)
 		this.Now(this.now, false, null, null),
-		drag===true && d.call(this.com, foc)
+		drag && d.call(this.com, foc)
 },
 
 key: function (e)
@@ -447,7 +454,7 @@ key: function (e)
 	case 36.5: this.focHome(); break // home
 	case 35.5: this.focEnd(); break // end
 	case 9.5: this.focInner(); break // tab
-	case 27.5: this.Name(false); this.Drag(false); break // esc
+	case 27.5: this.nowOk(false); break // esc
 
 	case 122: case -9.5: this.focZone(); break // z func-tab
 	case 32: this.focInner(); break // space
@@ -460,23 +467,24 @@ key: function (e)
 	case 45: case 95: this.focFold(); break // - _
 	case 43: case 61: this.focUnfold(k == 43 ? 4 : 3); break // + =
 
+	case 13.5: this.nowOk(true); break; // enter
 	case 105: case 73: this.com.input(k == 73); break // i I
 	case 100: case 68: this.com.datum(k == 68); break // d D
 	case 111: case 79: this.com.output(k == 79); break // o O
-	case -13.5: this.com.breakRow(); break // func-enter
-	case 8.5: this.com.removeBefore(); break // back
-	case 46.5: this.com.remove(); break // del
-	case -8.5: case -46.5: this.com.removeAfter(); break // func-del func-back
-	case 116: case 63: this.com.trialVeto(-1); break // t ?
-	case 118: case 33: this.com.trialVeto(1); break // v !
-	case 117: this.Drag(this.com.unity); break; // u
 	case 101: this.Drag(this.com.early); break; // e
 	case 108: this.Drag(this.com.later); break; // l
 	case 69: this.Drag(this.com.earlyRow); break; // E
 	case 76: this.Drag(this.com.laterRow); break; // L
+	case 116: case 63: this.com.trialVeto(-1); break // t ?
+	case 118: case 33: this.com.trialVeto(1); break // v !
+	case 117: this.Drag(this.com.unity); break; // u
 	case 98: this.Drag(this.com.base); break; // b
 	case 97: this.Drag(this.com.agent); break; // a
-	case 13.5: this.focOk(); break; // enter
+	case 121: this.com.nonyield(); break // y
+	case -13.5: this.com.breakRow(); break // func-enter
+	case 8.5: this.com.removeLeft(); break // back
+	case 46.5: this.com.remove(); break // del
+	case -8.5: case -46.5: this.com.removeRight(); break // func-del func-back
 
 	default: return e = null
 	}

@@ -8,67 +8,101 @@
 
 Toolbar = function (edit, dom1, dom2)
 {
-	tool(dom1, '^up', 'Previous focus', 'func-up', edit.navPrev)
-	tool(dom1, '^dn', 'Next focus', 'func-down', edit.navNext)
-	tool(dom1, 'z', 'Zone', 'z', edit.focZone)
-	tool(dom1, 'tb', 'Inner Input, Datum or Output', 'tab or space', edit.focInner)
-	tool(dom1, ',', 'Inner Input', ',', edit.focInput)
-	tool(dom1, '`', 'Inner Datum', '`', edit.focDatum)
-	tool(dom1, '.', 'Inner Output', '.', edit.focOutput)
-	tool(dom1, ';', 'Next Unity', ';', edit.focUnity)
-	tool(dom1, '[', 'Next Base', '[', edit.focBase, true)
-	tool(dom1, ']', 'Next Agent', ']', edit.focAgent, true)
-	tool(dom1, '{', 'Base', '{', edit.focBase, false)
-	tool(dom1, '}', 'Agent', '}', edit.focAgent, false)
+	com(dom1, '^lt', 'Undo', 'func-left', edit.com.undo)
+	com(dom1, '^rt', 'Redo', 'func-right', edit.com.redo)
 	dom1.appendChild(document.createElement('span'))
-	tool(dom1, '-', 'Fold', '- or _', edit.focFold)
-	tool(dom1, '=', 'Unfold', '=', edit.focUnfold, 3)
-	tool(dom1, '+', 'Unfold deeply', '+', edit.focUnfold, 4)
-	tool(dom1, 'lt', 'Left', 'left', edit.focLeft)
-	tool(dom1, 'rt', 'Right', 'right', edit.focRight)
-	tool(dom1, 'up', 'Up', 'up', edit.focUp)
-	tool(dom1, 'dn', 'Down', 'down', edit.focDown)
-	tool(dom1, 'hm', 'Leftmost', 'home', edit.focHome)
-	tool(dom1, 'en', 'Rightmost', 'end', edit.focEnd)
+	foc(dom1, '\\n', 'Change name', 'enter', edit.nowName, true)
+	com(dom1, 'i', 'Add sibling Input', 'i', edit.com.input, false)
+	com(dom1, 'd', 'Add sibling Datum', 'd', edit.com.datum, false)
+	com(dom1, 'o', 'Add sibling Output', 'o', edit.com.output, false)
+	com(dom1, 'I', 'Add inner Input', 'I', edit.com.input, true)
+	com(dom1, 'D', 'Add inner Datum', 'D', edit.com.datum, true)
+	com(dom1, 'O', 'Add inner Output', 'O', edit.com.output, true)
+	dom1.appendChild(document.createElement('span'))
+	drag(dom1, 'e', 'Move early', 'e', edit.com.early)
+	drag(dom1, 'l', 'Move later', 'l', edit.com.later)
+	drag(dom1, 'E', 'Move early', 'E', edit.com.earlyRow)
+	drag(dom1, 'L', 'Move early', 'L', edit.com.laterRow)
+	com(dom1, '?', 'Be Trial or not', '? or t', edit.com.trialVeto, -1)
+	com(dom1, '!', 'Be Veto or not', '! or v', edit.com.trialVeto, 1)
+	drag(dom1, 'u', 'As Unity of, both Input or Output with name', 'u', edit.com.unity)
+	drag(dom1, 'b', 'Add or change Base', 'b', edit.com.base)
+	drag(dom1, 'a', 'Add or change Agent', 'a', edit.com.agent)
+	com(dom1, 'y', 'Be not Yield', 'y', edit.com.nonyield)
+	dom1.appendChild(document.createElement('span'))
+	com(dom1, '^\\n', 'Break a row', 'func-enter', edit.com.breakRow)
+	com(dom1, 'bk', 'Remove left', 'backspace', edit.com.removeLeft)
+	com(dom1, 'del', 'Remove self', 'delete', edit.com.remove)
+	com(dom1, '^bk', 'Remove right', 'func-backspace or func-delete', edit.com.removeRight)
+	com(dom1, '^\\n', 'Break a row', 'func-enter', edit.com.breakRow)
+	foc(dom1, 'esc', 'Cancel', 'esc', edit.nowOk, false)
 
-	tool(dom2, '^lt', 'Undo', 'func-left', edit.com.undo)
-	tool(dom2, '^rt', 'Redo', 'func-right', edit.com.redo)
-	tool(dom2, 'i', 'Add sibling Input', 'i', edit.com.input, false)
-	tool(dom2, 'd', 'Add sibling Datum', 'd', edit.com.datum, false)
-	tool(dom2, 'o', 'Add sibling Output', 'o', edit.com.output, false)
-	tool(dom2, 'I', 'Add inner Input', 'I', edit.com.input, true)
-	tool(dom2, 'D', 'Add inner Datum', 'D', edit.com.datum, true)
-	tool(dom2, 'O', 'Add inner Output', 'O', edit.com.output, true)
+	foc(dom2, '^up', 'Previous focus', 'func-up', edit.navPrev)
+	foc(dom2, '^dn', 'Next focus', 'func-down', edit.navNext)
+	foc(dom2, 'z', 'Zone', 'z or func-tab', edit.focZone)
+	foc(dom2, 'tb', 'Inner Input, Datum or Output', 'tab or space', edit.focInner)
+	foc(dom2, ',', 'Inner Input', ',', edit.focInput)
+	foc(dom2, '`', 'Inner Datum', '`', edit.focDatum)
+	foc(dom2, '.', 'Inner Output', '.', edit.focOutput)
+	foc(dom2, ';', 'Next Unity', ';', edit.focUnity)
+	foc(dom2, '[', 'Next Base', '[', edit.focBase, true)
+	foc(dom2, ']', 'Next Agent', ']', edit.focAgent, true)
+	foc(dom2, '{', 'Base', '{', edit.focBase, false)
+	foc(dom2, '}', 'Agent', '}', edit.focAgent, false)
+	dom2.appendChild(document.createElement('span'))
+	foc(dom2, '-', 'Fold', '- or _', edit.focFold)
+	foc(dom2, '=', 'Unfold', '=', edit.focUnfold, 3)
+	foc(dom2, '+', 'Unfold deeply', '+', edit.focUnfold, 4)
+	foc(dom2, 'lt', 'Left', 'left', edit.focLeft)
+	foc(dom2, 'rt', 'Right', 'right', edit.focRight)
+	foc(dom2, 'up', 'Up', 'up', edit.focUp)
+	foc(dom2, 'dn', 'Down', 'down', edit.focDown)
+	foc(dom2, 'hm', 'Leftmost', 'home', edit.focHome)
+	foc(dom2, 'end', 'Rightmost', 'end', edit.focEnd)
 
-	function tool(dom, icon, desc, key, click, args)
+	function foc()
+	{
+		tool.apply(null, Array.prototype.concat.apply([ edit ], arguments))
+	}
+	function com()
+	{
+		tool.apply(null, Array.prototype.concat.apply([ edit.com ], arguments))
+	}
+	function drag()
+	{
+		tool.apply(null, Array.prototype.concat.apply([ edit.Drag ], arguments))
+	}
+	function tool(This, dom, icon, desc, key, click, args)
 	{
 		var o = document.createElement('a')
 		Util.text(o, icon)
 		Util.text(o.appendChild(document.createElement('div')), desc + '\nkey: ' + key)
-		if (args != edit.Drag)
+		Util.on(o, 'click', edit.dom, edit.dom.focus)
+		if (This != edit.Drag)
 		{
-			args = Array.prototype.slice.call(arguments, 5)
-			Util.on(o, 'click', edit.dom, edit.dom.focus)
-			Util.on(o, 'click', dom == dom1 ? edit : edit.com, click, args)
+			args = Array.prototype.slice.call(arguments, 6)
+			Util.on(o, 'click', This, click, args)
 			var test = args.concat([ true ])
 			setInterval(function ()
 			{
-				if (click.apply(dom == dom1 ? edit : edit.com, test))
+				if (click.apply(This, test))
 					o.removeAttribute('disabled')
 				else
 					o.setAttribute('disabled', '')
-			}, 300)
+			}, 200)
+		}
+		else
+		{
+			Util.on(o, 'click', edit, This, [ click, true ])
+			setInterval(function ()
+			{
+				if (edit.drag != click || edit.dragable)
+					o.removeAttribute('disabled')
+				else
+					o.setAttribute('disabled', '')
+			}, 200)
 		}
 		return dom.appendChild(o)
-	}
-}
-
-function drag(edit, drag)
-{
-	return function ()
-	{
-		edit.dom.focus()
-		drag && edit.Drag(edit.com[cmd])
 	}
 }
 

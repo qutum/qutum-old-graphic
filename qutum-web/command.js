@@ -33,7 +33,7 @@ go: function (f)
 redo: function (test)
 {
 	var com = this.coms[this.x]
-	if ( !com || !test && this.edit.drag)
+	if ( !com || this.edit.drag)
 		return
 	if (test)
 		return true
@@ -45,7 +45,7 @@ redo: function (test)
 undo: function (test)
 {
 	var x = this.x
-	if ( !x || !test && this.edit.drag)
+	if ( !x || this.edit.drag)
 		return
 	if (test)
 		return true
@@ -80,6 +80,7 @@ unyield: function (s)
 		q instanceof Datum ? q.unadd(q.yR, q.yD) : q.base.unagent(q)
 },
 
+
 name: function (v)
 {
 	var now = this.edit.now, m = now.name
@@ -99,7 +100,7 @@ name: function (v)
 input: function (inner, test)
 {
 	var now = this.edit.now, z = !inner && now.zone || now
-	if ( !now.deep || z.layer || inner && z.yield || !test && this.edit.drag)
+	if ( !now.deep || z.layer || inner && z.yield || this.edit.drag)
 		return
 	if (test)
 		return true
@@ -120,7 +121,7 @@ input: function (inner, test)
 datum: function (inner, test)
 {
 	var now = this.edit.now, z = !inner && now.zone || now
-	if ( !now.deep || z.layer || inner && z.yield || !test && this.edit.drag)
+	if ( !now.deep || z.layer || inner && z.yield || this.edit.drag)
 		return
 	if (test)
 		return true
@@ -142,7 +143,7 @@ datum: function (inner, test)
 output: function (inner, test)
 {
 	var now = this.edit.now, z = !inner && now.zone || now
-	if ( !now.deep || z.layer || inner && z.yield || !test && this.edit.drag)
+	if ( !now.deep || z.layer || inner && z.yield || this.edit.drag)
 		return
 	if (test)
 		return true
@@ -160,101 +161,6 @@ output: function (inner, test)
 	})
 },
 
-breakRow: function ()
-{
-	var now = this.edit.now, r, q
-	if (now.io || !now.row || (q = now.row.indexOf(now)) <= 0 || this.edit.drag)
-		return
-	r = now.zone.rows.indexOf(now.row)
-	this.go(function (redo)
-	{
-		if (redo)
-			now.zone.breakRow(r, q), this.edit.Now(now)
-		else
-			now.zone.mergeRow(r), this.edit.Now(now)
-	})
-},
-
-remove: function ()
-{
-	return this.edit.now.deep ? this.removeDatum() : this.removeWire()
-},
-
-removeBefore: function ()
-{
-	return this.edit.now.deep ? this.removeBeforeDatum() : this.removeWire()
-},
-
-removeAfter: function ()
-{
-	return this.edit.now.deep ? this.removeAfterDatum() : this.removeWire()
-},
-
-removeDatum: function ()
-{
-	var now = this.edit.now
-	if ( !now.row || now.layer || this.edit.drag)
-		return
-	var z = now.zone, rs = z.rows, r = rs.indexOf(now.row), q = now.row.indexOf(now), addRow
-	this.go(function (redo)
-	{
-		if (redo)
-			addRow = now.unadd(r, q),
-			this.edit.Now(z.ox < 0 ? z
-				: rs[r][q] || rs[r + 1] && rs[r + 1][0]
-				|| rs[r][q - 1] || ArrayLast(rs[r - 1]))
-		else
-			now.addTo(z, r, addRow ? -1 : q), this.edit.Now(now)
-	})
-},
-
-removeBeforeDatum: function ()
-{
-	var now = this.edit.now
-	if ( !now.row || now.layer || this.edit.drag)
-		return
-	var z = now.zone, r = z.rows.indexOf(now.row), q = now.row.indexOf(now), d
-	if (r > 1 && r < z.ox && q == 0)
-		this.go(function (redo)
-		{
-			if (redo)
-				q = z.mergeRow(r - 1), this.edit.Now(now)
-			else
-				z.breakRow(r - 1, q), this.edit.Now(now)
-		})
-	else if ((d = z.rows[r][q - 1]) && !d.layer)
-		this.go(function (redo)
-		{
-			if (redo)
-				d.unadd(r, q - 1), this.edit.Now(now)
-			else
-				d.addTo(z, r, q - 1), this.edit.Now(now)
-		})
-},
-
-removeAfterDatum: function ()
-{
-	var now = this.edit.now
-	if ( !now.row || now.layer || this.edit.drag)
-		return
-	var z = now.zone, r = z.rows.indexOf(now.row), q = now.row.indexOf(now), d
-	if (r > 0 && r < z.ox - 1 && q == now.row.length - 1)
-		this.go(function (redo)
-		{
-			if (redo)
-				q = z.mergeRow(r), this.edit.Now(now)
-			else
-				z.breakRow(r, q), this.edit.Now(now)
-		})
-	else if ((d = z.rows[r][q + 1]) && !d.layer)
-		this.go(function (redo)
-		{
-			if (redo)
-				d.unadd(r, q + 1), this.edit.Now(now)
-			else
-				d.addTo(z, r, q + 1), this.edit.Now(now)
-		})
-},
 
 early: function (e, test)
 {
@@ -358,29 +264,14 @@ laterRow: function (l, test)
 	})
 },
 
-unity: function (u, test)
-{
-	var now = this.edit.now, nu = now.uNext, m = now.name, um = u.name
-	if ( !now.io || now.layer || u.io != now.io || !m && !um || !test && this.edit.drag)
-		return
-	if (test)
-		return true
-	this.go(function (redo)
-	{
-		if (redo)
-			now.unityTo(u)
-		else
-			now.unityTo(nu),
-			n == now.name || (now.name = m), um == u.name || (u.name = um)
-		this.edit.Now(now)
-	})
-},
 
-trialVeto: function (tv)
+trialVeto: function (tv, test)
 {
 	var now = this.edit.now, tv0 = now.tv
 	if ( !now.deep || now.layer || this.edit.drag)
 		return
+	if (test)
+		return true
 	tv0 == tv && (tv = 0)
 	this.go(function (redo)
 	{
@@ -392,19 +283,20 @@ trialVeto: function (tv)
 	})
 },
 
-nonyield: function ()
+unity: function (u, test)
 {
-	var now = this.edit.now, z, zz
-	if (this.edit.drag)
+	var now = this.edit.now, nu = now.uNext, m = now.name, um = u.name
+	if ( !now.io || now.layer || u.io != now.io || !m && !um || this.edit.drag)
 		return
+	if (test)
+		return true
 	this.go(function (redo)
 	{
 		if (redo)
-			for (z = now; (zz = z).yield; z = z.zone)
-				z.yield = 0, z.show(-1)
+			now.unityTo(u)
 		else
-			for (z = now; z != zz; z = z.zone)
-				z.yield = 1, z.show(-1)
+			now.unityTo(nu),
+			n == now.name || (now.name = m), um == u.name || (u.name = um)
 		this.edit.Now(now)
 	})
 },
@@ -457,22 +349,6 @@ agentDatum: function (a, test)
 	})
 },
 
-removeWire: function ()
-{
-	var now = this.edit.now
-	if (now.deep || now.zone.layer || this.edit.drag)
-		return
-	this.go(function (redo)
-	{
-		if (redo)
-			this.edit.Now(now.keyPrev || now.agent),
-			now.base.unagent(now)
-		else
-			now.base.agent(now, now.agent, false),
-			this.edit.Now(now)
-	})
-},
-
 baseWire: function (b, test)
 {
 	var now = this.edit.now
@@ -521,11 +397,37 @@ agentWire: function (a, test)
 	})
 },
 
-nonyieldWire: function ()
+nonyield: function (test)
+{
+	return this.edit.now.deep ? this.nonyieldDatum(test) : this.nonyieldWire(test)
+},
+
+nonyieldDatum: function (test)
+{
+	var now = this.edit.now, z, zz
+	if ( !now.yield || this.edit.drag)
+		return
+	if (test)
+		return true
+	this.go(function (redo)
+	{
+		if (redo)
+			for (z = now; (zz = z).yield; z = z.zone)
+				z.yield = 0, z.show(-1)
+		else
+			for (z = now; z != zz; z = z.zone)
+				z.yield = 1, z.show(-1)
+		this.edit.Now(now)
+	})
+},
+
+nonyieldWire: function (test)
 {
 	var now = this.edit.now, bz, bzz, az, azz
-	if (this.edit.drag)
+	if ( !now.yield || this.edit.drag)
 		return
+	if (test)
+		return true
 	this.go(function (redo)
 	{
 		if (redo)
@@ -545,6 +447,129 @@ nonyieldWire: function ()
 				az.yield = 1, az.show(-1)
 		}
 		this.edit.Now(now), now.showing = true, edit.show(true)
+	})
+},
+
+
+breakRow: function (test)
+{
+	var now = this.edit.now, r, q
+	if (now.io || !now.row || (q = now.row.indexOf(now)) <= 0 || this.edit.drag)
+		return
+	if (test)
+		return true
+	r = now.zone.rows.indexOf(now.row)
+	this.go(function (redo)
+	{
+		if (redo)
+			now.zone.breakRow(r, q), this.edit.Now(now)
+		else
+			now.zone.mergeRow(r), this.edit.Now(now)
+	})
+},
+
+remove: function (test)
+{
+	return this.edit.now.deep ? this.removeDatum(test) : this.removeWire(test)
+},
+
+removeLeft: function (test)
+{
+	return this.edit.now.deep ? this.removeLeftDatum(test) : this.removeWire(test)
+},
+
+removeRight: function (test)
+{
+	return this.edit.now.deep ? this.removeRightDatum(test) : this.removeWire(test)
+},
+
+removeDatum: function (test)
+{
+	var now = this.edit.now
+	if ( !now.row || now.layer || this.edit.drag)
+		return
+	if (test)
+		return true
+	var z = now.zone, rs = z.rows, r = rs.indexOf(now.row), q = now.row.indexOf(now), addRow
+	this.go(function (redo)
+	{
+		if (redo)
+			addRow = now.unadd(r, q),
+			this.edit.Now(z.ox < 0 ? z
+				: rs[r][q] || rs[r + 1] && rs[r + 1][0]
+				|| rs[r][q - 1] || ArrayLast(rs[r - 1]))
+		else
+			now.addTo(z, r, addRow ? -1 : q), this.edit.Now(now)
+	})
+},
+
+removeLeftDatum: function (test)
+{
+	var now = this.edit.now
+	if ( !now.row || now.layer || this.edit.drag)
+		return
+	if (test)
+		return true
+	var z = now.zone, r = z.rows.indexOf(now.row), q = now.row.indexOf(now), d
+	if (r > 1 && r < z.ox && q == 0)
+		this.go(function (redo)
+		{
+			if (redo)
+				q = z.mergeRow(r - 1), this.edit.Now(now)
+			else
+				z.breakRow(r - 1, q), this.edit.Now(now)
+		})
+	else if ((d = z.rows[r][q - 1]) && !d.layer)
+		this.go(function (redo)
+		{
+			if (redo)
+				d.unadd(r, q - 1), this.edit.Now(now)
+			else
+				d.addTo(z, r, q - 1), this.edit.Now(now)
+		})
+},
+
+removeRightDatum: function (test)
+{
+	var now = this.edit.now
+	if ( !now.row || now.layer || this.edit.drag)
+		return
+	if (test)
+		return true
+	var z = now.zone, r = z.rows.indexOf(now.row), q = now.row.indexOf(now), d
+	if (r > 0 && r < z.ox - 1 && q == now.row.length - 1)
+		this.go(function (redo)
+		{
+			if (redo)
+				q = z.mergeRow(r), this.edit.Now(now)
+			else
+				z.breakRow(r, q), this.edit.Now(now)
+		})
+	else if ((d = z.rows[r][q + 1]) && !d.layer)
+		this.go(function (redo)
+		{
+			if (redo)
+				d.unadd(r, q + 1), this.edit.Now(now)
+			else
+				d.addTo(z, r, q + 1), this.edit.Now(now)
+		})
+},
+
+removeWire: function (test)
+{
+	var now = this.edit.now
+	if (now.deep || now.zone.layer || this.edit.drag)
+		return
+	if (test)
+		return true
+	this.go(function (redo)
+	{
+		if (redo)
+			this.edit.Now(now.keyPrev || now.agent),
+			now.base.unagent(now)
+		else
+			now.base.agent(now, now.agent, false),
+			this.edit.Now(now)
 	})
 },
 
