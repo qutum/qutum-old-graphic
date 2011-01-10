@@ -81,7 +81,7 @@ body.min > #right { width:100%; }
 body.mid > #left { width:18%; }
 body.mid > #right { left:18%; width:82%; }
 body.max > #left { width:35%; }
-body.max > #right { left:35%; width:75%; }
+body.max > #right { left:35%; width:65%; }
 
 #banner { height:2em; background:#eef; }
 #zonest { top:2em; padding-bottom:2em; }
@@ -120,7 +120,7 @@ body.max > #right { left:35%; width:75%; }
 #tools1
 {
 	left:-28px; top:-28px; width:100%; height:28px; padding-left:28px;
-	font-size:18px; white-space:nowrap;
+	white-space:nowrap;
 	background:linear-gradient(top,#f7f7f7,#e9e9e9 50%,#dfdfdf 50%,#eee);
 	background:-moz-linear-gradient(top,#f7f7f7,#e9e9e9 50%,#dfdfdf 50%,#eee);
 	background:-webkit-gradient(linear,left top,left bottom,
@@ -130,7 +130,7 @@ body.max > #right { left:35%; width:75%; }
 }
 #tools2
 {
-	left:-28px; top:0px; width:28px; height:100%; font-size:18px;
+	left:-28px; top:0px; width:28px; height:100%;
 	background:linear-gradient(left,#f7f7f7 0,#e9e9e9 50%,#dfdfdf 50%,#eee 100%);
 	background:-moz-linear-gradient(left,#f7f7f7 0,#e9e9e9 50%,#dfdfdf 50%,#eee 100%);
 	background:-webkit-gradient(linear,left top,right top,
@@ -138,11 +138,13 @@ body.max > #right { left:35%; width:75%; }
 		color-stop(0.5,#dfdfdf),color-stop(1,#eee));
 	user-select:none; -moz-user-select:none; -webkit-user-select:none;
 }
+	#tools1 > span, #tools2 > span { margin-left:1ex; }
 	#tools1 > a, #tools2 > a
 	{
-		display:inline-block; position:relative; cursor:default;
-		width:28px; line-height:28px; text-align:center; outline:0;
+		display:inline-block; position:relative; cursor:default; outline:0;
+		width:28px; line-height:28px; font-size:18px; text-align:center;
 	}
+	#tools1 > a[disabled], #tools2 > a[disabled] { color:gray; }
 	#tools1 > a:hover
 	{
 		background:linear-gradient(top,#f2f5ff,#d1daff 50%,#bdcaff 50%,#e0e6ff);
@@ -191,7 +193,6 @@ body.max > #right { left:35%; width:75%; }
 		-webkit-transition:opacity 1s cubic-bezier(0.6,0,0,0.8);
 		-moz-transition:opacity 1s cubic-bezier(0.6,0,0,0.8);
 	}
-	#tools1 > span, #tools2 > span { margin-left:1ex; }
 
 #edit-box
 {
@@ -217,6 +218,7 @@ body.max > #right { left:35%; width:75%; }
 {
 	white-space:pre; padding:3px; color:#700; background: rgba(255,240,240,0.8);
 	border:1px solid red; border-radius:5px; -moz-border-radius:5px;
+	box-shadow:0 0 6px red;-webkit-box-shadow:0 0 6px red;-moz-box-shadow:0 0 7px red;
 }
 
 #Log

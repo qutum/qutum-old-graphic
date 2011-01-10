@@ -30,20 +30,25 @@ go: function (f)
 	this.edit.Unsave(1)
 },
 
-redo: function ()
+redo: function (test)
 {
 	var com = this.coms[this.x]
-	if (com && !this.edit.drag)
-		this.unyield(this.edit.yields),
-		com.call(this, true), this.reyield(com.s), this.x++,
-		this.edit.Unsave(1)
+	if ( !com || !test && this.edit.drag)
+		return
+	if (test)
+		return true
+	this.unyield(this.edit.yields)
+	com.call(this, true), this.reyield(com.s), this.x++
+	this.edit.Unsave(1)
 },
 
-undo: function ()
+undo: function (test)
 {
 	var x = this.x
-	if ( !x || this.edit.drag)
+	if ( !x || !test && this.edit.drag)
 		return
+	if (test)
+		return true
 	var r = this.coms[x], com = this.coms[this.x = x - 1]
 	if (this.edit.yields)
 		r || com.ys ? this.unyield(this.edit.yields) : com.ys = this.edit.yields
@@ -91,11 +96,13 @@ name: function (v)
 	})
 },
 
-input: function (inner)
+input: function (inner, test)
 {
 	var now = this.edit.now, z = !inner && now.zone || now
-	if ( !now.deep || z.layer || inner && z.yield || this.edit.drag)
+	if ( !now.deep || z.layer || inner && z.yield || !test && this.edit.drag)
 		return
+	if (test)
+		return true
 	var d = new Datum(-1), r, q
 	if (inner || now.io >= 0 || now.layer)
 		r = 0, q = z.ox < 0 ? 0 : z.rows[r].length
@@ -110,11 +117,13 @@ input: function (inner)
 	})
 },
 
-datum: function (inner)
+datum: function (inner, test)
 {
 	var now = this.edit.now, z = !inner && now.zone || now
-	if ( !now.deep || z.layer || inner && z.yield || this.edit.drag)
+	if ( !now.deep || z.layer || inner && z.yield || !test && this.edit.drag)
 		return
+	if (test)
+		return true
 	var d = new Datum(0), r, q
 	if (inner || now.io || !now.zone)
 		z.ox <= 1 ? (r = 1, q = -1) : (r = z.ox - 1, q = z.rows[r].length),
@@ -130,11 +139,13 @@ datum: function (inner)
 	})
 },
 
-output: function (inner)
+output: function (inner, test)
 {
 	var now = this.edit.now, z = !inner && now.zone || now
-	if ( !now.deep || z.layer || inner && z.yield || this.edit.drag)
+	if ( !now.deep || z.layer || inner && z.yield || !test && this.edit.drag)
 		return
+	if (test)
+		return true
 	var d = new Datum(1), r, q
 	if (inner || now.io <= 0 || now.layer)
 		r = z.ox < 0 ? 1 : z.ox, q = z.ox < 0 ? 0 : z.rows[r].length

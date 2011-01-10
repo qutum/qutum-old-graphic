@@ -321,7 +321,7 @@ focEnd: function (test)
 },
 focZone: function (test)
 {
-	return test || this.Now(this.foc.zone || this.foc)
+	return this.foc.zone && (test || this.Now(this.foc.zone))
 },
 focInner: function (test)
 {
@@ -347,7 +347,7 @@ focOutput: function (test)
 focUnity: function (test)
 {
 	var foc = this.foc
-	foc.deep && foc.uNext != foc && this.Now(foc.uNext)
+	return foc.deep && foc.uNext != foc && (test || this.Now(foc.uNext))
 },
 focBase: function (next, test)
 {
