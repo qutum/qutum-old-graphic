@@ -100,15 +100,17 @@ text: function (dom, text)
 
 pageX: function (o)
 {
+	var w = HTML == 'w' || 0
 	for (var p = o.offsetParent, x = p ? o.scrollLeft : 0; p; p = (o = p).offsetParent)
-		x += o.offsetLeft - o.scrollLeft + (HTML == 'w' ? o.clientLeft : 0)
+		x += o.offsetLeft - o.scrollLeft + (w && o.clientLeft)
 	return x
 },
 
 pageY: function (o)
 {
+	var w = HTML == 'w' || 0
 	for (var p = o.offsetParent, y = p ? o.scrollTop : 0; p; p = (o = p).offsetParent)
-		y += o.offsetTop - o.scrollTop + (HTML == 'w' ? o.clientTop : 0)
+		y += o.offsetTop - o.scrollTop + (w && o.clientTop)
 	return y
 },
 
