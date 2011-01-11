@@ -265,24 +265,6 @@ laterRow: function (l, test)
 },
 
 
-trialVeto: function (tv, test)
-{
-	var now = this.edit.now, tv0 = now.tv
-	if ( !now.deep || now.layer || this.edit.drag)
-		return
-	if (test)
-		return true
-	tv0 == tv && (tv = 0)
-	this.go(function (redo)
-	{
-		if (redo)
-			now.Tv(tv)
-		else
-			now.Tv(tv0)
-		this.edit.Now(now)
-	})
-},
-
 unity: function (u, test)
 {
 	var now = this.edit.now, nu = now.uNext, m = now.name, um = u.name
@@ -394,6 +376,24 @@ agentWire: function (a, test)
 			now.base.agent(now, now.agent, false)
 			this.edit.Now(now)
 		}
+	})
+},
+
+trialVeto: function (tv, test)
+{
+	var now = this.edit.now, tv0 = now.tv
+	if ( !now.deep || now.layer || this.edit.drag)
+		return
+	if (test)
+		return true
+	tv0 == tv && (tv = 0)
+	this.go(function (redo)
+	{
+		if (redo)
+			now.Tv(tv)
+		else
+			now.Tv(tv0)
+		this.edit.Now(now)
 	})
 },
 

@@ -6,8 +6,10 @@
 //
 (function(){
 
-Toolbar = function (edit, dom1, dom2)
+Toolbar = function (edit, dom1, dom2, test)
 {
+	dom1.innerHTML = dom2.innerHTML = ''
+
 	com(dom1, '^lt', 'Undo', 'func-left', edit.com.undo)
 	com(dom1, '^rt', 'Redo', 'func-right', edit.com.redo)
 	dom1.appendChild(document.createElement('span'))
@@ -23,11 +25,11 @@ Toolbar = function (edit, dom1, dom2)
 	drag(dom1, 'l', 'Move later', 'l', edit.com.later)
 	drag(dom1, 'E', 'Move early', 'E', edit.com.earlyRow)
 	drag(dom1, 'L', 'Move early', 'L', edit.com.laterRow)
-	com(dom1, '?', 'Be Trial or not', '? or t', edit.com.trialVeto, -1)
-	com(dom1, '!', 'Be Veto or not', '! or v', edit.com.trialVeto, 1)
 	drag(dom1, 'u', 'As Unity of, both Input or Output with name', 'u', edit.com.unity)
 	drag(dom1, 'b', 'Add or change Base', 'b', edit.com.base)
 	drag(dom1, 'a', 'Add or change Agent', 'a', edit.com.agent)
+	com(dom1, '?', 'Be Trial or not', '? or t', edit.com.trialVeto, -1)
+	com(dom1, '!', 'Be Veto or not', '! or v', edit.com.trialVeto, 1)
 	com(dom1, 'y', 'Be not Yield', 'y', edit.com.nonyield)
 	dom1.appendChild(document.createElement('span'))
 	com(dom1, '^\\n', 'Break a row', 'func-enter', edit.com.breakRow)
@@ -60,6 +62,8 @@ Toolbar = function (edit, dom1, dom2)
 	foc(dom2, 'hm', 'Leftmost', 'home', edit.focHome)
 	foc(dom2, 'end', 'Rightmost', 'end', edit.focEnd)
 
+	return test(), test
+
 	function foc()
 	{
 		tool.apply(null, Array.prototype.concat.apply([ edit ], arguments))
@@ -74,7 +78,7 @@ Toolbar = function (edit, dom1, dom2)
 	}
 	function tool(This, dom, icon, desc, key, click, args)
 	{
-		var o = document.createElement('a')
+		var o = dom.appendChild(document.createElement('a'))
 		Util.text(o, icon)
 		Util.text(o.appendChild(document.createElement('div')), desc + '\nkey: ' + key)
 		Util.on(o, 'click', edit.dom, edit.dom.focus)
@@ -82,27 +86,29 @@ Toolbar = function (edit, dom1, dom2)
 		{
 			args = Array.prototype.slice.call(arguments, 6)
 			Util.on(o, 'click', This, click, args)
-			var test = args.concat([ true ])
-			setInterval(function ()
+			var test0 = test, tests = args.concat([ true ])
+			test = function ()
 			{
-				if (click.apply(This, test))
+				test0 && test0()
+				if (click.apply(This, tests))
 					o.removeAttribute('disabled')
 				else
 					o.setAttribute('disabled', '')
-			}, 200)
+			}
 		}
 		else
 		{
 			Util.on(o, 'click', edit, This, [ click, true ])
-			setInterval(function ()
+			var test0 = test
+			test = function ()
 			{
+				test0 && test0()
 				if (edit.drag != click || edit.dragable)
 					o.removeAttribute('disabled')
 				else
 					o.setAttribute('disabled', '')
-			}, 200)
+			}
 		}
-		return dom.appendChild(o)
 	}
 }
 

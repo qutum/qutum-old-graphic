@@ -8,7 +8,7 @@
 
 Edit = function (dom)
 {
-	this.dom = dom, dom.tabIndex >= 1 || (dom.tabIndex = 1)
+	this.dom = dom, dom.innerHTML = '', dom.tabIndex >= 1 || (dom.tabIndex = 1)
 	var whole = this.whole = dom.appendChild(document.createElement('div'))
 	whole.className = 'whole'
 	var css = getComputedStyle(whole, null),
@@ -475,11 +475,11 @@ key: function (e)
 	case 108: this.Drag(this.com.later); break; // l
 	case 69: this.Drag(this.com.earlyRow); break; // E
 	case 76: this.Drag(this.com.laterRow); break; // L
-	case 116: case 63: this.com.trialVeto(-1); break // t ?
-	case 118: case 33: this.com.trialVeto(1); break // v !
 	case 117: this.Drag(this.com.unity); break; // u
 	case 98: this.Drag(this.com.base); break; // b
 	case 97: this.Drag(this.com.agent); break; // a
+	case 116: case 63: this.com.trialVeto(-1); break // t ?
+	case 118: case 33: this.com.trialVeto(1); break // v !
 	case 121: this.com.nonyield(); break // y
 	case -13.5: this.com.breakRow(); break // func-enter
 	case 8.5: this.com.removeLeft(); break // back
