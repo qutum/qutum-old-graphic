@@ -20,7 +20,7 @@
 <script src=layer2.js></script>
 <script src=toolbar.js></script>
 </head>
-<body class='mid'>
+<body class='split1'>
 
 <div id='left'>
 <div id='banner'>
@@ -31,7 +31,7 @@
 </div>
 
 <div id='right'>
-<div id='split' class='reduce'><div></div></div>
+<div id='split'><div></div></div>
 <div>
 <div id='tools1'></div>
 <div id='tools2'></div>
@@ -42,7 +42,6 @@
 <script>
 onload = function ()
 {
-	var body = document.body
 	var edit, tool
 	function newEdit()
 	{
@@ -57,10 +56,8 @@ onload = function ()
 	var split = byId('split')
 	split.firstChild.onclick = function ()
 	{
-		body.className == 'min' ? (body.className = 'max', split.className = 'reduce')
-		: body.className == 'mid' ? (body.className = 'min', split.className = '')
-		: body.className == 'max' ? (body.className = 'mid', split.className = 'reduce')
-		: null
+		document.body.className = document.body.className.replace
+			(/[0-9]/, function (i) { return (+i + 2) % 3 })
 	}
 
 	function byId (x)
@@ -84,12 +81,12 @@ img { border:0; }
 	transition:all 0.5s ease;-webkit-transition:all 0.5s ease;
 	-moz-transition:all 0.5s ease;-o-transition:all 0.5s ease;
 }
-body.min > #left { width:1%; }
-body.min > #right { width:100%; }
-body.mid > #left { width:18%; }
-body.mid > #right { left:18%; width:82%; }
-body.max > #left { width:35%; }
-body.max > #right { left:35%; width:65%; }
+body.split0 #left { width:1%; }
+body.split0 #right { width:100%; }
+body.split1 #left { width:18%; }
+body.split1 #right { left:18%; width:82%; }
+body.split2 #left { width:35%; }
+body.split2 #right { left:35%; width:65%; }
 
 #banner { height:24px; padding:3px; line-height:24px; background:#dae0ff; }
 	#banner img { float:right; width:24px; height:24px; vertical-align:middle; }
@@ -110,8 +107,8 @@ body.max > #right { left:35%; width:65%; }
 		opacity:0.7; z-index:20;
 	}
 	#split div:hover { opacity:1; }
-	#split.reduce { background:rgba(191,204,255,0.6); }
-	#split.reduce div
+	body:not(.split0) #split { background:rgba(191,204,255,0.6); }
+	body:not(.split0) #split div
 	{
 		transform:scale(-1); transform-origin:0;
 		-webkit-transform:scale(-1); -webkit-transform-origin:0;
@@ -119,7 +116,7 @@ body.max > #right { left:35%; width:65%; }
 		-o-transform:scale(-1); -o-transform-origin:0;
 		opacity:0.6;
 	}
-	#split.reduce div:hover { opacity:0.8; }
+	body:not(.split0) #split div:hover { opacity:0.8; }
 #split + div
 {
 	width:100%; height:100%;
