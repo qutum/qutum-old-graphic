@@ -43,12 +43,16 @@
 onload = function ()
 {
 	var body = document.body
-	function byId (x)
+	var edit, tool
+	function newEdit()
 	{
-		return document.getElementById(x)
+		edit = new Edit(byId('edit'))
+		setTimeout(function () { edit.dom.focus() }, 0)
+
+		tool || setInterval(function () { tool() }, 200)
+		tool = Toolbar(edit, byId('tools1'), byId('tools2'))
 	}
-	var edit = new Edit(byId('edit'))
-	setTimeout(function () { edit.dom.focus() }, 0)
+	newEdit()
 
 	var split = byId('split')
 	split.firstChild.onclick = function ()
@@ -59,11 +63,10 @@ onload = function ()
 		: null
 	}
 
-	Toolbar(edit, byId('tools1'), byId('tools2'))
-
-	// force no scroll
-	setTimeout(function () { body.scrollIntoView(); }, 50)
-//	onscroll = function (e) { document.body.scrollIntoView(); }
+	function byId (x)
+	{
+		return document.getElementById(x)
+	}
 }
 </script>
 
