@@ -96,7 +96,7 @@ body.split2 #right { left:35%; width:65% }
 	#split div
 	{
 		width:9px; height:24px; left:2px; top:48%;
-		border-radius:0 4px 4px 0; -moz-border-radius:0 5px 5px 0;
+		border-radius:0 4px 4px 0;-moz-border-radius:0 5px 5px 0;
 		background:linear-gradient(right,#e8edff,#bdcaff 50%,#a3b7ff 50%,#c7d2ff);
 		background:-moz-linear-gradient(right,#e8edff,#bdcaff 50%,#a3b7ff 50%,#c7d2ff);
 		background:-webkit-gradient(linear,right top,left top,
@@ -122,13 +122,11 @@ body.split2 #right { left:35%; width:65% }
 	padding:30px 2px 2px 30px;
 }
 
-#edit-box
+#edit
 {
-	width:100%; height:100%; padding:2px;
-	box-sizing:border-box;-webkit-box-sizing:border-box;-moz-box-sizing:border-box;
-	user-select:none; -webkit-user-select:none;
+	left:0; top:0; width:100%; height:100%; overflow:scroll;
+	user-select:none;-webkit-user-select:none;
 }
-#edit { width:100%; height:100%; overflow:scroll }
 #edit:focus { outline:0; box-shadow:0 0 5px #03f;-webkit-box-shadow:0 0 5px #03f }
 @-moz-document url-prefix() {
 	#edit:focus { outline:2px solid #abf } /* shadow slows Firefox canvas */ }
@@ -136,40 +134,42 @@ body.split2 #right { left:35%; width:65% }
 #edit * { font:15px Times,serif }
 #edit input
 {
-	user-select:text; -webkit-user-select:text;
+	user-select:text;-webkit-user-select:text;
 	position:relative; left:-3px; top:-4px; margin:0; padding:2px;
-	border-radius:2px; -moz-border-radius:2px; border:0; outline:0;
+	border-radius:2px;-moz-border-radius:2px; border:0; outline:0;
 	box-shadow:0 0 6px #080;-webkit-box-shadow:0 0 6px #080;-moz-box-shadow:0 0 7px #080;
 }
 @-moz-document url-prefix() { #edit input { left:-2.5px; top:-2px } }
 #edit .err
 {
 	white-space:pre; padding:3px; color:#700; background: rgba(255,240,240,0.8);
-	border:1px solid red; border-radius:5px; -moz-border-radius:5px;
+	border:1px solid red; border-radius:5px;-moz-border-radius:5px;
 	box-shadow:0 0 6px red;-webkit-box-shadow:0 0 6px red;-moz-box-shadow:0 0 7px red;
 }
 
 #tools1
 {
-	left:0; top:0; width:100%; height:28px; position:absolute;
-	padding-left:28px; white-space:nowrap;
+	width:100%; height:28px; white-space:nowrap; z-index:2;
 	background:linear-gradient(top,#f7f7f7,#e9e9e9 50%,#dfdfdf 50%,#eee);
 	background:-moz-linear-gradient(top,#f7f7f7,#e9e9e9 50%,#dfdfdf 50%,#eee);
 	background:-webkit-gradient(linear,left top,left bottom,
 		color-stop(0,#f7f7f7),color-stop(0.5,#e9e9e9),
 		color-stop(0.5,#dfdfdf),color-stop(1,#eee));
-	user-select:none; -moz-user-select:none; -webkit-user-select:none;
+	user-select:none;-moz-user-select:none;-webkit-user-select:none;
 }
 #tools2
 {
-	left:0; top:28px; width:28px; height:100%; position:absolute;
+	width:28px; height:100%;
 	background:linear-gradient(left,#f7f7f7 0,#e9e9e9 50%,#dfdfdf 50%,#eee 100%);
 	background:-moz-linear-gradient(left,#f7f7f7 0,#e9e9e9 50%,#dfdfdf 50%,#eee 100%);
 	background:-webkit-gradient(linear,left top,right top,
 		color-stop(0,#f7f7f7),color-stop(0.5,#e9e9e9),
 		color-stop(0.5,#dfdfdf),color-stop(1,#eee));
-	user-select:none; -moz-user-select:none; -webkit-user-select:none;
+	user-select:none;-moz-user-select:none;-webkit-user-select:none;
 }
+	#tools1, #tools2 { left:0; top:0; position:absolute; }
+	#tools1 > a:first-child { margin-left:30px }
+	#tools2 > a:first-child { margin-top:30px }
 	#tools1 > span { margin-left:1ex }
 	#tools2 > span { display:block; height:1ex }
 	#tools1 > a[disabled], #tools2 > a[disabled] { color:gray }
