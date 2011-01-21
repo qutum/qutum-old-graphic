@@ -184,7 +184,8 @@ _show: function ()
 		if (drag)
 		{
 			dx -= X, dy -= Y, Dx -= X, Dy -= Y
-			draw.fillStyle = draw.strokeStyle = drag.call(com, h, true) ? '#333' : '#f33'
+			this.dragable = drag.call(com, h, true)
+			draw.fillStyle = draw.strokeStyle = this.dragable ? '#333' : '#f33'
 			draw.lineWidth = 2.5
 			if (h.deep)
 				if (drag == com.early || drag == com.later)
