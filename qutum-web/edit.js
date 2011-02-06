@@ -36,6 +36,7 @@ Edit = function (dom)
 	Util.on(name, 'input', this, this.Naming)
 	Util.on(name, 'change', this, this.Naming)
 
+	this.us = {}
 	var z = this.zonest = new Datum(0)
 	z.edit = this, z.x = z.y = Datum.SPACE + 4 >> 1
 	z.addTo(null, 0, 0)
@@ -58,7 +59,6 @@ hiting: 0, // timer for long mouse press
 nav: null, // navigable hit while dragging or else now
 foc: null, // hit while dragging or else now
 drag: null, // null or command for dragging
-keyType: 'keypress', // key event type
 
 dom: null, // scroll area
 whole: null, // whole area
@@ -73,7 +73,6 @@ scroll: false, // to scroll while showing
 
 com: null, // commands
 unsave: 0, // >0 saved and redos <0 saved and undos
-saveUs: null, // {}
 errorN: 0, // number of errors
 compiling: 0, // to compile in milliseconds
 yields: null, // []
@@ -391,14 +390,16 @@ nowOk: function (ok, test)
 // start by defult, done if done is true, cancel if done is false
 Name: function (done)
 {
-	if ( !this.now.deep)
+	var now = this.now
+	if ( !now.deep)
 		return
 	if (done == null)
 	{
 		with (this.name.parentNode.style)
-			top = this.now.offsetY() + this.now.nameY + 'px',
-			left = this.now.offsetX() + 3 + 'px', display = ''
-		this.name.focus(), this.name.value = this.now.name, this.name.select()
+			top = now.offsetY() + now.nameY + 'px',
+			left = now.offsetX() + 3 + 'px', display = ''
+		this.name.focus(), this.name.value = now.name, this.name.select()
+		this.name.className = now.io < 0 ? 'input' : now.io > 0 ? 'output' : 'datum'
 		this.Naming()
 	}
 	else

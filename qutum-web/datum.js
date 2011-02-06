@@ -6,18 +6,21 @@
 //
 (function () {
 
-Datum = function (io)
+Datum = function (io, layer, u)
 {
 	this.io = io
-	io && (this.unity = new String(++Unity), this.unity.d = this)
+	if (layer)
+		this.layer = layer, this.unity = u
+	else if (io)
+		this.unity = ++Unity
 	this.uNext = this.uPrev = this
 	this.rows = []
-	this.wires = []
+	this.ws = []
 	this.bs = []
 	this.as = []
 }
-var Unity = 0,
-	SIZE0 = Datum.SIZE0 = 20, SPACE = Datum.SPACE = 20, NAME_WIDTH = Datum.NAME_WIDTH = 50
+var Unity = 0
+var SIZE0 = Datum.SIZE0 = 20, SPACE = Datum.SPACE = 20, NAME_WIDTH = Datum.NAME_WIDTH = 50
 
 Datum.prototype =
 {
@@ -26,7 +29,7 @@ edit: null,
 zone: null,
 deep: 1, // zone.deep + 1
 io: 0, // <0 input >0 output 0 neither input nor output
-unity: null, // which d is one datum of same unity
+unity: 0, // >0 for layer 1 <0 for layer 2
 uNext: null, // next unity
 uPrev: null, // previous unity
 gene: false,
@@ -37,12 +40,13 @@ azer: null, // innermost non input zoner or this, as agent zoner
 bs: null, // [Wire]
 as: null, // [Wire]
 cycle: null, // cycle base
-el: 0, // early or later in the zone, [ x-0x400000, x, x+0x400000 ]
 layer: 0, // 0 for layer 1, 2 for layer 2
 row: null, // null for zonest
 rows: null, // []
-wires: null, // []
+ox: -1, // -1: no inner datum, >=1: output row index, == rows.length - 1
+ws: null, // [ Wire inside this ]
 
+el: 0, // small early, big later, asynchronous update
 mustRun: false, // must run or may run, as agent zoner
 yield: 0,
 yR: 0,
@@ -63,7 +67,6 @@ x: 0,
 y: 0,
 w: 0,
 h: 0,
-ox: -1, // -1: no inner datum, >=1: output row index, == rows.length - 1
 detail: 2, // 1: hide, 2: only this, 3: this and inners
 showing: 0,
 navPrev: null,
@@ -73,7 +76,7 @@ navNext: null,
 //////////////////////////////// logic ////////////////////////////////
 ////////////////////////////////       ////////////////////////////////
 
-addTo: function (z, r, q) // x < 0 to add row
+addTo: function (z, r, q) // q < 0 to add row
 {
 	if (z == null)
 	{
@@ -98,20 +101,14 @@ addTo: function (z, r, q) // x < 0 to add row
 		this.deep = z.deep + 1
 		if (this.io < 0)
 			this.bzer = this,
-			this.azer = z.io < 0 ? z.azer : z,
-			// early or later in the zone, [ x-0x400000, x, x+0x400000 ]			
-			this.el = q - 0x400000 // also for loading
+			this.azer = z.io < 0 ? z.azer : z
 		else if (this.io > 0)
 			this.gene = z.gene,
 			this.bzer = z.io > 0 ? z.bzer : z,
-			this.azer = this,
-			this.el = q + 0x400000 // also for loading
+			this.azer = this
 		else
 			this.gene = z.gene,
-			this.bzer = this.azer = this,
-			this.el = r <= 1 ? q // for loading
-				: q ? z.rows[r][q - 1].el + 1
-				: ArrayLast(z.rows[r - 1]).el + 1
+			this.bzer = this.azer = this
 	}
 	this._addTo(this.deep)
 	this.showing = 0 // drop last showing to force layout for redo
@@ -122,7 +119,11 @@ addTo: function (z, r, q) // x < 0 to add row
 _addTo: function (deep)
 {
 	var u = this.unity, x, w, r, q, d
-	u && (u = u.d) != this && this.unityTo(u, true)
+	if ((d = this.uPrev) != this)
+		if (d.unity != u)
+			throw 'inconsistent unity'
+		else
+			this.uPrev = this, this.unityTo(d, true)
 	for (x = 0; w = this.bs[x]; x++)
 		if (w.zone.deep < deep)
 			w.base.as.push(w), w.addTo()
@@ -153,8 +154,9 @@ unadd: function (r, q)
 
 _unadd: function (deep)
 {
-	this.uNext != this && this.unityTo(this, true)
 	var x, w, r, q, d
+	if ((d = this.uNext) != this)
+		 this.unityTo(this, true), this.uPrev = d
 	for (x = 0; w = this.bs[x]; x++)
 		if (w.zone.deep < deep)
 			ArrayRem(w.base.as, w), w.unadd()
@@ -168,7 +170,8 @@ _unadd: function (deep)
 
 Name: function (v)
 {
-	if (v.charCodeAt(0) == 63 || v.charCodeAt(0) == 33) // ? !
+	var c0 = v.charCodeAt(0)
+	if (c0 == 63 || c0 == 33) // ? !
 		v = v.substr(1)
 	for (var d = this.uNext; d != this; d = d.uNext)
 		if (v)
@@ -250,15 +253,13 @@ mergeRow: function (r)
 	return n0
 },
 
-unityTo: function (u, undoRedo)
+unityTo: function (u, keepUnity)
 {
 	if (this.io != u.io || !u.io)
 		throw 'must be input or output both'
-	if (this.unity.d == this)
-		this.unity.d = this.uNext
-	if ( !undoRedo)
+	if ( !keepUnity)
 		if (u == this)
-			(this.unity = new String(++Unity)).d = this
+			this.unity = ++Unity
 		else if (this.unity == u.unity)
 			return
 	this.uNext.uPrev = this.uPrev
@@ -311,7 +312,7 @@ layoutDetail: function ()
 
 layout: function (force)
 {
-	var rs = this.rows, ws = this.wires, r, x, y, d, w, h, w2, h2
+	var rs = this.rows, ws = this.ws, r, x, y, d, w, h, w2, h2
 	for (x = 0; r = rs[x]; x++)
 		for (y = 0; d = r[y]; y++)
 			d.layout(false) && (force = true)
@@ -397,25 +398,23 @@ _show: function (draw, X, Y, W, H)
 
 	var edit = this.edit, io = this.io, s = this.rows, R, r, D, d, x, y, rh, dw, dh
 
-//fill background
-//	var bc = io < 0 ? '#f9f3ff' : io > 0 ? '#f3f9ff' : '#f5fff5'
-//  draw.fillStyle = bc
-//	if (this.detail > 2 && this.ox > 0)
-//		for (R = this.searchRow(Y), R ^= R >> 31, y = 0; (r = s[R]) && y < Y + H; R++)
-//		{
-//			draw.fillRect(0, y, w, -y + (y = r.y))
-//			rh = r.h
-//			D = r.searchDatumX(X), D ^= D >> 31
-//			for (x = 0; (d = r[D]) && x < X + W; D++)
-//				draw.fillRect(x, y, -x + (x = d.x), rh),
-//				draw.fillRect(x, y, dw = d.w, d.y - y),
-//				draw.fillRect(x, h = d.y + (dh = d.h), dw, rh - dh),
-//				x += dw
-//			D && (d = r[D - 1], draw.fillRect(dw = d.x + d.w, y, w - dw, rh))
-//			y += rh
-//		}
-//	else
-//		draw.fillRect(0, 0, w, h)
+	draw.fillStyle = io < 0 ? '#fbf6ff' : io > 0 ? '#f3f8ff' : '#f9fff9'
+	if (this.detail > 2 && this.ox > 0)
+		for (R = this.searchRow(Y), R ^= R >> 31, y = 0; (r = s[R]) && y < Y + H; R++)
+		{
+			draw.fillRect(0, y, w, -y + (y = r.y))
+			rh = r.h
+			D = r.searchDatumX(X), D ^= D >> 31
+			for (x = 0; (d = r[D]) && x < X + W; D++)
+				draw.fillRect(x, y, -x + (x = d.x), rh), // left
+				draw.fillRect(x, y, dw = d.w, d.y - y), // top
+				draw.fillRect(x, dh = d.y + d.h, dw, y + rh - dh), // bottom
+				x += dw
+			D && (d = r[D - 1], draw.fillRect(dw = d.x + d.w, y, w - dw, rh))
+			y += rh
+		}
+	else
+		draw.fillRect(0, 0, w, h)
 
 	var c = this.err ? '#f00' : io < 0 ? '#90c' : io > 0 ? '#06d' : '#080'
 	draw.strokeStyle = c
@@ -452,31 +451,27 @@ _show: function (draw, X, Y, W, H)
 		draw.lineWidth = this.yield ? 1 : 2, draw.strokeRect(-0.5, -0.5, w + 1, h + 1),
 		draw.translate(X, Y)
 
-//	if (err)
-//		edit.tip.str(err).color(0xfff8f8, 0xaa6666, 0x880000)
-//			.xy(stage.mouseX + 1, stage.mouseY - edit.tip.height).visible = true
-//	else
-//		edit.tip.str('').visible = false	
 	if (this.detail >= 3)
-		for (s = this.wires, x = 0; s[x]; x++)
+		for (s = this.ws, x = 0; s[x]; x++)
 			s[x].show(draw, X, Y, W, H)
 },
 
 hit: function (xy, wire)
 {
-	var d = this, x = xy[0] - d.x, y = xy[1] - d.y, i, n, w, r
+	var d = this, x = xy[0] - d.x, y = xy[1] - d.y
 	if (x < 0 || y < 0 || x >= this.w || y >= this.h)
 		return null
 	xy[0] = d.x, xy[1] = d.y
 	for (;;)
 	{
 		if (wire !== false && d.detail >= 3)
-			for (i = 0; w = d.wires[i]; i++)
+			for (var i = 0, w; w = d.ws[i]; i++)
 				if (w.hit(x, y))
 					return xy[0] += w.x, xy[1] += w.y, w
-		if ((i = d.searchRow(y)) < 0)
+		var i = d.searchRow(y)
+		if (i < 0)
 			break
-		r = d.rows[i]
+		var r = d.rows[i]
 		i = r.searchDatum(x, y)
 		if (i < 0)
 			break
@@ -522,6 +517,68 @@ searchRow: function (y)
 ////////////////////////////////      ////////////////////////////////
 //////////////////////////////// edit ////////////////////////////////
 ////////////////////////////////      ////////////////////////////////
+
+////////////////////////////////           ////////////////////////////////
+//////////////////////////////// load save ////////////////////////////////
+////////////////////////////////           ////////////////////////////////
+
+save: function (out, us, el)
+{
+	this.el = ++el
+	var d
+	if (this.unity < 0)
+		d = this.unity;
+	else if (this.io && this.uNext != this)
+		(d = us[this.unity]) || (us[this.unity] = el)
+	out.push((this.io < 0 ? 1 : this.io > 0 ? 3 : this != this.row[0] ? 2 : 34)
+		| (tv < 0 ? 8 : tv ? 16 : 0) | (d && 32))
+	out.push(d || this.name)
+	for (var x = 0, r; r = this.rows[x]; x++)
+		for (var y = 0, d; d = r[y]; y++)
+			d.yield || d.layer || (el = d.save(out, us, el))
+	for (var x = 0, w; w = this.ws[x]; x++)
+		w.yield || (out.push(4), w.save(out))
+	out.push(0)
+	return el
+},
+
+load: function (In, els)
+{
+	if (this.layer)
+	{
+		els[this.unity] = this
+		for (var x = 0, r; r = this.rows[x]; x++)
+			for (var y = 0, d; d = r[y]; y++)
+				d.load(In, els)
+		return
+	}
+	this.el = (els || (els = [ null ])).push(this)
+	var x = In[In.x++], d
+	this.Tv(x & 8 ? -1 : x & 16 ? 1 : 0)
+	if (~x & 32 || this.io == 0)
+		this.Name(In[In.x++])
+	else if (d = els[In[In.x++]])
+		this.unityTo(d)
+	else
+		throw 'invalid unity'
+	for (var X = x = xx = 0; x = (xx = In[In.x++]) & 7; X = x)
+		if (x < X)
+			throw 'invalid format'
+		else if (x == 1 && this.zone)
+			new Datum(-1).addTo(this, 0,
+				this.ox < 0 ? 0 : this.rows[0].length).load(In, els)
+		else if (x == 2)
+			xx & 32 ? new Datum(0).addTo(this, this.ox < 0 ? 1 : this.ox, -1).load(In, els)
+				: new Datum(0).addTo(this, this.ox <= 1 ? 1 : this.ox - 1,
+				this.ox <= 1 ? 0 : this.rows[this.ox - 1].length).load(In, els)
+		else if (x == 3)
+			new Datum(1).addTo(this, this.ox < 0 ? 1 : this.ox,
+				this.ox < 0 ? 0 : this.rows[this.ox].length).load(In, els)
+		else if (x == 4)
+			In.x++, new Wire().load(In, els)
+		else
+			throw 'invalid format'
+},
 
 }
 

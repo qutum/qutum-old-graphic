@@ -46,18 +46,18 @@ addTo: function (b, a)
 			b = (zb = b).zone, a = (za = a).zone
 		this.edit = b.edit
 		this.zone = b
-		b.wires.push(this)
+		b.ws.push(this)
 		this.zb = zb, this.za = za
 		this.yield || this.compile1() // skip layout if error
 	}
 	else
-		this.zone.wires.push(this)
+		this.zone.ws.push(this)
 	this.showing = true, this.edit.show(true)
 },
 
 unadd: function ()
 {
-	ArrayRem(this.zone.wires, this) // no zone layout
+	ArrayRem(this.zone.ws, this) // no zone layout
 	var p = this.navPrev, n = this.navNext
 	this.edit.now == this && this.edit.Now(p, false)
 	p && (p.navNext = n), n && (n.navPrev = p)
@@ -239,6 +239,24 @@ offsetY: function (z)
 ////////////////////////////////      ////////////////////////////////
 //////////////////////////////// edit ////////////////////////////////
 ////////////////////////////////      ////////////////////////////////
+
+////////////////////////////////           ////////////////////////////////
+//////////////////////////////// load save ////////////////////////////////
+////////////////////////////////           ////////////////////////////////
+
+save: function (out)
+{
+	out.push(this.base.el, this.agent.el)
+},
+
+load: function (In, els)
+{
+	var b = els[In[In.x++]], a = els[In[In.x++]]
+	if ( !b || !a || b == a)
+		throw 'invalid wire'
+	if (b.agent(this, a))
+		throw 'duplicate wire'
+},
 
 ////////////////////////////////         ////////////////////////////////
 //////////////////////////////// compile ////////////////////////////////

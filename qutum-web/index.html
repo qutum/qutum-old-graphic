@@ -27,7 +27,20 @@
 	Qutum 10 Editor
 	<a href='http://qutum.com' target=_blank><img src='http://qutum.com/qutum.png'></a>
 </div>
-<div id='zonest'>Zonest List</div>
+<div id='zonest'>
+	<div>Zonest List</div>
+	<div>Zonest List</div>
+	<div>Zonest List</div>
+	<div class='active'>Zonest List</div>
+	<div>Zonest List</div>
+	<div>Zonest List</div>
+	<div>Zonest List</div>
+	<div>Zonest List</div>
+	<div>Zonest List</div>
+	<div>Zonest List</div>
+	<div>Zonest List</div>
+	<div>Zonest List</div>
+</div>
 </div>
 
 <div id='right'>
@@ -39,7 +52,7 @@
 </div>
 
 <script>
-onload = function ()
+onload = function () // TODO wait for scripts only
 {
 	var edit, tool
 	function newEdit()
@@ -81,15 +94,37 @@ img { border:0 }
 }
 body.split0 #left { width:1% }
 body.split0 #right { width:100% }
-body.split1 #left { width:18% }
-body.split1 #right { left:18%; width:82% }
-body.split2 #left { width:35% }
-body.split2 #right { left:35%; width:65% }
+body.split1 #left { width:16% }
+body.split1 #right { left:16%; width:84% }
+body.split2 #left { width:32% }
+body.split2 #right { left:32%; width:68% }
 
 #left { overflow:hidden }
-#banner { height:24px; padding:3px; line-height:24px; background:#dae0ff }
+#banner { min-width:150px; height:24px; padding:3px; line-height:24px; background:#dae0ff }
 	#banner img { float:right; width:24px; height:24px; vertical-align:middle }
-#zonest { top:2em; padding-bottom:2em }
+#zonest { min-width:150px; top:2em; padding-bottom:2em }
+	#zonest > div
+	{
+		line-height:1.5em; padding:0 1ex
+	}
+	#zonest > div:nth-child(odd) { background:#f2f2f2 }
+	#zonest > div:nth-child(even) { background:#f9f9f9 }
+	#zonest > div:hover, #zonest > div.active:hover
+	{
+		background:linear-gradient(top,#f2f5ff,#d1daff 50%,#c3cfff 50%,#e0e6ff);
+		background:-moz-linear-gradient(top,#f2f5ff,#d1daff 50%,#c3cfff 50%,#e0e6ff);
+		background:-webkit-gradient(linear,left top,left bottom,
+			color-stop(0,#f2f5ff),color-stop(0.5,#d1daff),
+			color-stop(0.5,#c3cfff),color-stop(1,#e0e6ff));
+	}
+	#zonest > div.active
+	{
+		background:linear-gradient(top,#e8edff,#bdcaff 50%,#aabfff 50%,#c7d2ff);
+		background:-moz-linear-gradient(top,#e8edff,#bdcaff 50%,#aabfff 50%,#c7d2ff);
+		background:-webkit-gradient(linear,left top,left bottom,
+			color-stop(0,#e8edff),color-stop(0.5,#bdcaff),
+			color-stop(0.5,#aabfff),color-stop(1,#c7d2ff));
+	}
 
 #right { padding-left:3px }
 #split { left:0; width:3px; height:100%; position:absolute; background:rgb(191,204,255) }
@@ -128,8 +163,7 @@ body.split2 #right { left:35%; width:65% }
 	user-select:none;-webkit-user-select:none;
 }
 #edit:focus { outline:0; box-shadow:0 0 5px #03f;-webkit-box-shadow:0 0 5px #03f }
-@-moz-document url-prefix() {
-	#edit:focus { outline:2px solid #abf } /* shadow slows Firefox canvas */ }
+@-moz-document url-prefix() { #edit:focus { outline:2px solid #abf } /* shadow slows Firefox canvas */ }
 #edit .whole { position:absolute }
 #edit * { font:15px Times,serif }
 #edit input
@@ -137,8 +171,10 @@ body.split2 #right { left:35%; width:65% }
 	user-select:text;-webkit-user-select:text;
 	position:relative; left:-3px; top:-4px; margin:0; padding:2px;
 	border-radius:2px;-moz-border-radius:2px; border:0; outline:0;
-	box-shadow:0 0 6px #080;-webkit-box-shadow:0 0 6px #080;-moz-box-shadow:0 0 7px #080;
 }
+#edit input.input { box-shadow:0 0 6px #608;-webkit-box-shadow:0 0 6px #608;-moz-box-shadow:0 0 7px #608; }
+#edit input.datum { box-shadow:0 0 6px #080;-webkit-box-shadow:0 0 6px #080;-moz-box-shadow:0 0 7px #080; }
+#edit input.output { box-shadow:0 0 6px #059;-webkit-box-shadow:0 0 6px #059;-moz-box-shadow:0 0 7px #059; }
 @-moz-document url-prefix() { #edit input { left:-2.5px; top:-2px } }
 #edit .err
 {
@@ -176,7 +212,7 @@ body.split2 #right { left:35%; width:65% }
 	#tools1 > a, #tools2 > a
 	{
 		display:inline-block; position:relative; cursor:default; outline:0;
-		width:28px; line-height:28px; font-size:18px; text-align:center;
+		width:28px; line-height:28px; text-align:center;
 	}
 	#tools1 > a:hover
 	{
@@ -213,7 +249,7 @@ body.split2 #right { left:35%; width:65% }
 	#tools1 > a > div, #tools2 > a > div
 	{
 		position:absolute; padding:0.5ex 1ex;
-		white-space:nowrap; text-align:left; font-size:15px; line-height:16px;
+		white-space:nowrap; text-align:left; line-height:1.2em;
 		background:#fff3f0; text-shadow:0 0 4px #986;
 		box-shadow:0 0 6px #986;-webkit-box-shadow:0 0 6px #986;-moz-box-shadow:0 0 7px #986;
 		visibility:hidden; opacity:0; z-index:10;

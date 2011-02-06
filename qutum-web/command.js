@@ -84,7 +84,7 @@ unyield: function (s)
 name: function (v)
 {
 	var now = this.edit.now, m = now.name
-	if ( !now.deep || m == v || (now.io ? now.unity.d.layer : now.layer))
+	if ( !now.deep || m == v || now.unity < 0 || now.layer)
 		return
 	var u = now.uNext, um = u.name
 	this.go(function (redo)
@@ -268,7 +268,7 @@ laterRow: function (l, test)
 unity: function (u, test)
 {
 	var now = this.edit.now, nu = now.uNext, m = now.name, um = u.name
-	if ( !now.io || now.layer || u.io != now.io || !m && !um || this.edit.drag)
+	if ( !now.io || now.layer || u.io != now.io || !m && !um || !test && this.edit.drag)
 		return
 	if (test)
 		return true
@@ -278,7 +278,7 @@ unity: function (u, test)
 			now.unityTo(u)
 		else
 			now.unityTo(nu),
-			n == now.name || (now.name = m), um == u.name || (u.name = um)
+			m == now.name || now.Name(m), um == u.name || u.Name(um)
 		this.edit.Now(now)
 	})
 },
