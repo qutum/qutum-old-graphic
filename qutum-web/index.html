@@ -11,33 +11,14 @@
 <head>
 <meta charset=UTF-8>
 <title>Qutum 10</title>
-<script src=util.js></script>
-<script src=edit.js></script>
-<script src=datum.js></script>
-<script src=row.js></script>
-<script src=wire.js></script>
-<script src=command.js></script>
-<script src=layer2.js></script>
-<script src=toolbar.js></script>
 </head>
 <body class='split1'>
 
 <div id='left'>
-<div class='tools'></div>
+<div class='tool'></div>
 <div id='zonest'>
-	<div class='active'><div>Zonest List</div><span class='tools'><a>><div>Open</div></a><a>x<div>Remove</div></a></div></span>
-	<div>Zonest List</div>
-	<div>Zonest List</div>
-	<div>Zonest List</div>
-	<div class='active'>Zonest List</div>
-	<div>Zonest List</div>
-	<div>Zonest List</div>
-	<div>Zonest List</div>
-	<div>Zonest List</div>
-	<div>Zonest List</div>
-	<div>Zonest List</div>
-	<div>Zonest List</div>
-	<div>Zonest List</div>
+	<div><div class='unnamed'>new...</div>
+		<span class='tool'><a>><div>Open</div></a></span></div>
 </div>
 <div id='banner'>
 	Qutum 10 Editor
@@ -47,10 +28,7 @@
 
 <div id='right'>
 <div id='split'><div></div></div>
-<div class='editor'>
-	<div class='tools'></div><div class='toolsV'></div>
-	<div class='edit'></div>
-</div>
+<div class='editor'><div class='tool'></div><div class='toolV'></div></div>
 </div>
 
 <style>
@@ -78,11 +56,11 @@ img { border:0 }
 	height:100%; padding:28px 0 30px;
 	box-sizing:border-box;-webkit-box-sizing:border-box;-moz-box-sizing:border-box;
 }
-#left .tools { top:0; position:absolute }
+#left .tool { top:0; position:absolute }
 #zonest { min-width:150px; height:100%; overflow-x:hidden; overflow-y:auto; }
 	#zonest >div { line-height:24px; padding:0 1ex; white-space:nowrap }
-	#zonest >div:nth-child(odd) { background:#f9f9f9 }
-	#zonest >div:nth-child(even) { background:#f2f2f2 }
+	#zonest >div:nth-child(odd) { background:#f9f9f6 }
+	#zonest >div:nth-child(even) { background:#f7f5e9 }
 	#zonest >div.active
 	{
 		background:linear-gradient(top,#f2f5ff,#d1daff 50%,#c3cfff 50%,#e0e6ff);
@@ -92,10 +70,11 @@ img { border:0 }
 			color-stop(0.5,#c3cfff),color-stop(1,#e0e6ff));
 	}
 	#zonest >div >div { overflow:hidden; text-overflow:ellipsis }
-	#zonest >div >.tools { top:0; right:0; width:auto; position:absolute; display:none }
-	#zonest >div:hover >.tools { display:inherit; background:rgba(255,255,255,0.75) }
-	#zonest >div >.tools >a { line-height:24px; width:24px }
-	#zonest >div >.tools >a >div { right:0 }
+	#zonest >div >div.unnamed { font-style:italic; opacity:0.6; }
+	#zonest >div >.tool { top:0; right:0; width:auto; position:absolute; display:none }
+	#zonest >div:hover >.tool { display:inherit; background:rgba(255,255,255,0.75) }
+	#zonest >div >.tool >a { line-height:24px; width:24px }
+	#zonest >div >.tool >a >div { right:0 }
 
 #banner { min-width:150px; line-height:24px; padding:3px; background:#dae0ff }
 	#banner img { float:right; width:24px; height:24px; vertical-align:middle }
@@ -129,10 +108,10 @@ img { border:0 }
 	box-sizing:border-box;-webkit-box-sizing:border-box;-moz-box-sizing:border-box;
 	padding:30px 2px 2px 33px;
 }
-.editor .tools, .editor .toolsV { left:3px; top:0; position:absolute }
-	.editor .tools { z-index:2 }
-	.editor .tools >a:first-child { margin-left:30px }
-	.editor .toolsV >a:first-child { margin-top:30px }
+.editor .tool, .editor .toolV { left:3px; top:0; position:absolute }
+	.editor .tool { z-index:2 }
+	.editor .tool >a:first-child { margin-left:30px }
+	.editor .toolV >a:first-child { margin-top:30px }
 
 
 .edit
@@ -160,7 +139,7 @@ img { border:0 }
 	box-shadow:0 0 6px red;-webkit-box-shadow:0 0 6px red;-moz-box-shadow:0 0 7px red;
 }
 
-.tools
+.tool
 {
 	width:100%; height:28px; white-space:nowrap;
 	background:#f3f3f3; /* opera */
@@ -171,7 +150,7 @@ img { border:0 }
 		color-stop(0.5,#dfdfdf),color-stop(1,#eee));
 	user-select:none;-moz-user-select:none;-webkit-user-select:none;
 }
-.toolsV
+.toolV
 {
 	width:28px; height:100%;
 	background:#f3f3f3; /* opera */
@@ -182,15 +161,15 @@ img { border:0 }
 		color-stop(0.5,#dfdfdf),color-stop(1,#eee));
 	user-select:none;-moz-user-select:none;-webkit-user-select:none;
 }
-	.tools >span { margin-left:1ex }
-	.toolsV >span { display:block; height:1ex }
-	.tools >a[disabled], .toolsV >a[disabled] { color:gray }
-	.tools >a, .toolsV >a
+	.tool >span { margin-left:1ex }
+	.toolV >span { display:block; height:1ex }
+	.tool >a[disabled], .toolV >a[disabled] { color:gray }
+	.tool >a, .toolV >a
 	{
 		display:inline-block; position:relative; cursor:default; outline:0;
 		width:28px; line-height:28px; text-align:center;
 	}
-	.tools >a:hover
+	.tool >a:hover
 	{
 		background:#d1daff; /* opera */
 		background:linear-gradient(top,#f2f5ff,#d1daff 50%,#bdcaff 50%,#e0e6ff);
@@ -199,7 +178,7 @@ img { border:0 }
 			color-stop(0,#f2f5ff),color-stop(0.5,#d1daff),
 			color-stop(0.5,#bdcaff),color-stop(1,#e0e6ff));
 	}
-	.tools >a:active
+	.tool >a:active
 	{
 		background:linear-gradient(top,#e8edff,#bdcaff 50%,#a3b7ff 50%,#c7d2ff);
 		background:-moz-linear-gradient(top,#e8edff,#bdcaff 50%,#a3b7ff 50%,#c7d2ff);
@@ -207,7 +186,7 @@ img { border:0 }
 			color-stop(0,#e8edff),color-stop(0.5,#bdcaff),
 			color-stop(0.5,#a3b7ff),color-stop(1,#c7d2ff));
 	}
-	.toolsV >a:hover
+	.toolV >a:hover
 	{
 		background:#d1daff; /* opera */
 		background:linear-gradient(left,#f2f5ff,#d1daff 50%,#bdcaff 50%,#e0e6ff);
@@ -216,7 +195,7 @@ img { border:0 }
 			color-stop(0,#f2f5ff),color-stop(0.5,#d1daff),
 			color-stop(0.5,#bdcaff),color-stop(1,#e0e6ff));
 	}
-	.toolsV >a:active
+	.toolV >a:active
 	{
 		background:linear-gradient(left,#e8edff,#bdcaff 50%,#a3b7ff 50%,#c7d2ff);
 		background:-moz-linear-gradient(left,#e8edff,#bdcaff 50%,#a3b7ff 50%,#c7d2ff);
@@ -224,16 +203,16 @@ img { border:0 }
 			color-stop(0,#e8edff),color-stop(0.5,#bdcaff),
 			color-stop(0.5,#a3b7ff),color-stop(1,#c7d2ff));
 	}
-	.tools >a >div, .toolsV >a >div
+	.tool >a >div, .toolV >a >div
 	{
 		position:absolute; padding:0.5ex 1ex;
 		white-space:nowrap; text-align:left; line-height:1.2em;
-		background:#fff3f0; text-shadow:0 0 4px #986;
+		background:#faf3ee; text-shadow:0 0 4px #986;
 		box-shadow:0 0 6px #986;-webkit-box-shadow:0 0 6px #986;-moz-box-shadow:0 0 7px #986;
 		visibility:hidden; opacity:0; z-index:10;
 	}
-	.toolsV >a >div { left:100%; top:0 }
-	.tools >a:hover >div:not(:hover), .toolsV >a:hover >div:not(:hover)
+	.toolV >a >div { left:100%; top:0 }
+	.tool >a:hover >div:not(:hover), .toolV >a:hover >div:not(:hover)
 	{
 		visibility:visible; opacity:0.9;
 		transition:opacity 1s cubic-bezier(0.6,0,0,0.8);
@@ -250,31 +229,14 @@ img { border:0 }
 	#Log .err { color:red }
 </style>
 
-<script>
-onload = function () // TODO wait for scripts only
-{
-	var edit, tool
-	setInterval(function () { tool() }, 200)
-
-	function newEdit(editor)
-	{
-		edit = new Edit(get('.edit', editor))
-		tool = Toolbar(edit, get('.tools', editor), get('.toolsV', editor))
-		setTimeout(function () { edit.dom.focus() }, 0)
-	}
-	newEdit(document.querySelector('.editor'))
-
-	get('#split *').onclick = function ()
-	{
-		document.body.className = document.body.className.replace
-			(/[0-9]/, function (i) { return (+i + 2) % 3 })
-	}
-
-	function get(css, node)
-	{
-		return (node || document).querySelector(css)
-	}
-}
-</script>
+<script src=util.js></script>
+<script src=edit.js></script>
+<script src=datum.js></script>
+<script src=row.js></script>
+<script src=wire.js></script>
+<script src=command.js></script>
+<script src=layer.js></script>
+<script src=toolbar.js></script>
+<script src=index.js></script>
 </body>
 </html>

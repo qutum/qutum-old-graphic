@@ -4,7 +4,7 @@
 // Under the terms of the GNU General Public License version 3
 // http://qutum.com
 //
-(function () {
+(function(){
 
 Layer2 = function (zonest)
 {
