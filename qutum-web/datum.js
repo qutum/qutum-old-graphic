@@ -46,7 +46,7 @@ rows: null, // []
 ox: -1, // -1: no inner datum, >=1: output row index, == rows.length - 1
 ws: null, // [ Wire inside this ]
 
-el: 0, // small early, big later, asynchronous update
+el: NaN, // small early, big later, asynchronous update
 mustRun: false, // must run or may run, as agent zoner
 yield: 0,
 yR: 0,
@@ -530,8 +530,8 @@ save: function (out, us, el)
 		d = this.unity;
 	else if (this.io && this.uNext != this)
 		(d = us[this.unity]) || (us[this.unity] = el)
-	out.push((this.io < 0 ? 1 : this.io > 0 ? 3 : this != this.row[0] ? 2 : 34)
-		| (tv < 0 ? 8 : tv ? 16 : 0) | (d && 32))
+	out.push((this.io < 0 ? 1 : this.io > 0 ? 3 : !this.zone || this != this.row[0] ? 2 : 34)
+		| (this.tv < 0 ? 8 : this.tv ? 16 : 0) | (d && 32))
 	out.push(d || this.name)
 	for (var x = 0, r; r = this.rows[x]; x++)
 		for (var y = 0, d; d = r[y]; y++)
@@ -561,7 +561,7 @@ load: function (In, els)
 		this.unityTo(d)
 	else
 		throw 'invalid unity'
-	for (var X = x = xx = 0; x = (xx = In[In.x++]) & 7; X = x)
+	for (var X = x = xx = 0; x = (xx = In[In.x]) & 7; X = x)
 		if (x < X)
 			throw 'invalid format'
 		else if (x == 1 && this.zone)
@@ -578,6 +578,7 @@ load: function (In, els)
 			In.x++, new Wire().load(In, els)
 		else
 			throw 'invalid format'
+	In.x++
 },
 
 }

@@ -10,8 +10,8 @@ Toolbar = function (edit, dom1, dom2, test)
 {
 	dom1.innerHTML = dom2.innerHTML = ''
 
-	com(dom1, '^lt', 'Undo', 'func-left', edit.com.undo)
-	com(dom1, '^rt', 'Redo', 'func-right', edit.com.redo)
+	com(dom1, '^lt', 'Undo', 'func-left or func-z', edit.com.undo)
+	com(dom1, '^rt', 'Redo', 'func-right or func-y', edit.com.redo)
 	dom1.appendChild(document.createElement('span'))
 	foc(dom1, '\\n', 'Change name', 'enter', edit.nowName, true)
 	com(dom1, 'i', 'Add sibling Input', 'i', edit.com.input, false)

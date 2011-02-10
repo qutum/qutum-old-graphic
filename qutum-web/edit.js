@@ -449,8 +449,8 @@ key: function (e)
 	case 39.5: this.focRight(); break // right
 	case 38.5: this.focUp(); break // up
 	case 40.5: this.focDown(); break // down
-	case -37.5: this.com.undo(); break // func-left
-	case -39.5: this.com.redo(); break // func-right 
+	case -37.5: case -122: case -90: case -90.5: this.com.undo(); break // func-left func-z
+	case -39.5: case -121: case -89: case -89.5: this.com.redo(); break // func-right func-y
 	case -38.5: this.navPrev(); break // func-up
 	case -40.5: this.navNext(); break // func-down
 	case 36.5: this.focHome(); break // home
@@ -488,6 +488,9 @@ key: function (e)
 	case 46.5: this.com.remove(); break // del
 	case -8.5: case -46.5: this.com.removeRight(); break // func-del func-back
 
+	case -115: case -83: case -83.5: OUT = this.save(); alert(OUT.join()); break
+	case -108: case -76: case -76.5: this.load(OUT); break
+
 	default: return e = null
 	}
 	}
@@ -503,7 +506,22 @@ Unsave: function (delta)
 	// TODO compiling
 	this.yields = null
 	if ( !this.unsave != !(this.unsave += delta))
-		; // TODO unsaved 
+		; // TODO unsaved
+},
+
+save: function ()
+{
+	var out = [ 81, 10 ] // Q 10
+	this.zonest.save(out, {}, 0)
+	return out
+},
+
+load: function (In)
+{
+	In.x = 0
+	if (In[In.x++] != 81 || In[In.x++] != 10)
+		throw 'unknown format'
+	this.zonest.load(In)
 },
 
 }

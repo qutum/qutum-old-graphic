@@ -281,7 +281,7 @@ error1: function ()
 		return "base or base zoner's zone must be wire zone"
 	if (az.deep <= zone.deep)
 		return 'agent zoner must be inside wire zone'
-	if (base != zone && this.zb.el >= this.za.el)
+	if (base != zone && this.zb.el >= this.za.el) // NaN
 		return 'must wire early to later'
 	if ( !zone.gene)
 		if (base != zone && !base.io)
