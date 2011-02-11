@@ -16,12 +16,8 @@
 
 <div id='left'>
 <div class='tool'></div>
-<div id='zonest'>
-	<div><div class='unnamed'>new...</div>
-		<span class='tool'><a>><div>Open</div></a></span></div>
-</div>
-<div id='banner'>
-	Qutum 10 Editor
+<div id='zonest'></div>
+<div id='banner'>Qutum 10 Editor
 	<a href='http://qutum.com' target=_blank><img src='http://qutum.com/qutum.png'></a>
 </div>
 </div>
@@ -69,10 +65,10 @@ img { border:0 }
 			color-stop(0,#f2f5ff),color-stop(0.5,#d1daff),
 			color-stop(0.5,#c3cfff),color-stop(1,#e0e6ff));
 	}
-	#zonest >div >div { overflow:hidden; text-overflow:ellipsis }
+	#zonest >div >div:first-child { overflow:hidden; text-overflow:ellipsis }
 	#zonest >div >div.unnamed { font-style:italic; opacity:0.6; }
 	#zonest >div >.tool { top:0; right:0; width:auto; position:absolute; display:none }
-	#zonest >div:hover >.tool { display:inherit; background:rgba(255,255,255,0.75) }
+	#zonest >div:hover >.tool { display:inline; height:24px; background:rgba(240,240,255,.7) }
 	#zonest >div >.tool >a { line-height:24px; width:24px }
 	#zonest >div >.tool >a >div { right:0 }
 

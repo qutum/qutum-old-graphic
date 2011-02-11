@@ -10,10 +10,10 @@ Log = function (s, clazz)
 {
 	var log = document.getElementById('Log')
 	if (log)
-		with (log.appendChild(document.createElement('div')))
-			className = clazz ? 'line ' + clazz : 'line', textContent = s, scrollIntoView()
+		with (Util.add(log, 'div', clazz ? 'line ' + clazz : 'line'))
+			textContent = s, scrollIntoView()
 	else
-		document.body.appendChild(document.createElement('div')).id = 'Log',
+		Util.add(document.body, 'div', null, 'Log'),
 		setTimeout(Log, 0, s, clazz) // size rendering bug on WebKit
 }
 $info = function (v)
@@ -39,6 +39,20 @@ ArrayRem = function (s, v)
 
 Util =
 {
+
+dom: function (css, dom)
+{
+	return (dom || document).querySelector(css)
+},
+
+add: function (to, tag, clazz, id)
+{
+	var o = document.createElement(tag)
+	id && (o.id = id)
+	clazz && (o.className = clazz)
+	to && to.appendChild(o)
+	return o
+},
 
 on: function (dom, event, This, func, args, capture)
 {

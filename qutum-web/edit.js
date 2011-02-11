@@ -8,22 +8,19 @@
 
 Edit = function (dom)
 {
-	this.dom = dom, dom.innerHTML = '', dom.tabIndex >= 1 || (dom.tabIndex = 1)
-	var whole = this.whole = dom.appendChild(document.createElement('div'))
-	whole.className = 'whole'
+	this.dom = dom, dom.tabIndex >= 1 || (dom.tabIndex = 1)
+	var whole = this.whole = Util.add(dom, 'div', 'whole')
 	var css = getComputedStyle(whole, null),
 		f = css.fontWeight + ' ' + css.fontSize + ' ' + css.fontFamily
 	this.draw = Util.draw(Util.canvas(whole, f, true), 0, 0, 50, 50)
 
-	var name = this.name = whole.appendChild(document.createElement('span'))
-			.appendChild(document.createElement('input'))
+	var name = this.name = Util.add(Util.add(whole, 'span'), 'input')
 	with (name.parentNode.style) position = 'absolute', display = 'none'
 	name.style.font = f
 	this.nameH = parseInt(css.fontSize, 10)
 	this.nameTvW = this.draw.measureText('?').width | 0
 	css = f = null
-	var err = this.err = whole.appendChild(document.createElement('div'))
-	err.className = 'err'
+	var err = this.err = Util.add(whole, 'div', 'err')
 	with (err.style) position = 'absolute', display = 'none', left = top = '0'
 
 	Util.on(window, 'resize', this, this.show, null)
@@ -488,9 +485,6 @@ key: function (e)
 	case 46.5: this.com.remove(); break // del
 	case -8.5: case -46.5: this.com.removeRight(); break // func-del func-back
 
-	case -115: case -83: case -83.5: OUT = this.save(); alert(OUT.join()); break
-	case -108: case -76: case -76.5: this.load(OUT); break
-
 	default: return e = null
 	}
 	}
@@ -506,13 +500,16 @@ Unsave: function (delta)
 	// TODO compiling
 	this.yields = null
 	if ( !this.unsave != !(this.unsave += delta))
-		; // TODO unsaved
+		this.onUnsave(this.unsave)
 },
+
+onUnsave: function (unsave) {},
 
 save: function ()
 {
 	var out = [ 81, 10 ] // Q 10
 	this.zonest.save(out, {}, 0)
+	this.unsave = 0
 	return out
 },
 
