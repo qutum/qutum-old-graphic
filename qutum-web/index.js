@@ -12,7 +12,7 @@ var Zs = {}, Es = {}, Key, tool
 Tool()
 for (var i = 0; i < localStorage.length; i++)
 	Zonest(localStorage.key(i))
-i || New(true)
+i || New()
 setInterval(function () { tool && tool() }, 200)
 
 function Zonest(key)
@@ -82,13 +82,13 @@ function Save(key)
 	else
 	{
 		var key0 = key, key = Date.now() + '!' + e.zonest.name
-		delete Es[key0], Es[key0] = e
-		delete Zs[key0], Z.removeChild(z)
-		Zonest(key).scrollIntoView()
+		delete Es[key0], delete Zs[key0], Z.removeChild(z)
+		Es[key] = e, Zonest(key).scrollIntoView()
 		key0 == Key && (Zs[Key = key].className = 'active')
 	}
 	localStorage.setItem(key, out)
 	key0 && localStorage.removeItem(key0)
+	e.dom.focus()
 }
 
 function Unsave()
@@ -125,7 +125,7 @@ onbeforeunload = function ()
 {
 	for (var k in Es)
 		if (Es[k].unsave)
-			return 'Unsaved !'
+			return Zs[k].firstChild.textContent + ' unsaved !'
 }
 
 Util.dom('#split *').onclick = function ()
