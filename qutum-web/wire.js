@@ -246,12 +246,13 @@ offsetY: function (z)
 
 save: function (out)
 {
-	out.push(this.base.el, this.agent.el)
+	Util.saveN(out, this.base.el)
+	Util.saveN(out, this.agent.el)
 },
 
 load: function (In, els)
 {
-	var b = els[In[In.x++]], a = els[In[In.x++]]
+	var b = els[Util.loadN(In)], a = els[Util.loadN(In)]
 	if ( !b || !a || b == a)
 		throw 'invalid wire'
 	if (b.agent(this, a))

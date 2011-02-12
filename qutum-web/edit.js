@@ -6,7 +6,7 @@
 //
 (function(){
 
-Edit = function (dom)
+Edit = function (dom, In)
 {
 	this.dom = dom, dom.tabIndex >= 1 || (dom.tabIndex = 1)
 	var whole = this.whole = Util.add(dom, 'div', 'whole')
@@ -38,7 +38,9 @@ Edit = function (dom)
 	z.edit = this, z.x = z.y = Datum.SPACE + 4 >> 1
 	z.addTo(null, 0, 0)
 	this.Now(this.now = this.hit = this.nav = this.foc = z)
-	Layer2(z)
+	var els = In && []
+	Layer(z, els)
+	In && this._load(In, els)
 	z.show(4)
 	this.com = new Command(this)
 }
@@ -507,18 +509,19 @@ onUnsave: function (unsave) {},
 
 save: function ()
 {
-	var out = [ 81, 10 ] // Q 10
+	var out = [ '\u510a' ] // Q 10
 	this.zonest.save(out, {}, 0)
 	this.unsave = 0
-	return out
+	return out.join('')
 },
 
-load: function (In)
+_load: function (In, els)
 {
-	In.x = 0
-	if (In[In.x++] != 81 || In[In.x++] != 10)
+	In = new String(In), In.x = 0
+	if (In[In.x++] != '\u510a')
 		throw 'unknown format'
-	this.zonest.load(In)
+	els[0] = null
+	this.zonest.load(In, els)
 },
 
 }

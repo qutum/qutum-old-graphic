@@ -6,6 +6,12 @@
 //
 (function(){
 
+var HTML
+	= /WebKit/.test(navigator.userAgent) ? 'w' // Chrome, Safari, etc
+	: /Gecko/.test(navigator.userAgent) ? 'g' // Firefox, etc
+	: /Presto/.test(navigator.userAgent) ? 'p' // Opera, etc
+	: 'w'
+
 Log = function (s, clazz)
 {
 	var log = document.getElementById('Log')
@@ -39,6 +45,8 @@ ArrayRem = function (s, v)
 
 Util =
 {
+
+HTML: HTML,
 
 dom: function (css, dom)
 {
@@ -128,12 +136,52 @@ pageY: function (o)
 	return y
 },
 
+saveN: HTML != 'g' ? function (out, n)
+{
+	out.push(String.fromCharCode(n & 65535, n >>> 16))
 }
+: function (out, n) // localStorage \ufffe \uffff bug on Firefox
+{
+	var l = n & 65535, h = n >>> 16
+	out.push(l < 65533 && h < 65533 ? String.fromCharCode(l, h)
+		: l < 65533 ? String.fromCharCode(l, 65533, 65535 - h)
+		: h < 65533 ? String.fromCharCode(65533, 65535 - l, h)
+		: String.fromCharCode(65533, 65535 - l, 65533, 65535 - h))
+},
 
-var HTML = Util.HTML
-	= /WebKit/.test(navigator.userAgent) ? 'w' // Chrome, Safari, etc
-	: /Gecko/.test(navigator.userAgent) ? 'g' // Firefox, etc
-	: /Presto/.test(navigator.userAgent) ? 'p' // Opera, etc
-	: 'w'
+saveS: function (out, s)
+{
+	out.push(String.fromCharCode(s.length & 65535, s.length >>> 16), s)
+},
+
+loadN: HTML != 'g' ? function (In)
+{
+	var x = In.x, n = In.charCodeAt(x) | In.charCodeAt(x + 1) << 16 
+	In.x = x + 2
+	return n
+}
+: function (In, stay)
+{
+	var x = In.x, l = In.charCodeAt(x)
+	l >= 65533 && (l = 65535 - In.charCodeAt(++x))
+	var h = In.charCodeAt(x + 1)
+	h >= 65533 && (h = 65535 - In.charCodeAt(++x + 1))
+	In.x = x + 2
+	return l | h << 16
+},
+
+loadN14: function (In)
+{
+	return In.charCodeAt(In.x)
+},
+
+loadS: function (In)
+{
+	var x = In.x, n = In.charCodeAt(x) | In.charCodeAt(x + 1) << 16 
+	In.x = x + 2 + n
+	return In.substr(x + 2, n)
+},
+
+}
 
 })()

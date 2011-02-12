@@ -6,7 +6,7 @@
 //
 (function(){
 
-Layer2 = function (zonest)
+Layer = function (zonest, els)
 {
 	var In = input(zonest, 'in', -1)
 	var data = output(In, 'data', -2), next = output(In, 'next', -3)
@@ -21,48 +21,49 @@ Layer2 = function (zonest)
 	var add = output(Int, '+', -39)
 	var a = input(add, 'a', -40), b = input(add, 'b', -41), v = output(add, 'v', -42)
 	var sub = output(Int, '-', -43)
-	input(sub, a), input(sub, b), output(sub, v)
-	var mul = output(Int, '*', -44)
-	input(mul, a), input(mul, b), output(mul, v)
-	var div = output(Int, '/', -45)
-	input(div, a), input(div, b), output(div, v), output(div, 'remainder', -46)
-	var e = output(Int, '=', -47)
-	input(e, a), input(e, b), output(e, v)
-	var g = output(Int, '>', -48)
-	input(g, a), input(g, b), output(g, v)
-	var l = output(Int, '<', -49)
-	input(l, a), input(l, b), output(l, v)
-	var ge = output(Int, '>=', -50)
-	input(ge, a), input(ge, b), output(ge, v)
-	var le = output(Int, '<=', -51)
-	input(le, a), input(le, b), output(le, v)
+	input(sub, a, -44), input(sub, b, -45), output(sub, v, -46)
+	var mul = output(Int, '*', -47)
+	input(mul, a, -48), input(mul, b, -49), output(mul, v, -50)
+	var div = output(Int, '/', -51)
+	input(div, a, -52), input(div, b, -53), output(div, v, -54), output(div, 'remainder', -55)
+	var e = output(Int, '=', -56)
+	input(e, a, -57), input(e, b, -58), output(e, v, -59)
+	var g = output(Int, '>', -60)
+	input(g, a, -61), input(g, b, -62), output(g, v, -63)
+	var l = output(Int, '<', -64)
+	input(l, a, -65), input(l, b, -66), output(l, v, -67)
+	var ge = output(Int, '>=', -68)
+	input(ge, a, -69), input(ge, b, -70), output(ge, v, -71)
+	var le = output(Int, '<=', -72)
+	input(le, a, -73), input(le, b, -74), output(le, v, -75)
 
-	var al = input(zonest, 'algorithm', -52)
-	var s = output(al, 'list.next', -53)
-	output(s, data), output(s, next)
-	s = output(al, 'list.data', -54)
-	output(s, data)
-	next = output(s, next), output(next, data)
-	s = output(al, 'list.cycle', -55)
-	output(s, data)
-	next = output(s, next), s.agent(new Wire, next, false)
-	output(next, data), output(next, output(s, 'nextable', -56))
-}
+	var al = input(zonest, 'algorithm', -76)
+	var s = output(al, 'list.next', -77)
+	output(s, data, -78), output(s, next, -79)
+	s = output(al, 'list.data', -80)
+	output(s, data, -81)
+	next = output(s, next, -82), output(next, data, -83)
+	s = output(al, 'list.cycle', -84)
+	output(s, data, -85)
+	next = output(s, next, -86), s.agent(new Wire, next, false)
+	output(next, data, -87), output(next, output(s, 'nextable', -88), -89)
 
-function input(z, name, u)
-{
-	var d = new Datum(-1, 2, name.deep ? name.u : u)
-	d.addTo(z, 0, z.ox < 0 ? 0 : z.rows[0].length)
-	name.deep ? d.unityTo(name) : d.Name(name)
-	return d
-}
-
-function output(z, name, u)
-{
-	var d = new Datum(1, 2, name.deep ? name.u : u)
-	d.addTo(z, 1, z.ox < 0 ? 0 : z.rows[1].length)
-	name.deep ? d.unityTo(name) : d.Name(name)
-	return d
+	function input(z, nameU, uEl)
+	{
+		var d = new Datum(-1, 2, nameU.deep ? nameU.u : uEl)
+		d.addTo(z, 0, z.ox < 0 ? 0 : z.rows[0].length)
+		nameU.deep ? d.unityTo(nameU) : d.Name(nameU)
+		d.el = uEl, els && (els[uEl] = d)
+		return d
+	}
+	function output(z, nameU, uEl)
+	{
+		var d = new Datum(1, 2, nameU.deep ? nameU.u : uEl)
+		d.addTo(z, 1, z.ox < 0 ? 0 : z.rows[1].length)
+		nameU.deep ? d.unityTo(nameU) : d.Name(nameU)
+		d.el = uEl, els && (els[uEl] = d)
+		return d
+	}
 }
 
 })()

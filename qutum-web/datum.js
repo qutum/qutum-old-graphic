@@ -530,38 +530,30 @@ save: function (out, us, el)
 		d = this.unity;
 	else if (this.io && this.uNext != this)
 		(d = us[this.unity]) || (us[this.unity] = el)
-	out.push((this.io < 0 ? 1 : this.io > 0 ? 3 : !this.zone || this != this.row[0] ? 2 : 34)
-		| (this.tv < 0 ? 8 : this.tv ? 16 : 0) | (d && 32))
-	out.push(d || this.name)
+	Util.saveN(out, (this.tv < 0 ? 8 : this.tv ? 16 : 0) | (d && 32) |
+		(this.io < 0 ? 1 : this.io > 0 ? 3 : !this.zone || this != this.row[0] ? 2 : 34))
+	d ? Util.saveN(out, d) : Util.saveS(out, this.name)
 	for (var x = 0, r; r = this.rows[x]; x++)
 		for (var y = 0, d; d = r[y]; y++)
 			d.yield || d.layer || (el = d.save(out, us, el))
 	for (var x = 0, w; w = this.ws[x]; x++)
-		w.yield || (out.push(4), w.save(out))
-	out.push(0)
+		w.yield || (Util.saveN(out, 4), w.save(out))
+	Util.saveN(out, 0)
 	return el
 },
 
 load: function (In, els)
 {
-	if (this.layer)
-	{
-		els[this.unity] = this
-		for (var x = 0, r; r = this.rows[x]; x++)
-			for (var y = 0, d; d = r[y]; y++)
-				d.load(In, els)
-		return
-	}
-	this.el = (els || (els = [ null ])).push(this)
-	var x = In[In.x++], d
+	this.el = els.push(this)
+	var x = Util.loadN(In), d
 	this.Tv(x & 8 ? -1 : x & 16 ? 1 : 0)
 	if (~x & 32 || this.io == 0)
-		this.Name(In[In.x++])
-	else if (d = els[In[In.x++]])
+		this.Name(Util.loadS(In))
+	else if (d = els[Util.loadN(In)])
 		this.unityTo(d)
 	else
 		throw 'invalid unity'
-	for (var X = x = xx = 0; x = (xx = In[In.x]) & 7; X = x)
+	for (var X = x = xx = 0; x = (xx = Util.loadN14(In)) & 7; X = x)
 		if (x < X)
 			throw 'invalid format'
 		else if (x == 1 && this.zone)
@@ -575,10 +567,10 @@ load: function (In, els)
 			new Datum(1).addTo(this, this.ox < 0 ? 1 : this.ox,
 				this.ox < 0 ? 0 : this.rows[this.ox].length).load(In, els)
 		else if (x == 4)
-			In.x++, new Wire().load(In, els)
+			Util.loadN(In), new Wire().load(In, els)
 		else
 			throw 'invalid format'
-	In.x++
+	Util.loadN(In)
 },
 
 }

@@ -6,7 +6,7 @@
 //
 (function(){
 
-var Z = Util.dom('#zonest'), E = Util.dom('.editor')
+var Z = Util.dom('#zonest'), ZT = Util.dom('#left > .tool'), E = Util.dom('.editor')
 var Zs = {}, edits = {}, Key, tool
 
 New()
@@ -49,14 +49,11 @@ function New(event)
 		Add(key).scrollIntoView(), Load(key), Save(key)
 		return
 	}
-	var z = Util.add(null, 'div'), n = Util.add(z, 'div', 'unnamed')
-	Util.text(n, 'new...')
-	var t = Util.add(z, 'div', 'tool')
-	var load = Util.add(t, 'a')
-	Util.text(load, '>')
-	Util.text(Util.add(load, 'div'), 'Load')
-	Util.on(load, 'click', null, New)
-	return Z.appendChild(z)
+	var n = Util.add(ZT, 'a')
+	Util.text(n, '+')
+	Util.text(Util.add(n, 'div'), 'New')
+	Util.on(n, 'click', null, New)
+	return n
 }
 
 function Remove(key)
@@ -74,7 +71,8 @@ function Load(key)
 	if (Key)
 		edits[Key].dom.style.display = 'none', Zs[Key].className = ''
 	var e = edits[key]
-	e ? e.dom.style.display = '' : e = edits[key] = new Edit(Util.add(E, 'div', 'edit'))
+	e ? e.dom.style.display = ''
+	: e = edits[key] = new Edit(Util.add(E, 'div', 'edit'), localStorage.getItem(key))
 	setTimeout(function () { e.dom.focus() }, 0)
 	e.onUnsave = Unsave
 	Zs[key].className = 'active'
@@ -104,7 +102,7 @@ function Unsave()
 	for (var k in Zs)
 	{
 		var n = Zs[k].firstChild.textContent
-		if (n.charAt(0) != '*' != !edits[k].unsave)
+		if (n[0] != '*' != !edits[k].unsave)
 			Util.text(Zs[k].firstChild, edits[k].unsave ? '* ' + n : n.substr(2))
 	}
 }
