@@ -556,13 +556,15 @@ load: function (In, els)
 	for (var X = x = xx = 0; x = (xx = Util.loadN14(In)) & 7; X = x)
 		if (x < X)
 			throw 'invalid format'
-		else if (x == 1 && this.zone)
+		else if (x == 1)
 			new Datum(-1).addTo(this, 0,
 				this.ox < 0 ? 0 : this.rows[0].length).load(In, els)
 		else if (x == 2)
-			xx & 32 ? new Datum(0).addTo(this, this.ox < 0 ? 1 : this.ox, -1).load(In, els)
-				: new Datum(0).addTo(this, this.ox <= 1 ? 1 : this.ox - 1,
-				this.ox <= 1 ? 0 : this.rows[this.ox - 1].length).load(In, els)
+			if (xx & 32)
+				new Datum(0).addTo(this, this.ox < 0 ? 1 : this.ox, -1).load(In, els)
+			else
+				new Datum(0).addTo(this, this.ox <= 1 ? 1 : this.ox - 1,
+					this.ox <= 1 ? 0 : this.rows[this.ox - 1].length).load(In, els)
 		else if (x == 3)
 			new Datum(1).addTo(this, this.ox < 0 ? 1 : this.ox,
 				this.ox < 0 ? 0 : this.rows[this.ox].length).load(In, els)

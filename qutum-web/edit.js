@@ -509,7 +509,7 @@ onUnsave: function (unsave) {},
 
 save: function ()
 {
-	var out = [ '\u510a' ] // Q 10
+	var out = [ '\u0a51' ] // Q 10
 	this.zonest.save(out, {}, 0)
 	this.unsave = 0
 	return out.join('')
@@ -518,7 +518,7 @@ save: function ()
 _load: function (In, els)
 {
 	In = new String(In), In.x = 0
-	if (In[In.x++] != '\u510a')
+	if (In[In.x++] != '\u0a51')
 		throw 'unknown format'
 	els[0] = null
 	this.zonest.load(In, els)

@@ -136,50 +136,56 @@ pageY: function (o)
 	return y
 },
 
-saveN: HTML != 'g' ? function (out, n)
+saveN: function (out, n) // localStorage \0 \ufffe \uffff bug on Webkit and Firefox
 {
-	out.push(String.fromCharCode(n & 65535, n >>> 16))
-}
-: function (out, n) // localStorage \ufffe \uffff bug on Firefox
-{
-	var l = n & 65535, h = n >>> 16
-	out.push(l < 65533 && h < 65533 ? String.fromCharCode(l, h)
-		: l < 65533 ? String.fromCharCode(l, 65533, 65535 - h)
-		: h < 65533 ? String.fromCharCode(65533, 65535 - l, h)
-		: String.fromCharCode(65533, 65535 - l, 65533, 65535 - h))
+	if (n >> 13 == n >> 31) // 14bit
+		out.push(String.fromCharCode(n << 1 & 0x7ffe | 1))
+	else if (n >> 27 == n >> 31) // 28bit
+		out.push(String.fromCharCode(n & 0x3fff | 0x8000, n >> 13 & 0x3fff | 0x8000))
+	else
+		throw 'number overflow'
 },
 
 saveS: function (out, s)
 {
-	out.push(String.fromCharCode(s.length & 65535, s.length >>> 16), s)
+	var n = s.length
+	if (n >> 13 == n >> 31) // 14bit
+		out.push(String.fromCharCode(n << 1 & 0x7ffe | 1), s)
+	else if (n >> 27 == n >> 31) // 28bit
+		out.push(String.fromCharCode(n & 0x3fff | 0x8000, n >> 13 & 0x3fff | 0x8000), s)
+	else
+		throw 'string too long'
 },
 
-loadN: HTML != 'g' ? function (In)
-{
-	var x = In.x, n = In.charCodeAt(x) | In.charCodeAt(x + 1) << 16 
-	In.x = x + 2
-	return n
-}
-: function (In, stay)
+loadN: function (In, stay)
 {
 	var x = In.x, l = In.charCodeAt(x)
-	l >= 65533 && (l = 65535 - In.charCodeAt(++x))
-	var h = In.charCodeAt(x + 1)
-	h >= 65533 && (h = 65535 - In.charCodeAt(++x + 1))
-	In.x = x + 2
-	return l | h << 16
+	if (l < 32768)
+		In.x = x + 1, l = l << 17 >> 18
+	else if ((h = In.charCodeAt(x + 1)) == h)
+		In.x = x + 2, l = h << 18 >> 4 | l & 0x3fff
+	else
+		throw 'eof'
+	return l
 },
 
 loadN14: function (In)
 {
-	return In.charCodeAt(In.x)
+	return In.charCodeAt(In.x) << 17 >> 18
 },
 
 loadS: function (In)
 {
-	var x = In.x, n = In.charCodeAt(x) | In.charCodeAt(x + 1) << 16 
-	In.x = x + 2 + n
-	return In.substr(x + 2, n)
+	var x = In.x, l = In.charCodeAt(x)
+	if (l < 32768)
+		x = x + 1, l = l << 17 >> 18
+	else if ((h = In.charCodeAt(x + 1)) == h)
+		x = x + 2, l = h << 18 >> 4 | l & 0x3fff
+	else
+		throw 'eof'
+	if ((In.x = x + l) > In.length)
+		throw 'eof'
+	return In.substr(x, l)
 },
 
 }
