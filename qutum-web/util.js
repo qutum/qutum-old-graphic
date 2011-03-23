@@ -136,12 +136,13 @@ pageY: function (o)
 	return y
 },
 
-saveN: function (out, n) // localStorage \0 \ufffe \uffff bug on Webkit and Firefox
+saveN: function (out, n)
+	// Webkit localStorage can't save \0 and Firefox \ud800-\udfff \ufffe \uffff
 {
 	if (n >> 13 == n >> 31) // 14bit
 		out.push(String.fromCharCode(n << 1 & 0x7ffe | 1))
 	else if (n >> 27 == n >> 31) // 28bit
-		out.push(String.fromCharCode(n & 0x3fff | 0x8000, n >> 13 & 0x3fff | 0x8000))
+		out.push(String.fromCharCode(n & 0x3fff | 0x8000, n >> 13 & 0x7ffe | 1))
 	else
 		throw 'number overflow'
 },
@@ -152,7 +153,7 @@ saveS: function (out, s)
 	if (n >> 13 == n >> 31) // 14bit
 		out.push(String.fromCharCode(n << 1 & 0x7ffe | 1), s)
 	else if (n >> 27 == n >> 31) // 28bit
-		out.push(String.fromCharCode(n & 0x3fff | 0x8000, n >> 13 & 0x3fff | 0x8000), s)
+		out.push(String.fromCharCode(n & 0x3fff | 0x8000, n >> 13 & 0x7ffe | 1), s)
 	else
 		throw 'string too long'
 },
@@ -163,7 +164,7 @@ loadN: function (In, stay)
 	if (l < 32768)
 		In.x = x + 1, l = l << 17 >> 18
 	else if ((h = In.charCodeAt(x + 1)) == h)
-		In.x = x + 2, l = h << 18 >> 4 | l & 0x3fff
+		In.x = x + 2, l = h >> 1 << 18 >> 4 | l & 0x3fff
 	else
 		throw 'eof'
 	return l
@@ -180,7 +181,7 @@ loadS: function (In)
 	if (l < 32768)
 		x = x + 1, l = l << 17 >> 18
 	else if ((h = In.charCodeAt(x + 1)) == h)
-		x = x + 2, l = h << 18 >> 4 | l & 0x3fff
+		x = x + 2, l = h >> 1 << 18 >> 4 | l & 0x3fff
 	else
 		throw 'eof'
 	if ((In.x = x + l) > In.length)

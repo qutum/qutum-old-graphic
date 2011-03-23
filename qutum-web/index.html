@@ -40,8 +40,8 @@ img { border:0 }
 	transition:all 0.5s ease;-webkit-transition:all 0.5s ease;
 	-moz-transition:all 0.5s ease;
 }
-	body.split0 #left { width:1%; overflow:hidden }
-	body.split0 #right { width:100% }
+	body.split0 #left { width:0%; overflow:hidden }
+	body.split0 #right { left:0%; width:100% }
 	body.split1 #left { width:16% }
 	body.split1 #right { left:16%; width:84% }
 	body.split2 #left { width:32% }
@@ -53,7 +53,7 @@ img { border:0 }
 	box-sizing:border-box;-webkit-box-sizing:border-box;-moz-box-sizing:border-box;
 }
 #left .tool { top:0; position:absolute }
-#zonest { min-width:150px; height:100%; overflow-x:hidden; overflow-y:auto; }
+#zonest { min-width:150px; height:100%; overflow-x:hidden; overflow-y:auto }
 	#zonest >div { line-height:24px; padding:0 1ex; white-space:nowrap }
 	#zonest >div:nth-child(odd) { background:#f9f9f6 }
 	#zonest >div:nth-child(even) { background:#f7f5e9 }
@@ -66,7 +66,7 @@ img { border:0 }
 			color-stop(0.5,#c3cfff),color-stop(1,#e0e6ff));
 	}
 	#zonest >div >div:first-child { overflow:hidden; text-overflow:ellipsis }
-	#zonest >div >div.unnamed { font-style:italic; opacity:0.6; }
+	#zonest >div >div.unnamed { font-style:italic; opacity:0.6 }
 	#zonest >div >.tool { top:0; right:0; width:auto; position:absolute; display:none }
 	#zonest >div:hover >.tool { display:inline; height:24px; background:rgba(240,240,255,.7) }
 	#zonest >div >.tool >a { line-height:24px; width:24px }
@@ -82,8 +82,7 @@ img { border:0 }
 #split { width:3px; height:100%; position:absolute; background:rgb(191,204,255) }
 	#split div
 	{
-		width:9px; height:22px; left:2px; top:3px;
-		border-radius:0 4px 4px 0;-moz-border-radius:0 5px 5px 0;
+		width:9px; height:22px; left:2px; top:3px; border-radius:0 4px 4px 0;
 		background:#c7d2ff; /* opera */
 		background:linear-gradient(right,#e8edff,#bdcaff 50%,#a3b7ff 50%,#c7d2ff);
 		background:-moz-linear-gradient(right,#e8edff,#bdcaff 50%,#a3b7ff 50%,#c7d2ff);
@@ -119,24 +118,23 @@ img { border:0 }
 	height:100%; overflow:scroll; font:15px Times,serif;
 	user-select:none;-webkit-user-select:none; /* no firefox */
 }
-	.edit:focus { outline:0; box-shadow:0 0 5px #03f;-webkit-box-shadow:0 0 5px #03f }
-	@-moz-document url-prefix() { .edit:focus { outline:2px solid #abf } /* shadow slows Firefox canvas */ }
+	.edit:focus { outline:0; box-shadow:0 0 4px #03f;-webkit-box-shadow:0 0 4px #03f }
 	.edit .whole { position:absolute }
 .edit input
 {
 	user-select:text;-webkit-user-select:text; /* no firefox */
 	position:relative; left:-3px; top:-4px; margin:0; padding:2px;
-	border-radius:2px;-moz-border-radius:2px; border:0; outline:0;
+	border-radius:2px; border:0; outline:0;
 }
-	.edit input.input { box-shadow:0 0 6px #608;-webkit-box-shadow:0 0 6px #608;-moz-box-shadow:0 0 7px #608; }
-	.edit input.datum { box-shadow:0 0 6px #080;-webkit-box-shadow:0 0 6px #080;-moz-box-shadow:0 0 7px #080; }
-	.edit input.output { box-shadow:0 0 6px #059;-webkit-box-shadow:0 0 6px #059;-moz-box-shadow:0 0 7px #059; }
-	@-moz-document url-prefix() { .edit input { left:-2.5px; top:-2px } }
+	.edit input.input { box-shadow:0 0 6px #608;-webkit-box-shadow:0 0 6px #608 }
+	.edit input.datum { box-shadow:0 0 6px #080;-webkit-box-shadow:0 0 6px #080 }
+	.edit input.output { box-shadow:0 0 6px #059;-webkit-box-shadow:0 0 6px #059 }
+	@-moz-document url-prefix() { .edit input { top:-2px } }
 .edit .err
 {
 	white-space:pre; padding:3px; color:#700; background: rgba(255,240,240,0.8);
-	border:1px solid red; border-radius:5px;-moz-border-radius:5px;
-	box-shadow:0 0 6px red;-webkit-box-shadow:0 0 6px red;-moz-box-shadow:0 0 7px red;
+	border:1px solid red; border-radius:5px;
+	box-shadow:0 0 6px red;-webkit-box-shadow:0 0 6px red;
 }
 
 .tool
@@ -208,7 +206,7 @@ img { border:0 }
 		position:absolute; padding:0.5ex 1ex;
 		white-space:nowrap; text-align:left; line-height:1.2em;
 		background:#faf3ee; text-shadow:1px 1px 3px #875;
-		box-shadow:0 0 6px #986;-webkit-box-shadow:0 0 6px #986;-moz-box-shadow:0 0 7px #986;
+		box-shadow:0 0 6px #986;-webkit-box-shadow:0 0 6px #986;
 		visibility:hidden; opacity:0; z-index:10;
 	}
 	.toolV >a >div { left:100%; top:0 }

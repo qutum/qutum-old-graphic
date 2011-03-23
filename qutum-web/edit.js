@@ -419,7 +419,7 @@ Naming: function ()
 Drag: function (drag, sameDone)
 {
 	var foc = this.foc, d
-	if (sameDone && drag == this.drag)
+	if (sameDone && drag == this.drag && this.dragable)
 		drag = true
 	if (drag instanceof Function)
 		this.Now(foc, false, null, drag)
