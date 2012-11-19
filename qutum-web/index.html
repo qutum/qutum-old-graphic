@@ -24,7 +24,7 @@
 
 <div id='right'>
 <div id='split'><div></div></div>
-<div class='editor'><div class='tool'></div><div class='toolV'></div></div>
+<div class='editor'><div class='tool'></div><div class='toolv'></div></div>
 </div>
 
 <style>
@@ -107,11 +107,10 @@ img { border:0 }
 	box-sizing:border-box;-webkit-box-sizing:border-box;-moz-box-sizing:border-box;
 	padding:30px 2px 2px 33px;
 }
-.editor .tool, .editor .toolV { left:3px; top:0; position:absolute }
+.editor .tool, .editor .toolv { left:3px; top:0; position:absolute }
 	.editor .tool { z-index:2 }
 	.editor .tool >a:first-child { margin-left:30px }
-	.editor .toolV >a:first-child { margin-top:30px }
-
+	.editor .toolv >a:first-child { margin-top:30px }
 
 .edit
 {
@@ -148,7 +147,7 @@ img { border:0 }
 		color-stop(0.5,#dfdfdf),color-stop(1,#eee));
 	user-select:none;-moz-user-select:none;-webkit-user-select:none;
 }
-.toolV
+.toolv
 {
 	width:28px; height:100%;
 	background:#f3f3f3; /* opera */
@@ -160,9 +159,9 @@ img { border:0 }
 	user-select:none;-moz-user-select:none;-webkit-user-select:none;
 }
 	.tool >span { margin-left:1ex }
-	.toolV >span { display:block; height:1ex }
-	.tool >a[disabled], .toolV >a[disabled] { color:gray }
-	.tool >a, .toolV >a
+	.toolv >span { display:block; height:1ex }
+	.tool >a[disabled], .toolv >a[disabled] { color:gray }
+	.tool >a, .toolv >a
 	{
 		display:inline-block; position:relative; cursor:default; outline:0;
 		width:28px; line-height:28px; text-align:center;
@@ -184,7 +183,7 @@ img { border:0 }
 			color-stop(0,#e8edff),color-stop(0.5,#bdcaff),
 			color-stop(0.5,#a3b7ff),color-stop(1,#c7d2ff));
 	}
-	.toolV >a:hover
+	.toolv >a:hover
 	{
 		background:#d1daff; /* opera */
 		background:linear-gradient(left,#f2f5ff,#d1daff 50%,#bdcaff 50%,#e0e6ff);
@@ -193,7 +192,7 @@ img { border:0 }
 			color-stop(0,#f2f5ff),color-stop(0.5,#d1daff),
 			color-stop(0.5,#bdcaff),color-stop(1,#e0e6ff));
 	}
-	.toolV >a:active
+	.toolv >a:active
 	{
 		background:linear-gradient(left,#e8edff,#bdcaff 50%,#a3b7ff 50%,#c7d2ff);
 		background:-moz-linear-gradient(left,#e8edff,#bdcaff 50%,#a3b7ff 50%,#c7d2ff);
@@ -201,7 +200,7 @@ img { border:0 }
 			color-stop(0,#e8edff),color-stop(0.5,#bdcaff),
 			color-stop(0.5,#a3b7ff),color-stop(1,#c7d2ff));
 	}
-	.tool >a >div, .toolV >a >div
+	.tool >a >div, .toolv >a >div
 	{
 		position:absolute; padding:0.5ex 1ex;
 		white-space:nowrap; text-align:left; line-height:1.2em;
@@ -209,8 +208,8 @@ img { border:0 }
 		box-shadow:0 0 6px #986;-webkit-box-shadow:0 0 6px #986;
 		visibility:hidden; opacity:0; z-index:10;
 	}
-	.toolV >a >div { left:100%; top:0 }
-	.tool >a:hover >div:not(:hover), .toolV >a:hover >div:not(:hover)
+	.toolv >a >div { left:100%; top:0 }
+	.tool >a:hover >div:not(:hover), .toolv >a:hover >div:not(:hover)
 	{
 		visibility:visible; opacity:0.9;
 		transition:opacity 1s cubic-bezier(0.6,0,0,0.8);

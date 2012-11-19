@@ -70,7 +70,7 @@ function Load(key)
 	setTimeout(function () { e.dom.focus() }, 0)
 	e.onUnsave = Unsave
 	Zs[key].className = 'active'
-	tool = Toolbar(e, Util.dom('.tool', E), Util.dom('.toolV', E))
+	tool = Toolbar(e, Util.dom('.tool', E), Util.dom('.toolv', E))
 	return Key = key, e
 }
 
@@ -116,7 +116,7 @@ function Remove(key)
 	delete Es[key], delete Zs[key], Z.removeChild(z)
 	if (key == Key)
 		Key = null, E.removeChild(e.dom), tool = null,
-		Util.dom('.tool', E).innerHTML = Util.dom('.toolV', E).innerHTML = ''
+		Util.dom('.tool', E).innerHTML = Util.dom('.toolv', E).innerHTML = ''
 	localStorage.removeItem(key)
 	
 }
