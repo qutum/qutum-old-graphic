@@ -81,7 +81,7 @@ unyield: function (s)
 },
 
 
-name: function (v)
+Name: function (v)
 {
 	var now = this.edit.now, m = now.name
 	if ( !now.deep || m == v || now.unity < 0 || now.layer)

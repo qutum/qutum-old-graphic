@@ -14,9 +14,9 @@ Edit = function (dom, In)
 		f = css.fontWeight + ' ' + css.fontSize + ' ' + css.fontFamily
 	this.draw = Util.draw(Util.canvas(whole, f, true), 0, 0, 50, 50)
 
-	var name = this.name = Util.add(Util.add(whole, 'span'), 'input')
-	with (name.parentNode.style) position = 'absolute', display = 'none'
-	name.style.font = f
+	var naming = this.naming = Util.add(Util.add(whole, 'span'), 'input')
+	with (naming.parentNode.style) position = 'absolute', display = 'none'
+	naming.style.font = f
 	this.nameH = parseInt(css.fontSize, 10)
 	this.nameTvW = this.draw.measureText('?').width | 0
 	css = f = null
@@ -30,8 +30,8 @@ Edit = function (dom, In)
 	Util.on(whole, 'mouseup', this, this.Hit)
 	Util.on(dom, 'keypress', this, this.key, false, true)
 	Util.HTML == 'w' && Util.on(dom, 'keydown', this, this.key, false, true)
-	Util.on(name, 'input', this, this.Naming)
-	Util.on(name, 'change', this, this.Naming)
+	Util.on(naming, 'input', this, this.Name, [ null, true ])
+	Util.on(naming, 'change', this, this.Name, [ null, true ])
 
 	this.us = {}
 	var z = this.zonest = new Datum(0)
@@ -63,7 +63,7 @@ dragable: true, // dragging target is valid
 dom: null, // scroll area
 whole: null, // whole area
 draw: null, // drawing area
-name: null, // name input
+naming: null, // name input
 err: null, // error info
 nameH: 0, // name text height
 nameTvW: 0, // trial/veto name width
@@ -232,7 +232,7 @@ _show: function ()
 Hit: function (e)
 {
 	this.hitTime && clearTimeout(this.hitTime)
-	if (e.target == this.name || e.target == this.name.parentNode)
+	if (e.target == this.naming || e.target == this.naming.parentNode)
 		return
 	var ok = this.hitX != (this.hitX = e.pageX - 1) | this.hitY != (this.hitY = e.pageY - 1)
 			// fix key bug on Safari
@@ -379,8 +379,8 @@ focUnfold: function (x, test)
 nowName: function (ok, test)
 {
 	if ( !this.drag && this.now.deep)
-		return ok ? test || this.Name(this.name.parentNode.style.display == '' || null)
-		: this.name.parentNode.style.display == '' && (test || this.Name(false))
+		return ok ? test || this.Name(this.naming.parentNode.style.display == '' || null)
+		: this.naming.parentNode.style.display == '' && (test || this.Name(false))
 },
 nowOk: function (ok, test)
 {
@@ -388,32 +388,30 @@ nowOk: function (ok, test)
 },
 
 // start by defult, done if done is true, cancel if done is false
-Name: function (done)
+Name: function (done, doing)
 {
 	var now = this.now
 	if ( !now.deep)
 		return
-	if (done == null)
+	var naming = this.naming, parent = naming.parentNode.style
+	if (doing)
+		if (Util.HTML == 'w')
+			naming.style.width = '10px',
+			naming.style.width = naming.scrollWidth + 'px'
+		else
+			naming.size = naming.textLength || 1
+	else if (done == null)
 	{
-		with (this.name.parentNode.style)
-			top = now.offsetY() + now.nameY + 'px',
-			left = now.offsetX() + 3 + 'px', display = ''
-		this.name.focus(), this.name.value = now.name, this.name.select()
-		this.name.className = now.io < 0 ? 'input' : now.io > 0 ? 'output' : 'datum'
-		this.Naming()
+		parent.top = now.offsetY() + now.nameY + 'px'
+		parent.left = now.offsetX() + 3 + 'px'
+		parent.display = ''
+		naming.className = now.io < 0 ? 'input' : now.io > 0 ? 'output' : 'datum'
+		naming.focus(), naming.value = now.name, naming.select()
+		this.Name(null, true)
 	}
 	else
-		this.name.parentNode.style.display != (this.name.parentNode.style.display = 'none')
-			&& this.dom.focus(),
-		done && this.com.name(this.name.value)
-},
-Naming: function ()
-{
-	if (Util.HTML == 'w')
-		this.name.style.width = '10px',
-		this.name.style.width = this.name.scrollWidth + 'px'
-	else
-		this.name.size = this.name.textLength || 1
+		parent.display != (parent.display = 'none') && this.dom.focus(),
+		done && this.com.Name(naming.value)
 },
 
 // start if drag is a command, done if drag is true, cancel if drag is false
@@ -431,7 +429,7 @@ Drag: function (drag, sameDone)
 
 key: function (e)
 {
-	if (e.target == this.name &&
+	if (e.target == this.naming &&
 		(e.keyCode != 13 && e.keyCode != 27 || e.ctrlKey || e.altKey || e.metaKey || e.shiftKey))
 		return // neither esc nor enter
 	var k = e.type == 'keypress' && e.which // charCode uncompatible
@@ -500,6 +498,8 @@ key: function (e)
 Unsave: function (delta)
 {
 	this.error = 0
+	if (this.compileTime)
+	this.compileTime = Util.timer(400, this, this.nowOk, [ true ])
 	// TODO compileTime
 	this.yields = null
 	if ( !this.unsave != !(this.unsave += delta))
