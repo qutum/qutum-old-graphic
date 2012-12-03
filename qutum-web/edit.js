@@ -1,6 +1,6 @@
 //
 // Qutum 10 implementation
-// Copyright 2008-2011 Qianyan Cai
+// Copyright 2008-2013 Qianyan Cai
 // Under the terms of the GNU General Public License version 3
 // http://qutum.com
 //
@@ -54,10 +54,11 @@ hit: null, // hit by mouse pointer or changed now
 hitX: 0, // relative to page
 hitY: 0, // relative to page
 hitXY: true, // use hitX and hitY
-hiting: 0, // timer for long mouse press
+hitTime: 0, // timer for long mouse press
 nav: null, // navigable hit while dragging or else now
 foc: null, // hit while dragging or else now
 drag: null, // null or command for dragging
+dragable: true, // dragging target is valid
 
 dom: null, // scroll area
 whole: null, // whole area
@@ -66,14 +67,14 @@ name: null, // name input
 err: null, // error info
 nameH: 0, // name text height
 nameTvW: 0, // trial/veto name width
-showing: 0, // to show in milliseconds
-layout: false, // to layout while showing
-scroll: false, // to scroll while showing
+showTime: 0, // to show in milliseconds
+layouting: false, // to layout while showing
+scrolling: false, // to scroll while showing
 
 com: null, // commands
 unsave: 0, // >0 saved and redos <0 saved and undos
 errorN: 0, // number of errors
-compiling: 0, // to compile in milliseconds
+compileTime: 0, // to compile in milliseconds
 yields: null, // []
 
 // nav is true by default, show is 2 by default, drag unchanged by default
@@ -90,14 +91,14 @@ Now: function (now, nav, show, drag)
 		n.navNext && (n.navNext.navPrev = null),
 		n.navNext = now
 	if (drag !== undefined)
-		this.drag != drag && (this.scroll = true, this.drag = drag)
+		this.drag != drag && (this.scrolling = true, this.drag = drag)
 	this.Name(false) // cancel naming
 	if (this.drag)
-		now != this.foc && (this.scroll = true),
+		now != this.foc && (this.scrolling = true),
 		this.hit = this.nav = this.foc = now,
 		this.dragable = this.drag.call(this.com, now, true)
 	else
-		now != n && (this.scroll = true),
+		now != n && (this.scrolling = true),
 		this.now = this.hit = this.nav = this.foc = now,
 		this.dragable = true
 	this.focUnfold(show != null ? show : 2) || this.show()
@@ -107,11 +108,11 @@ Now: function (now, nav, show, drag)
 //////////////////////////////// view ////////////////////////////////
 ////////////////////////////////      ////////////////////////////////
 
-show: function (layout)
+show: function (layouting)
 {
-	layout && (this.layout = true)
-	if (this.showing >= 0)
-		Util.timer(this.showing - Date.now(), this, this._show), this.showing = -1
+	layouting && (this.layouting = true)
+	if (this.showTime >= 0)
+		Util.timer(this.showTime - Date.now(), this, this._show), this.showTime = -1
 },
 
 _show: function ()
@@ -119,12 +120,12 @@ _show: function ()
 	try
 	{
 		var re = false, time = Date.now(), drag = this.drag, z = this.zonest, h = this.hit
-		if (this.layout)
+		if (this.layouting)
 			z.layoutDetail(), z.layout(false),
 			this.whole.style.width = z.x + z.w + z.x + 'px',
 			this.whole.style.height = z.y + z.h + z.y + 'px',
 			this.err.style.display = 'none',
-			this.layout = false, this.scroll = true
+			this.layouting = false, this.scrolling = true
 		if (this.hitXY)
 			(h = this.HitXY()) ? this.hit = h : h = this.hit,
 			drag && (this.foc = h), this.hitXY = false
@@ -162,12 +163,12 @@ _show: function ()
 		}
 		var dom = this.dom, X = dom.scrollLeft, Y = dom.scrollTop,
 			W = Math.max(dom.clientWidth, 1), H = Math.max(dom.clientHeight, 1)
-		if (this.scroll)
+		if (this.scrolling)
 		{
 			x = X && z.x + z.w + z.x - W, y = Y && z.y + z.h + z.y - H
 			if (x < X || y < Y)
 				return x < X && (dom.scrollLeft = x), y < Y && (dom.scrollTop = y), re = true
-			this.scroll = false
+			this.scrolling = false
 			var foc = this.foc, x = foc.offsetX(), y = foc.offsetY()
 			x = Math.min(x - 2, Math.max(X, x + 2 + foc.w - W))
 			y = Math.min(y - 2, Math.max(Y, y + 2 + foc.h - H))
@@ -223,14 +224,14 @@ _show: function ()
 	}
 	finally
 	{
-		this.showing = -time + (time = Date.now()) + time + 40
+		this.showTime = -time + (time = Date.now()) + time + 40
 		re && this.show()
 	}
 },
 
 Hit: function (e)
 {
-	this.hiting && clearTimeout(this.hiting)
+	this.hitTime && clearTimeout(this.hitTime)
 	if (e.target == this.name || e.target == this.name.parentNode)
 		return
 	var ok = this.hitX != (this.hitX = e.pageX - 1) | this.hitY != (this.hitY = e.pageY - 1)
@@ -242,7 +243,7 @@ Hit: function (e)
 			this.Now(ok, true, e.shiftKey ? 3 : 2)
 		else
 			this.focUnfold(e.shiftKey ? 4 : 3) || this.show()
-		this.hiting = Util.timer(400, this, this.nowOk, [ true ])
+		this.hitTime = Util.timer(400, this, this.nowOk, [ true ])
 	}
 	else if (ok || e.type == 'mousedown')
 		this.hitXY = true, this.show()
@@ -499,7 +500,7 @@ key: function (e)
 Unsave: function (delta)
 {
 	this.error = 0
-	// TODO compiling
+	// TODO compileTime
 	this.yields = null
 	if ( !this.unsave != !(this.unsave += delta))
 		this.onUnsave(this.unsave)

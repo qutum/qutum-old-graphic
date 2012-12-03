@@ -1,6 +1,6 @@
 //
 // Qutum 10 implementation
-// Copyright 2008-2011 Qianyan Cai
+// Copyright 2008-2013 Qianyan Cai
 // Under the terms of the GNU General Public License version 3
 // http://qutum.com
 //
@@ -11,7 +11,7 @@ Command = function (edit)
 	this.edit = edit
 	this.coms = []
 }
-var UNDOn = 301
+//var UNDOn = 301
 
 Command.prototype =
 {
@@ -263,7 +263,6 @@ laterRow: function (l, test)
 			z.show(-1), this.edit.Now(now)
 	})
 },
-
 
 unity: function (u, test)
 {
