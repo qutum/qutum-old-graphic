@@ -74,7 +74,7 @@ scrolling: false, // to scroll while showing
 com: null, // commands
 unsave: 0, // >0 saved and redos <0 saved and undos
 errorN: 0, // number of errors
-compileTime: 0, // to compile in milliseconds
+compileTime: 0, // timer to compile
 yields: null, // []
 
 // nav is true by default, show is 2 by default, drag unchanged by default
@@ -408,10 +408,11 @@ Name: function (done, doing)
 		naming.className = now.io < 0 ? 'input' : now.io > 0 ? 'output' : 'datum'
 		naming.focus(), naming.value = now.name, naming.select()
 		this.Name(null, true)
+		this.compile(true)
 	}
 	else
 		parent.display != (parent.display = 'none') && this.dom.focus(),
-		done && this.com.Name(naming.value)
+		done ? this.com.Name(naming.value) : this.compile(false)
 },
 
 // start if drag is a command, done if drag is true, cancel if drag is false
@@ -498,12 +499,10 @@ key: function (e)
 Unsave: function (delta)
 {
 	this.error = 0
-	if (this.compileTime)
-	this.compileTime = Util.timer(400, this, this.nowOk, [ true ])
-	// TODO compileTime
 	this.yields = null
 	if ( !this.unsave != !(this.unsave += delta))
 		this.onUnsave(this.unsave)
+	this.compile()
 },
 
 onUnsave: function (unsave) {},
@@ -523,6 +522,20 @@ _load: function (In, els)
 		throw 'unknown format'
 	els[0] = null
 	this.zonest.load(In, els)
+	this.compile()
+},
+
+compile: function (pause)
+{
+	this.compileTime && clearTimeout(this.compileTime)
+	if (pause == null || pause == false && this.compileTime)
+		this.compileTime = Util.timer(400, this, this._compile)
+},
+
+_compile: function ()
+{
+	this.compileTime = 0
+	$info('compile?', Date.now())
 },
 
 }
