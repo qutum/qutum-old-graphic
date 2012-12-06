@@ -12,25 +12,29 @@ var HTML
 	: /Presto/.test(navigator.userAgent) ? 'p' // Opera, etc
 	: 'w'
 
+var L
 Log = function (s, clazz)
 {
-	var log = document.getElementById('Log')
-	if (log)
-		with (Util.add(log, 'div', clazz ? 'line ' + clazz : 'line'))
-			textContent = s, scrollIntoView()
+	var log = document.getElementById('Log'), l = L
+	log || (log = Util.add(document.body, 'div', null, 'Log'))
+	if (l)
+		l.textContent = l.textContent + s
 	else
-		Util.add(document.body, 'div', null, 'Log'),
-		setTimeout(Log, 0, s, clazz) // size rendering bug on WebKit
+		l = Util.add(log, 'div', clazz ? 'line ' + clazz : 'line'),
+		l.textContent = s, l.scrollIntoView()
+	return l
 }
 $info = function (v)
 {
-	Log(Array.prototype.join.call(arguments, ' '))
-	return v
+	return Log(Array.prototype.join.call(arguments, ' '))
 }
 $err = function (v)
 {
-	Log(Array.prototype.join.call(arguments, ' '), 'err')
-	return v
+	return Log(Array.prototype.join.call(arguments, ' '), 'err')
+}
+$logmore = function (log)
+{
+	L = log
 }
 
 ArrayLast = function (s)

@@ -48,7 +48,7 @@ addTo: function (b, a)
 		this.zone = b
 		b.ws.push(this)
 		this.zb = zb, this.za = za
-		this.yield || this.compile1() // skip layout if error
+		this.yield || Compile.wire1(this) // skip layout if error
 	}
 	else
 		this.zone.ws.push(this)
@@ -178,7 +178,7 @@ layout: function (force)
 },
 
 // X Y W H is draw area based on zone
-show: function (draw, X, Y, W, H)
+_show: function (draw, X, Y, W, H)
 {
 	var s = this.xys, edit = this.edit
 	if ( !s)
@@ -257,45 +257,6 @@ load: function (In, els)
 		throw 'invalid wire'
 	if (b.agent(this, a))
 		throw 'duplicate wire'
-},
-
-////////////////////////////////         ////////////////////////////////
-//////////////////////////////// compile ////////////////////////////////
-////////////////////////////////         ////////////////////////////////
-
-compile1: function ()
-{
-	if (this.err != (this.err = this.error1()))
-		this.showing = true, this.edit.show(true)
-	this.err && (this.edit.error = 1)
-},
-
-error1: function ()
-{
-	var base = this.base, agent = this.agent 
-	if (base.tv > 0 || base.zv)
-		return 'base must not be veto or inside'
-	if (agent.tv > 0 || agent.zv)
-		return 'agent must not be veto or inside'
-	var zone = this.zone, az = agent.azer, a, z
-	if (base != zone && base.bzer != this.zb)
-		return "base or base zoner's zone must be wire zone"
-	if (az.deep <= zone.deep)
-		return 'agent zoner must be inside wire zone'
-	if (base != zone && this.zb.el >= this.za.el) // NaN
-		return 'must wire early to later'
-	if ( !zone.gene)
-		if (base != zone && !base.io)
-			return 'wire inside agent must have input or output base'
-		else if ( !agent.io)
-			return 'wire inside agent must have input or output agent'
-	for (a = az.zone; a != zone; a = a.zone)
-		if (a.io < 0)
-			return 'wire must not cross input edge'
-	for (a = az.zone; a != zone; a = z, z = z.zone)
-		if (z = a.zone, !a.gene && z.gene)
-			return 'wire must not cross agent edge from gene'
-	return ''
 },
 
 }

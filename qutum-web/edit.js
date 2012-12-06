@@ -33,7 +33,6 @@ Edit = function (dom, In)
 	Util.on(naming, 'input', this, this.Name, [ null, true ])
 	Util.on(naming, 'change', this, this.Name, [ null, true ])
 
-	this.us = {}
 	var z = this.zonest = new Datum(0)
 	z.edit = this, z.x = z.y = Datum.SPACE + 4 >> 1
 	z.addTo(null, 0, 0)
@@ -73,6 +72,7 @@ scrolling: false, // to scroll while showing
 
 com: null, // commands
 unsave: 0, // >0 saved and redos <0 saved and undos
+fatal: false, // fatal error
 errorN: 0, // number of errors
 compileTime: 0, // timer to compile
 yields: null, // []
@@ -498,8 +498,6 @@ key: function (e)
 
 Unsave: function (delta)
 {
-	this.error = 0
-	this.yields = null
 	if ( !this.unsave != !(this.unsave += delta))
 		this.onUnsave(this.unsave)
 	this.compile()
@@ -529,13 +527,7 @@ compile: function (pause)
 {
 	this.compileTime && clearTimeout(this.compileTime)
 	if (pause == null || pause == false && this.compileTime)
-		this.compileTime = Util.timer(400, this, this._compile)
-},
-
-_compile: function ()
-{
-	this.compileTime = 0
-	$info('compile?', Date.now())
+		this.compileTime = Util.timer(400, null, Compile, [ this ])
 },
 
 }

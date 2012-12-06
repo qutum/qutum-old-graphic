@@ -6,11 +6,11 @@
 //
 (function () {
 
-Datum = function (io, layer, u)
+Datum = function (io, layer, layerU)
 {
 	this.io = io
 	if (layer)
-		this.layer = layer, this.unity = u
+		this.layer = layer, this.unity = layerU
 	else if (io)
 		this.unity = ++Unity
 	this.uNext = this.uPrev = this
@@ -53,7 +53,7 @@ yR: 0,
 yD: 0,
 unyR: 0,
 unyD: 0,
-us: null, // {}
+us: null, // { unity:Datum }
 bbs: null, // [Wiring]
 base0: 0, // the maximum deep of all outermost bases
 mn: 0, // match iteration
@@ -453,7 +453,7 @@ _show: function (draw, X, Y, W, H)
 
 	if (this.detail >= 3)
 		for (s = this.ws, x = 0; s[x]; x++)
-			s[x].show(draw, X, Y, W, H)
+			s[x]._show(draw, X, Y, W, H)
 },
 
 hit: function (xy, wire)
@@ -525,14 +525,14 @@ searchRow: function (y)
 save: function (out, us, el)
 {
 	this.el = ++el
-	var d
+	var uel
 	if (this.unity < 0)
-		d = this.unity;
+		uel = this.unity;
 	else if (this.io && this.uNext != this)
-		(d = us[this.unity]) || (us[this.unity] = el)
-	Util.saveN(out, (this.tv < 0 ? 8 : this.tv ? 16 : 0) | (d && 32) |
+		(uel = us[this.unity]) || (us[this.unity] = el)
+	Util.saveN(out, (this.tv < 0 ? 8 : this.tv ? 16 : 0) | (uel && 32) |
 		(this.io < 0 ? 1 : this.io > 0 ? 3 : !this.zone || this != this.row[0] ? 2 : 34))
-	d ? Util.saveN(out, d) : Util.saveS(out, this.name)
+	uel ? Util.saveN(out, uel) : Util.saveS(out, this.name)
 	for (var x = 0, r; r = this.rows[x]; x++)
 		for (var y = 0, d; d = r[y]; y++)
 			d.yield || d.layer || (el = d.save(out, us, el))
