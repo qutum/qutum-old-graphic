@@ -173,10 +173,11 @@ early: function (e, test)
 	if ( !now.row) return now.deep ? 'must not be zonest' : 'must be datum'
 	if (now.layer) return 'can not change layer 2'
 	if (test && !e) return
-	if (e.layer) return 'can not change layer 2'
+	if ( !e.deep) return 'must be datum'
 	if (e.zone != z) return 'must be same zone'
 	if (e.io != now.io) return now.io < 0 ? 'must be input' : now.io > 0 ? 'must be output'
 		: 'must not be input nor output'
+	if (e.layer) return 'can not change layer 2'
 	if ( !test && this.edit.drag) return 'not available while dragging'
 	if (test) return
 	var rs = z.rows, nr = rs.indexOf(now.row), nq = now.row.indexOf(now),
@@ -203,10 +204,11 @@ later: function (l, test)
 	if ( !now.row) return now.deep ? 'must not be zonest' : 'must be datum'
 	if (now.layer) return 'can not change layer 2'
 	if (test && !l) return
-	if (l.layer) return 'can not change layer 2'
+	if ( !l.deep) return 'must be datum'
 	if (l.zone != z) return 'must be same zone'
 	if (l.io != now.io) return now.io < 0 ? 'must be input' : now.io > 0 ? 'must be output'
 		: 'must not be input nor output'
+	if (l.layer) return 'can not change layer 2'
 	if ( !test && this.edit.drag) return 'not available while dragging'
 	if (test) return
 	var rs = z.rows, nr = rs.indexOf(now.row), nq = now.row.indexOf(now),
@@ -234,8 +236,9 @@ earlyRow: function (e, test)
 	if (now.layer) return 'can not change layer 2'
 	if (now.io) return 'must not be input nor output'
 	if (test && !e) return
+	if ( !e.deep) return 'must be datum'
+	if ( !(e.io >= 0)) return 'must not be input'
 	if (e.zone != z) return 'must be same zone'
-	if ( !(e.io >= 0)) return 'must not be input nor output'
 	if ( !test && this.edit.drag) return 'not available while dragging'
 	if (test) return
 	var rs = z.rows, nr = rs.indexOf(now.row), nq = now.row.indexOf(now),
@@ -262,8 +265,9 @@ laterRow: function (l, test)
 	if (now.layer) return 'can not change layer 2'
 	if (now.io) return 'must not be input nor output'
 	if (test && !l) return
+	if ( !l.deep) return 'must be datum'
+	if ( !(l.io <= 0)) return 'must not be output'
 	if (l.zone != z) return 'must be same zone'
-	if ( !(l.io <= 0)) return 'must not be input nor output'
 	if ( !test && this.edit.drag) return 'not available while dragging'
 	if (test) return
 	var rs = z.rows, nr = rs.indexOf(now.row), nq = now.row.indexOf(now),

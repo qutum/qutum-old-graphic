@@ -207,11 +207,11 @@ _show: function ()
 			draw.beginPath(), draw.moveTo(dx, dy), draw.lineTo(Dx, Dy)
 			draw.stroke(), draw.globalAlpha = 1
 		}
-		if (h.err &&
+		if ((this.dragerr || h.err) &&
 			(dx = this.hitX - Util.pageX(this.whole), dy = this.hitY - Util.pageY(this.whole),
 			dx >= z.x && dx < z.x + z.w && dy >= z.y && dy < z.y + z.h))
 		{
-			this.err.style.display = '', this.err.textContent = h.err
+			this.err.style.display = '', this.err.textContent = this.dragerr || h.err
 			Dx = this.err.offsetWidth, Dy = this.err.offsetHeight
 			if ((x = dx + 10) + Dx > X + W && (dx = dx - 1 - Dx) >= X)
 				x = dx
@@ -422,7 +422,7 @@ Drag: function (drag, sameDragDone)
 	if (sameDragDone && drag == this.drag && !this.dragerr)
 		drag = true
 	if (drag instanceof Function)
-		this.Now(foc, false, null, drag)
+		drag.call(this.com, null, true) || this.Now(foc, false, null, drag)
 	else if (d = this.drag)
 		this.Now(this.now, false, null, null),
 		drag && d.call(this.com, foc)
