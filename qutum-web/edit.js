@@ -57,7 +57,7 @@ hitTime: 0, // timer for long mouse press
 nav: null, // navigable hit while dragging or else now
 foc: null, // hit while dragging or else now
 drag: null, // null or command for dragging
-dragable: true, // dragging target is valid
+dragerr: null, // error info about dragging target
 
 dom: null, // scroll area
 whole: null, // whole area
@@ -96,11 +96,11 @@ Now: function (now, nav, show, drag)
 	if (this.drag)
 		now != this.foc && (this.scrolling = true),
 		this.hit = this.nav = this.foc = now,
-		this.dragable = this.drag.call(this.com, now, true)
+		this.dragerr = this.drag.call(this.com, now, true)
 	else
 		now != n && (this.scrolling = true),
 		this.now = this.hit = this.nav = this.foc = now,
-		this.dragable = true
+		this.dragerr = null
 	this.focUnfold(show != null ? show : 2) || this.show()
 },
 
@@ -183,8 +183,8 @@ _show: function ()
 		if (drag)
 		{
 			dx -= X, dy -= Y, Dx -= X, Dy -= Y
-			this.dragable = drag.call(com, h, true)
-			draw.fillStyle = draw.strokeStyle = this.dragable ? '#333' : '#f33'
+			this.dragerr = drag.call(com, h, true)
+			draw.fillStyle = draw.strokeStyle = this.dragerr ? '#f33' : '#333'
 			draw.lineWidth = 2.5
 			if (h.deep)
 				if (drag == com.early || drag == com.later)
@@ -416,10 +416,10 @@ Name: function (done, doing)
 },
 
 // start if drag is a command, done if drag is true, cancel if drag is false
-Drag: function (drag, sameDone)
+Drag: function (drag, sameDragDone)
 {
 	var foc = this.foc, d
-	if (sameDone && drag == this.drag && this.dragable)
+	if (sameDragDone && drag == this.drag && !this.dragerr)
 		drag = true
 	if (drag instanceof Function)
 		this.Now(foc, false, null, drag)

@@ -7,13 +7,13 @@
 (function(){
 
 var Z = Util.dom('#zonest'), ZT = Util.dom('#left > .tool'), E = Util.dom('.editor')
-var Zs = {}, Es = {}, Key, tool
+var Zs = {}, Es = {}, Key, tooltest
 
 Tool()
 for (var i = 0; i < localStorage.length; i++)
 	Zonest(localStorage.key(i))
 i || New()
-setInterval(function () { tool && tool() }, 200)
+setInterval(function () { tooltest && tooltest() }, 200)
 
 function Zonest(key)
 {
@@ -70,7 +70,7 @@ function Load(key)
 	setTimeout(function () { e.dom.focus() }, 0)
 	e.onUnsave = Unsave
 	Zs[key].className = 'active'
-	tool = Toolbar(e, Util.dom('.tool', E), Util.dom('.toolv', E))
+	tooltest = Toolbar(e, Util.dom('.tool', E), Util.dom('.toolv', E))
 	return Key = key, e
 }
 
@@ -115,7 +115,7 @@ function Remove(key)
 		return
 	delete Es[key], delete Zs[key], Z.removeChild(z)
 	if (key == Key)
-		Key = null, E.removeChild(e.dom), tool = null,
+		Key = null, E.removeChild(e.dom), tooltest = null,
 		Util.dom('.tool', E).innerHTML = Util.dom('.toolv', E).innerHTML = ''
 	localStorage.removeItem(key)
 	

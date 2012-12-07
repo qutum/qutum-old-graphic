@@ -170,23 +170,27 @@ _unadd: function (deep)
 
 Name: function (v)
 {
-	var c0 = v.charCodeAt(0)
+	var c0 = v.charCodeAt(0), w
 	if (c0 == 63 || c0 == 33) // ? !
 		v = v.substr(1)
+	if (this.name == v)
+		return
 	for (var d = this.uNext; d != this; d = d.uNext)
 		if (v)
-			d._Name(v)
+			w = d._Name(v, w)
 		else
 			throw 'empty unity name'
-	this._Name(v)
+	this._Name(v, w)
 },
 
-_Name: function (v)
+_Name: function (v, width)
 {
 	this.name = v
-	v = (this.tv ? this.edit.nameTvW : 0) + (v ? this.edit.draw.measureText(v).width | 0 : 0)
+	width != null || (width = v ? this.edit.draw.measureText(v).width | 0 : 0)
+	v = (this.tv ? this.edit.nameTvW : 0) + width
 	this.nameR = v && (v + 6), this.nameH = v && (this.edit.nameH + 5)
 	this.show(-1)
+	return width
 },
 
 toString: function ()
@@ -258,16 +262,16 @@ unityTo: function (u, keepUnity)
 	if (this.io != u.io || !u.io)
 		throw 'must be input or output both'
 	if ( !keepUnity)
-		if (u == this)
+		if (u == this && this.uNext != this)
 			this.unity = ++Unity
 		else if (this.unity == u.unity)
 			return
 	this.uNext.uPrev = this.uPrev
 	this.uPrev.uNext = this.uNext
 	this.uNext = u.uNext
+	u.uNext.uPrev = this
 	this.uPrev = u
 	u.uNext = this
-	this.uNext.uPrev = this
 	if (u != this)
 	{
 		if (u.name)

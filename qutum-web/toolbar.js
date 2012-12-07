@@ -6,8 +6,9 @@
 //
 (function(){
 
-Toolbar = function (edit, dom1, dom2, test)
+Toolbar = function (edit, dom1, dom2)
 {
+	var test
 	dom1.innerHTML = dom2.innerHTML = ''
 
 	com(dom1, '^lt', 'Undo', 'func-left or func-z', edit.com.undo)
@@ -79,33 +80,37 @@ Toolbar = function (edit, dom1, dom2, test)
 	{
 		var o = Util.add(dom, 'a')
 		Util.text(o, icon)
-		Util.text(Util.add(o, 'div'), desc + '\nkey: ' + key)
+		var e = Util.add(Util.text(Util.add(o, 'div'), desc + '\nkey: ' + key), 'span')
 		Util.on(o, 'click', edit.dom, edit.dom.focus)
+		var last = test
 		if (This != edit.Drag)
 		{
 			args = Array.prototype.slice.call(arguments, 6)
 			Util.on(o, 'click', This, click, args)
-			var test0 = test, tests = args.concat([ true ])
+			var tests = args.concat([ true ])
 			test = function ()
 			{
-				test0 && test0()
-				if (click.apply(This, tests))
-					o.removeAttribute('disabled')
+				last && last()
+				var err = click.apply(This, tests)
+				This == edit && (err = !err && 'not available')
+				if (err)
+					o.setAttribute('disabled', ''), err && Util.text(e, '\n' + err)
 				else
-					o.setAttribute('disabled', '')
+					o.removeAttribute('disabled'), Util.text(e, '')
 			}
 		}
 		else
 		{
-			Util.on(o, 'click', edit, This, [ click, true ])
-			var test0 = test
+			Util.on(o, 'click', edit, edit.Drag, [ click, true ])
+			var tests = [ null, true ]
 			test = function ()
 			{
-				test0 && test0()
-				if (edit.drag != click || edit.dragable)
-					o.removeAttribute('disabled')
+				last && last()
+				var err = edit.drag == click ? edit.dragerr : click.apply(edit.com, tests)
+				if (err)
+					o.setAttribute('disabled', ''), Util.text(e, '\n' + err)
 				else
-					o.setAttribute('disabled', '')
+					o.removeAttribute('disabled'), Util.text(e, '')
 			}
 		}
 	}
