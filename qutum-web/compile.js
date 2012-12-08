@@ -18,7 +18,7 @@ Compile = function (edit)
 		;
 	edit.yields.push(null)
 	datum4(edit.zonest)
-	$logmore(log), $info(Date.now() - time, 'ms')
+	$logmore(log), $info(Date.now() - time, 'ms', edit.yields.length)
 	edit.fatal = false
 }
 Compile.wire1 = wire1
@@ -32,11 +32,11 @@ function datum1(d)
 	d.cycle = null
 	if (d.ox > 0)
 	{
-		for (var x = 0, el = 0, r; r = d.rows[x]; x++)
-			for (var y = 0, dd; dd = r[y]; y++)
+		for (var R = 0, el = 0, r; r = d.rows[R]; R++)
+			for (var D = 0, dd; dd = r[D]; D++)
 				dd.el = ++el, dd.yield && (dd.yield = -1),
 				datum1(dd)
-		for (var x = 0, w; w = d.ws[x]; x++)
+		for (var W = 0, w; w = d.ws[W]; W++)
 			w.yield && (w.yield = -1),
 			wire1(w)
 	}
@@ -84,11 +84,11 @@ function datum2(d)
 	d.us = {}
 	var bw // Wire
 	var w, wb, wbb, ww // Wiring
-	for (var x = 0; bw = d.bs[x]; x++)
+	for (var W = 0; bw = d.bs[W]; W++)
 		if ( !bw.err && !bw.yield && bw.base == bw.zone)
 			d.cycle = bw.base
 	d.base0 = d.bs.length ? 1 : d.deep
-	for (var x = d.bs.length - 1; bw = d.bs[x]; x--)
+	for (var W = d.bs.length - 1; bw = d.bs[W]; W--)
 		if ( !bw.err && !bw.yield)
 		{
 			if (d.cycle && bw.base != d.cycle)
@@ -104,10 +104,10 @@ function datum2(d)
 			w.deep0 = bw.zone.deep, w.deep9 = d.azer.deep - 1
 			d.base0 = Math.max(d.base0, Math.min(w.b.base0,
 				bw.base == bw.zone || bw.zb.io < 0 ? bw.zone.deep : bw.zb.deep))
-			for (var y = 0; wb = w.b.bbs[y]; y++)
+			for (var B = 0; wb = w.b.bbs[B]; B++)
 				if (wb.deep0 <= w.deep0)
 				B: {
-					for (var yy = 0; wbb = d.bbs[yy]; yy++)
+					for (var BB = 0; wbb = d.bbs[BB]; BB++)
 						if (wbb.b == wb.b)
 							break B // continue
 					ww = new Wiring
@@ -119,8 +119,8 @@ function datum2(d)
 				}
 		}
 //		namey.text = namey.text.replace(/:.*/, '') + ':' + base0 // TODO debug
-	for (var x = 0, r; r = d.rows[x]; x++)
-		for (var y = 0, dd; dd = r[y]; y++)
+	for (var R = 0, r; r = d.rows[R]; R++)
+		for (var D = 0, dd; dd = r[D]; D++)
 			datum2(dd)
 	d.mn = 0
 	if (d.uNext != d && (!d.yield || !d.zone.us[d.unity]))
@@ -129,11 +129,11 @@ function datum2(d)
 
 function datum3(d, Mn)
 {
-	for (var x = d.ox, r; r = d.rows[x]; x--)
-		for (var y = 0, dd; dd = r[y]; y--)
+	for (var R = d.ox, r; r = d.rows[R]; R--)
+		for (var D = 0, dd; dd = r[D]; D--)
 			d.mn = Math.max(datum3(dd, Mn), d.mn)
 	if (d.ox > 0 && !d.tv)
-		for (var x = 0, w; w = d.bs[x]; x++)
+		for (var W = 0, w; w = d.bs[W]; W++)
 			if ( !w.err && !w.yield && (d.mn >= Mn || w.base.mn >= Mn))
 				match(w.base, w.base, d, d, Mn)
 	return d.mn > Mn ? d.mn : 0
@@ -143,23 +143,23 @@ function match(zb, b, za, a, Mn)
 {
 	if (a.ox < 0)
 		return false
-	var _ = false, bd, ad, y, w
-	for (var r = a.rows[0], x = 0, ad; ad = r[x]; x++)
+	var _ = false, bd, ad, W, w
+	for (var r = a.rows[0], D = 0, ad; ad = r[D]; D++)
 		if (ad.name && ad.yield >= 0)
 			if ((bd = matchBaseUnity(b, a, ad, Mn)) && !bd.err)
 				_ = match(ad, ad, bd, bd, Mn) || bd.mn > Mn || _,
 				b != zb && matchWire(zb, bd, za, ad, b)
-	for (var r = a.rows[a.ox], x = 0, ad; ad = r[x]; x++)
+	for (var r = a.rows[a.ox], D = 0, ad; ad = r[D]; D++)
 		if (ad.tv >= 0 && ad.name && ad.yield >= 0)
 		{
 			bd = matchBaseUnity(b, a, ad, Mn)
 			if (bd && !bd.err)
 			{
-				for (w = null, y = ad.bs.length - 1; w = ad.bs[y]; y--)
+				for (w = null, W = ad.bs.length - 1; w = ad.bs[W]; W--)
 					if ( !w.err && !w.yield &&
 						(w.base == w.zone || w.base.bzer.io < 0 && !w.base.bzer.bs.length))
 						break
-				_ = w && y < 0 || match(zb, bd, za, ad, Mn) || bd.mn > Mn || _
+				_ = w && W < 0 || match(zb, bd, za, ad, Mn) || bd.mn > Mn || _
 			}
 			bd && bd.err || matchWire(zb, bd, za, ad, b)
 		}
@@ -183,7 +183,7 @@ function matchBaseUnity(b, a, ad, Mn)
 			d.show(-1), b.edit.errorN++
 		return d
 	}
-	if (ad.tv > 0 && (b.gene || b.layer2))
+	if (ad.tv > 0 && (b.gene || b.layer))
 		return null
 	for (var z = b; z.io > 0; z = z.zone)
 		if (z.unity == ad.unity)
@@ -196,7 +196,7 @@ function matchBaseUnity(b, a, ad, Mn)
 		}
 	if (d) // d.yield < 0
 		d.yield = 1,
-		d.setTv(ad.tv > 0 ? 1 : 0), // TODO ???
+		d.Tv(ad.tv > 0 ? 1 : 0),
 		d.mn = Mn + 1
 	else
 	{
@@ -208,11 +208,11 @@ function matchBaseUnity(b, a, ad, Mn)
 		d.addTo(b, d.yR, d.yX, false)
 		ad.uNext == ad && (a.us[ad.unity] = ad)
 		d.unityTo(ad), b.us[ad.unity] = d
+		d.us = {}, d.bbs = []
 		d.mn = Mn + 1
-		d.us = {}
 		b.edit.yields.push(d)
 	}
-	if ((d.layer2 = b.layer2))
+	if ((d.layer = b.layer))
 		d.err = 'Yield forbidden here',
 		d.show(-1), b.edit.errorN++
 	else if (err)
@@ -224,7 +224,7 @@ function matchBaseUnity(b, a, ad, Mn)
 function matchWire(zb, b, za, a, b_)
 {
 	var a0b9 = a.deep, n = 0, awb, w
-	for (var x = 0, aw; aw = a.bbs[x]; x++)
+	for (var W = 0, aw; aw = a.bbs[W]; W++)
 		if (a.azer.zone.deep == aw.deep9)
 			n++, aw.deep0 < a0b9 && (a0b9 = aw.deep0)
 	if ( !n)
@@ -238,23 +238,23 @@ function matchWire(zb, b, za, a, b_)
 		return
 	}
 	a0b9 = a0b9 - a.deep + b.deep, n = 0
-	for (var x = 0; bw = b.bbs[x]; x++)
+	for (var W = 0; bw = b.bbs[W]; W++)
 	W: {
 		if (bw.from && bw.from.err || bw.deep9 < a0b9
 			|| bw.b != zb && bw.b.bzer.io >= 0 && bw.b.base0 <= a0b9)
 			continue
 		n++
 		if ((awb = zb.deep > bw.deep0 ? bw.b : matchDatum(zb, bw.b, za)))
-			for (var y = 0, aw; aw = a.bbs[y]; y++)
+			for (var WW = 0, aw; aw = a.bbs[WW]; WW++)
 				if (aw.b == awb)
 					break W // continue
 		WW: {
-			for (var y = 0; w = b.bs[y]; y++)
+			for (var WW = 0; w = b.bs[WW]; WW++)
 				if (w.base == bw.b)
 					break WW
 			w = new Wire
 			w.yield = 1, b.edit.yields.push(w)
-			bw.b.As.push(w), b.bs.push(w)
+			bw.b.as.push(w), b.bs.push(w)
 			w.addTo(bw.b, b)
 		}
 		w.yield < 0 && (w.yield = 1)
@@ -266,11 +266,11 @@ function matchWire(zb, b, za, a, b_)
 	}
 	B: {
 		awb = matchDatum(zb, b, za) 
-		for (var x = 0, aw; aw = a.bbs[x]; x++)
+		for (var W = 0, aw; aw = a.bbs[W]; W++)
 			if (aw.b == awb)
 				break B // base outsite cycle agent and agent inside cycle agent
 		if ( !n && !b.err)
-			for (var x = 0, aw; aw = a.bbs[x]; x++)
+			for (var W = 0, aw; aw = a.bbs[W]; W++)
 				if (aw.b != b)
 				{
 					b.err = "output must have base to match\n  '"
@@ -286,16 +286,16 @@ function matchDatum(z, d, zz)
 	return d == z ? zz : (z = matchDatum(z, d.zone, zz)) && z.us[d.unity]
 }
 
-function datum4(d)
+function datum4(d) // TODO bbs = null
 {
-	for (var x = 0, r; r = d.rows[x]; x++)
-		for (var y = r.length - 1, dd; dd = r[y]; y--)
+	for (var R = 0, r; r = d.rows[R]; R++)
+		for (var D = r.length - 1, dd; dd = r[D]; D--)
 			if (dd.yield < 0)
-				dd.unyR = x, dd.unyX = y,
-				dd.unadd(x, y), d.edit.yields.push(dd) // ox may < 0
+				dd.unyR = R, dd.unyX = D,
+				dd.unadd(R, D), d.edit.yields.push(dd) // ox may < 0
 			else
 				datum4(dd)
-	for (var x = d.ws.length - 1, w; w = d.ws[x]; x--)
+	for (var W = d.ws.length - 1, w; w = d.ws[W]; W--)
 		if (w.yield < 0)
 			w.base.unagent(w), d.edit.yields.push(w)
 	d.us = null
@@ -307,7 +307,7 @@ function datum4(d)
 function datumError4(d)
 {
 	d.mustRun = d.tv >= 0
-	if (d.io < 0 && !d.zone.zone && d.layer != 2)
+	if (d.io < 0 && !d.zone.zone && !d.layer)
 		return 'your input zone must not be zonest'
 	if (d.zv)
 		return d.io < 0 ? 'input must not be inside veto' :
@@ -343,12 +343,12 @@ function datumError4(d)
 		d.mustRun = false
 		var r = d.rows[0]
 		if (r)
-			for (var x = 0, dd; dd = r[x]; x++)
+			for (var D = 0, dd; dd = r[D]; D++)
 				if ( !dd.mustRun)
 					break Must
 		d.mustRun = true
 		var n = 0
-		for (var x = 0, w; w = d.bs[x]; x++)
+		for (var W = 0, w; w = d.bs[W]; W++)
 			if ( !w.err)
 				if (n++, w.base == w.zone || w.base.bzer.io || w.base.bzer.mustRun)
 					break Must

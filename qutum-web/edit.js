@@ -207,11 +207,12 @@ _show: function ()
 			draw.beginPath(), draw.moveTo(dx, dy), draw.lineTo(Dx, Dy)
 			draw.stroke(), draw.globalAlpha = 1
 		}
-		if ((this.dragerr || h.err) &&
+		if ((this.drag ? this.dragerr : h.err) &&
 			(dx = this.hitX - Util.pageX(this.whole), dy = this.hitY - Util.pageY(this.whole),
 			dx >= z.x && dx < z.x + z.w && dy >= z.y && dy < z.y + z.h))
 		{
-			this.err.style.display = '', this.err.textContent = this.dragerr || h.err
+			this.err.style.display = ''
+			this.err.textContent = this.drag ? this.dragerr : h.err
 			Dx = this.err.offsetWidth, Dy = this.err.offsetHeight
 			if ((x = dx + 10) + Dx > X + W && (dx = dx - 1 - Dx) >= X)
 				x = dx

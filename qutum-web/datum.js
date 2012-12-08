@@ -118,20 +118,20 @@ addTo: function (z, r, q) // q < 0 to add row
 
 _addTo: function (deep)
 {
-	var u = this.unity, x, w, r, q, d
+	var u = this.unity, d
 	if ((d = this.uPrev) != this)
 		if (d.unity != u)
 			throw 'inconsistent unity'
 		else
 			this.uPrev = this, this.unityTo(d, true)
-	for (x = 0; w = this.bs[x]; x++)
+	for (var W = 0, w; w = this.bs[W]; W++)
 		if (w.zone.deep < deep)
 			w.base.as.push(w), w.addTo()
-	for (x = 0; w = this.as[x]; x++)
+	for (var W = 0, w; w = this.as[W]; W++)
 		if (w.zone.deep < deep)
 			w.agent.bs.push(w), w.addTo()
-	for (x = 0; r = this.rows[x]; x++)
-		for (q = 0; d = r[q]; q++)
+	for (var R = 0, r; r = this.rows[R]; X++)
+		for (var D = 0, d; d = r[D]; D++)
 			d._addTo(deep)
 },
 
@@ -154,17 +154,17 @@ unadd: function (r, q)
 
 _unadd: function (deep)
 {
-	var x, w, r, q, d
+	var d
 	if ((d = this.uNext) != this)
 		 this.unityTo(this, true), this.uPrev = d
-	for (x = 0; w = this.bs[x]; x++)
+	for (var W = 0, w; w = this.bs[W]; W++)
 		if (w.zone.deep < deep)
 			ArrayRem(w.base.as, w), w.unadd()
-	for (x = 0; w = this.as[x]; x++)
+	for (var W = 0, w; w = this.as[W]; W++)
 		if (w.zone.deep < deep)
 			ArrayRem(w.agent.bs, w), w.unadd()
-	for (x = 0; r = this.rows[x]; x++)
-		for (q = 0; d = r[q]; q++)
+	for (var R = 0, r; r = this.rows[R]; R++)
+		for (var D = 0; d = r[D]; D++)
 			d._unadd(deep)
 },
 
@@ -211,10 +211,10 @@ Tv: function (tv)
 agent: function (w, a, replace)
 {
 	if (replace !== false)
-		for (var x = this.as.length - 1, w0; w0 = this.as[x]; x--)
+		for (var W = this.as.length - 1, w0; w0 = this.as[W]; W--)
 			if (w0.agent == a)
 			{
-				this.as[x] = w, a.bs[a.bs.indexOf(w0)] = w,
+				this.as[W] = w, a.bs[a.bs.indexOf(w0)] = w,
 				w0.unadd(), w.zone ? w.addTo() : w.addTo(this, a)
 				return w0
 			}
@@ -290,13 +290,13 @@ unityTo: function (u, keepUnity)
 
 layoutDetail: function ()
 {
-	var dd = this.showing, r, x, y, d
+	var dd = this.showing, d
 	if (dd >= 4 || !this.zone)
 		this.detail = 3
 	else if (dd > 0)
 		this.detail = dd < 2 && this.edit.now == this ? 2 : dd
-	for (x = 0; x <= this.ox; x++)
-		for (r = this.rows[x], y = 0; d = r[y]; y++)
+	for (var R = 0, r; r = this.rows[R]; R++)
+		for (var D = 0; d = r[D]; D++)
 		{
 			if (dd > 0)
 				if (dd >= 4 && !d.layer)
@@ -308,30 +308,30 @@ layoutDetail: function ()
 				this.detail = this.showing = 3
 		}
 	if (this.detail >= 3)
-		for (x = 0; x <= this.ox; x++)
-			for (r = this.rows[x], y = 0; d = r[y]; y++)
+		for (var R = 0, r; r = this.rows[R]; R++)
+			for (var D = 0; d = r[D]; D++)
 				if (d.detail < 2)
 					d.detail = d.showing = 2
 },
 
 layout: function (force)
 {
-	var rs = this.rows, ws = this.ws, r, x, y, d, w, h, w2, h2
-	for (x = 0; r = rs[x]; x++)
-		for (y = 0; d = r[y]; y++)
+	var rs = this.rows, ws = this.ws, r, w, h, w2, h2
+	for (var R = 0; r = rs[R]; R++)
+		for (var D = 0, d; d = r[D]; D++)
 			d.layout(false) && (force = true)
 	this.showing && (force = true, this.showing = 0)
 	if ( !force)
 	{
-		for (x = 0; w = ws[x]; x++)
+		for (var W = 0; w = ws[W]; W++)
 			w.layout(false)
 		return false
 	}
 	if (this.detail <= 1)
 	{
-		for (x = 0; r = rs[x]; x++)
+		for (var R = 0; r = rs[R]; R++)
 			r.layout(0, 0, 0, 0)
-		for (x = 0; w = ws[x]; x++)
+		for (var W = 0; w = ws[W]; W++)
 			w.layout(true)
 		this.w = this.h = 0
 		return true
@@ -350,9 +350,9 @@ layout: function (force)
 		this.nameY = 2
 		w2 = this.w >> 1, h2 = nh || this.h >> 1
 		rs[0].layout(0, w2, w2, 0)
-		for (x = 1; r = rs[x]; x++)
+		for (var R = 1; r = rs[R]; R++)
 			r.layout(0, w2, w2, h2)
-		for (x = 0; w = ws[x]; x++)
+		for (var W = 0; w = ws[W]; W++)
 			w.layout(true)
 	}
 	else
@@ -362,7 +362,7 @@ layout: function (force)
 			w = Math.max(SIZE0, nr, r.layoutW())
 		else
 			w = Math.max(SIZE0, nr + r.layoutW())
-		for (x = 1; r = rs[x]; x++)
+		for (var R = 1; r = rs[R]; R++)
 			w = Math.max(w, r.layoutW())
 		r = rs[0]
 		if (r.length && nr > NAME_WIDTH)
@@ -373,11 +373,11 @@ layout: function (force)
 			h = 0
 		this.nameY = h + 2
 		h = Math.max(h + nh, r.h + SPACE)
-		for (x = 1; r = rs[x]; x++)
-			r.layout(x < this.ox ? 2 : 3, 0, w, h),
-			h += x < this.ox ? r.h + SPACE : r.h
+		for (var R = 1; r = rs[R]; R++)
+			r.layout(R < this.ox ? 2 : 3, 0, w, h),
+			h += R < this.ox ? r.h + SPACE : r.h
 		this.w = w, this.h = h
-		for (x = 0; w = ws[x]; x++)
+		for (var W = 0; w = ws[W]; W++)
 			w.layout(true)
 	}
 	return true
@@ -469,7 +469,7 @@ hit: function (xy, wire)
 	for (;;)
 	{
 		if (wire !== false && d.detail >= 3)
-			for (var i = 0, w; w = d.ws[i]; i++)
+			for (var W = 0, w; w = d.ws[W]; W++)
 				if (w.hit(x, y))
 					return xy[0] += w.x, xy[1] += w.y, w
 		var i = d.searchRow(y)
@@ -537,10 +537,10 @@ save: function (out, us, el)
 	Util.saveN(out, (this.tv < 0 ? 8 : this.tv ? 16 : 0) | (uel && 32) |
 		(this.io < 0 ? 1 : this.io > 0 ? 3 : !this.zone || this != this.row[0] ? 2 : 34))
 	uel ? Util.saveN(out, uel) : Util.saveS(out, this.name)
-	for (var x = 0, r; r = this.rows[x]; x++)
-		for (var y = 0, d; d = r[y]; y++)
+	for (var R = 0, r; r = this.rows[R]; R++)
+		for (var D = 0, d; d = r[D]; D++)
 			d.yield || d.layer || (el = d.save(out, us, el))
-	for (var x = 0, w; w = this.ws[x]; x++)
+	for (var W = 0, w; w = this.ws[W]; W++)
 		w.yield || (Util.saveN(out, 4), w.save(out))
 	Util.saveN(out, 0)
 	return el

@@ -176,7 +176,7 @@ early: function (e, test)
 	if ( !e.deep) return 'must be datum'
 	if (e.zone != z) return 'must be same zone'
 	if (e.io != now.io) return now.io < 0 ? 'must be input' : now.io > 0 ? 'must be output'
-		: 'must not be input nor output'
+		: 'must be nonput'
 	if (e.layer) return 'can not change layer 2'
 	if ( !test && this.edit.drag) return 'not available while dragging'
 	if (test) return
@@ -207,7 +207,7 @@ later: function (l, test)
 	if ( !l.deep) return 'must be datum'
 	if (l.zone != z) return 'must be same zone'
 	if (l.io != now.io) return now.io < 0 ? 'must be input' : now.io > 0 ? 'must be output'
-		: 'must not be input nor output'
+		: 'must be nonput'
 	if (l.layer) return 'can not change layer 2'
 	if ( !test && this.edit.drag) return 'not available while dragging'
 	if (test) return
@@ -234,7 +234,7 @@ earlyRow: function (e, test)
 	var now = this.edit.now, z = now.zone
 	if ( !now.row) return now.deep ? 'must not be zonest' : 'must be datum'
 	if (now.layer) return 'can not change layer 2'
-	if (now.io) return 'must not be input nor output'
+	if (now.io) return 'must be nonput'
 	if (test && !e) return
 	if ( !e.deep) return 'must be datum'
 	if ( !(e.io >= 0)) return 'must not be input'
@@ -263,7 +263,7 @@ laterRow: function (l, test)
 	var now = this.edit.now, z = now.zone
 	if ( !now.row) return now.deep ? 'must not be zonest' : 'must be datum'
 	if (now.layer) return 'can not change layer 2'
-	if (now.io) return 'must not be input nor output'
+	if (now.io) return 'must be nonput'
 	if (test && !l) return
 	if ( !l.deep) return 'must be datum'
 	if ( !(l.io <= 0)) return 'must not be output'
@@ -497,7 +497,7 @@ breakRow: function (test)
 {
 	var now = this.edit.now, r, q
 	if ( !now.row) return now.deep ? 'must not be zonest' : 'must be datum'
-	if (now.io) return 'must not be input nor output'
+	if (now.io) return 'must be nonput'
 	if ((q = now.row.indexOf(now)) <= 0) return 'must not be first of row'
 	if (this.edit.drag) return 'not available while dragging'
 	if (test) return

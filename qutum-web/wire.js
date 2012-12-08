@@ -77,7 +77,7 @@ layout: function (force)
 		return this.xys = null
 
 	var xys = this.xys = [], zone = this.zone, base = this.base, agent = this.agent,
-		zb = this.zb, za = this.za, bx, by, b5, bq, ax, ay, aw, a5, aq, x, y, i
+		zb = this.zb, za = this.za, bx, by, b5, bq, ax, ay, aw, a5, aq, x, y
 	bx = base.offsetX(zone), b5 = bx + base.w / 2
 	bq = base.w ? 1 : 0
 	if (base != zone)
@@ -113,15 +113,15 @@ layout: function (force)
 				Hori: if (a != azer || agent == azer)
 					if (aw)
 					{
-						for (i = r.length - 1; a != r[i]; i--)
-							if (r[i].y - a.y <= y - ay)
+						for (var D = r.length - 1; a != r[D]; D--)
+							if (r[D].y - a.y <= y - ay)
 								break Hori
 						break Up
 					}
 					else
 					{
-						for (i = 0; a != r[i]; i++)
-							if (r[i].y - a.y <= y - ay)
+						for (var D = 0; a != r[D]; D++)
+							if (r[D].y - a.y <= y - ay)
 								break Hori
 						break Up
 					}
@@ -142,7 +142,7 @@ layout: function (force)
 			ax = x
 			if (ax == a.x + aq)
 				xys.push(ax -= S + S, y)
-			if (r[i = r.indexOf(a) - 1] == zb && base == zb)
+			if (r[r.indexOf(a) - 1] == zb && base == zb)
 				xys.push(ax, by)
 			else
 				xys.push(ax, ay = r.y + r.h + S + SS * bx / r.w, bx, ay)
@@ -151,7 +151,7 @@ layout: function (force)
 		{
 			ax = x, ay = r.y - S - SS * a.x / zone.w
 			xys.push(ax, ay)
-			i = zone.rows.indexOf(r)
+			var i = zone.rows.indexOf(r)
 			while ((r = zone.rows[--i]) != zb.row)
 			{
 				d = r[r.searchDatumX(ax)]
