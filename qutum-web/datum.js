@@ -118,12 +118,8 @@ addTo: function (z, r, q) // q < 0 to add row
 
 _addTo: function (deep)
 {
-	var u = this.unity, d
-	if ((d = this.uPrev) != this)
-		if (d.unity != u)
-			throw 'inconsistent unity'
-		else
-			this.uPrev = this, this.unityTo(d, true)
+	var u = this.edit.us[this.unity]
+	u && this.unityTo(u)
 	for (var W = 0, w; w = this.bs[W]; W++)
 		if (w.zone.deep < deep)
 			w.base.as.push(w), w.addTo()
@@ -154,9 +150,7 @@ unadd: function (r, q)
 
 _unadd: function (deep)
 {
-	var d
-	if ((d = this.uNext) != this)
-		 this.unityTo(this, true), this.uPrev = d
+	this.uNext != this && this.unityTo(this, true)
 	for (var W = 0, w; w = this.bs[W]; W++)
 		if (w.zone.deep < deep)
 			ArrayRem(w.base.as, w), w.unadd()
@@ -164,7 +158,7 @@ _unadd: function (deep)
 		if (w.zone.deep < deep)
 			ArrayRem(w.agent.bs, w), w.unadd()
 	for (var R = 0, r; r = this.rows[R]; R++)
-		for (var D = 0; d = r[D]; D++)
+		for (var D = 0, d; d = r[D]; D++)
 			d._unadd(deep)
 },
 
@@ -261,26 +255,24 @@ unityTo: function (u, keepUnity)
 {
 	if (this.io != u.io || !u.io)
 		throw 'must be input or output both'
-	if ( !keepUnity)
-		if (u == this && this.uNext != this)
-			this.unity = ++Unity
-		else if (this.unity == u.unity)
-			return
-	this.uNext.uPrev = this.uPrev
-	this.uPrev.uNext = this.uNext
-	this.uNext = u.uNext
-	u.uNext.uPrev = this
-	this.uPrev = u
-	u.uNext = this
-	if (u != this)
+	if (u == this == (this.uNext == this) && this.unity == u.unity)
+		return
+	if ( !u.name && !this.name)
+		throw 'unity must have name'
+	if (this.uNext != this)
+		this.uNext.uPrev = this.uPrev,
+		this.uPrev.uNext = this.uNext,
+		this.edit.us[this.unity] == this && (this.edit.us[this.unity] = this.uNext)
+	if (u == this)
+		this.uNext = this.uPrev = this,
+		!keepUnity && (this.unity = ++Unity)
+	else
 	{
-		if (u.name)
-			this.Name(u.name)
-		else if (this.name)
-			u.Name(this.name)
-		else
-			throw 'unity must have name'
+		u.uNext == u && (this.edit.us[u.unity] = u)
+		this.uPrev = u.uPrev, u.uPrev.uNext = this
+		this.uNext = u, u.uPrev = this
 		this.unity = u.unity
+		u.name ? this._Name(u.name) : u.Name(this.name)
 	}
 },
 

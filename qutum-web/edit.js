@@ -33,6 +33,7 @@ Edit = function (dom, In)
 	Util.on(naming, 'input', this, this.Name, [ null, true ])
 	Util.on(naming, 'change', this, this.Name, [ null, true ])
 
+	this.us = {}
 	var z = this.zonest = new Datum(0)
 	z.edit = this, z.x = z.y = Datum.SPACE + 4 >> 1
 	z.addTo(null, 0, 0)
@@ -70,6 +71,7 @@ showTime: 0, // to show in milliseconds
 layouting: false, // to layout while showing
 scrolling: false, // to scroll while showing
 
+us: null, // { unity: Datum }
 com: null, // commands
 unsave: 0, // >0 saved and redos <0 saved and undos
 fatal: false, // fatal error
@@ -344,10 +346,10 @@ focOutput: function (test)
 	return foc.ox > 0 && foc.rows[foc.ox][0]
 		&& (test || this.Now(foc.rows[foc.ox][0])) // not wire
 },
-focUnity: function (test)
+focUnity: function (prev, test)
 {
 	var foc = this.foc
-	return foc.deep && foc.uNext != foc && (test || this.Now(foc.uNext))
+	return foc.deep && foc.uNext != foc && (test || this.Now(prev ? foc.uPrev : foc.uNext))
 },
 focBase: function (next, test)
 {
@@ -463,7 +465,7 @@ key: function (e)
 	case 44: this.focInput(); break // ,
 	case 96: this.focDatum(); break // `
 	case 46: this.focOutput(); break // .
-	case 59: this.focUnity(); break // ;
+	case 58: case 59: this.focUnity(k == 58); break // ;
 	case 91: case 123: this.focBase(k == 91); break // [ {
 	case 93: case 125: this.focAgent(k == 93); break // ] }
 	case 45: case 95: this.focFold(); break // - _
