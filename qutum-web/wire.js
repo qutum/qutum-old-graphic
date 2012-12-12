@@ -20,7 +20,7 @@ agent: null,
 zone: null,
 zb: null,
 za: null,
-yield: 0, // yield, with error
+yield: 0, // 0 nonyield >0 yield <0 yield while compiling // with error ?
 
 err: '',
 showing: false,

@@ -86,7 +86,7 @@ Name: function (v, test)
 		v = v.substr(1)
 	if ( !now.deep) return 'must be datum'
 	if (m == v) return 'no change'
-	if (now.unity < 0 || now.layer) return 'can not change layer 2'
+	if (now.layer || now.unity < 0) return 'can not change layer 2'
 	if (test) return
 	var u = now.uNext, um = u.name
 	this.go(function (redo)
@@ -289,13 +289,17 @@ laterRow: function (l, test)
 
 unity: function (u, test)
 {
-	var now = this.edit.now, nu = now.uNext, m = now.name
+	var now = this.edit.now, unity = now.unity, m = now.name
 	if ( !now.io) return 'must be input or output'
 	if (now.layer) return 'can not change layer 2'
+	if (now.yield) return 'can not change yield'
 	if (test && !u) return
-	var um = u.name
+	var uu = u.unity, um = u.name
 	if (u.io != now.io) return now.io < 0 ? 'must be input' : 'must be output'
+	if (u != now && uu == unity) return 'already same unity'
 	if ( !m && !um) return 'must have name'
+	u = u.nonyield()
+	if ( !u) return 'can not change yield'
 	if ( !test && this.edit.drag) return 'not available while dragging'
 	if (test) return
 	this.go(function (redo)
@@ -303,8 +307,8 @@ unity: function (u, test)
 		if (redo)
 			now.unityTo(u)
 		else
-			now.unityTo(nu),
-			m == now.name || now.Name(m), um == u.name || u.Name(um)
+			now.unityTo(this.edit.us[unity] || now), now.Name(m),
+			um || (u.unityTo(u), u.Name(um)) // unity self if no name
 		this.edit.Now(now)
 	})
 },

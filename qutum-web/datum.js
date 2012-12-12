@@ -48,7 +48,7 @@ ws: null, // [ Wire inside this ]
 
 el: NaN, // small early, big later, asynchronous update
 mustRun: false, // must run or may run, as agent zoner
-yield: 0,
+yield: 0, // 0 nonyield >0 yield <0 yield while compiling
 yR: 0,
 yD: 0,
 unyR: 0,
@@ -262,7 +262,8 @@ unityTo: function (u, keepUnity)
 	if (this.uNext != this)
 		this.uNext.uPrev = this.uPrev,
 		this.uPrev.uNext = this.uNext,
-		this.edit.us[this.unity] == this && (this.edit.us[this.unity] = this.uNext)
+		this.uNext == this.uPrev ? delete this.edit.us[this.unity] :
+			this.edit.us[this.unity] == this && (this.edit.us[this.unity] = this.uNext)
 	if (u == this)
 		this.uNext = this.uPrev = this,
 		!keepUnity && (this.unity = ++Unity)
@@ -274,6 +275,21 @@ unityTo: function (u, keepUnity)
 		this.unity = u.unity
 		u.name ? this._Name(u.name) : u.Name(this.name)
 	}
+},
+
+nonyield: function ()
+{
+	if ( !this.yield)
+		return this
+	var uu = this.edit.us[this.unity], u = uu
+	if ( !uu)
+		return null
+	while (u.yield)
+		if ((u = u.uNext) == uu)
+			return null
+	if (u != uu)
+		this.edit.us[this.unity] = u
+	return u
 },
 
 ////////////////////////////////      ////////////////////////////////
