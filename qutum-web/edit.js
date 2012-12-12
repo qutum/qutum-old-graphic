@@ -77,7 +77,6 @@ unsave: 0, // >0 saved and redos <0 saved and undos
 fatal: false, // fatal error
 errorN: 0, // number of errors
 compileTime: 0, // timer to compile
-yields: null, // []
 
 // nav is true by default, show is 2 by default, drag unchanged by default
 Now: function (now, nav, show, drag)

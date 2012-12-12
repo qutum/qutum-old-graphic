@@ -20,11 +20,9 @@ edit: null,
 coms: null, // [ function ]
 x: 0, // next command index, <= coms.length
 
-go: function (f) // TODO no edit.yields at all
+go: function (f)
 {
 	var s = this.coms, x = this.x
-	if (x && this.edit.yields)
-		s[x - 1].ys || (s[x - 1].ys = this.edit.yields)
 	f.call(this, true)
 	s[x++] = f, s.length = this.x = x
 	this.edit.Unsave(1)
@@ -36,8 +34,7 @@ redo: function (test)
 	if ( !com) return 'nothing to redo'
 	if (this.edit.drag) return 'not available under dragging'
 	if (test) return
-	this.unyield(this.edit.yields)
-	com.call(this, true), this.reyield(com.s), this.x++
+	com.call(this, true), this.x++
 	this.edit.Unsave(1)
 },
 
@@ -48,36 +45,9 @@ undo: function (test)
 	if (this.edit.drag) return 'not available under dragging'
 	if (test) return
 	var r = this.coms[x], com = this.coms[this.x = x - 1]
-	if (this.edit.yields)
-		r || com.ys ? this.unyield(this.edit.yields) : com.ys = this.edit.yields
-	this.unyield(com.ys), com.call(this, false)
+	com.call(this, false)
 	this.edit.Unsave(-1)
 },
-
-reyield: function (s)
-{
-	if ( !s)
-		return
-	var q, x
-	for (x = 0; q = s[x]; x++)
-		q instanceof Datum ? q.addTo(q.zone, q.yR, q.yD)
-			: q.base.agent(q, q.agent, false)
-	while (q = s[++x])
-		q instanceof Datum ? q.unadd(q.unyR, q.unyD) : q.base.unagent(q)
-},
-
-unyield: function (s)
-{
-	if ( !s)
-		return
-	var q, x
-	for (x = s.length - 1; q = s[x]; x--)
-		q instanceof Datum ? q.addTo(q.zone, q.unyR, q.unyD)
-			: q.base.agent(q, q.agent, false)
-	while (q = s[--x])
-		q instanceof Datum ? q.unadd(q.yR, q.yD) : q.base.unagent(q)
-},
-
 
 Name: function (v, test)
 {
@@ -104,20 +74,22 @@ input: function (inner, test)
 	var now = this.edit.now, z = !inner && now.zone || now
 	if ( !now.deep) return 'must be datum'
 	if (z.layer) return 'can not change layer 2'
-	if (inner && z.yield) return 'can not change yield'
+	if (z.yield) return 'can not change yield'
 	if (this.edit.drag) return 'not available under dragging'
 	if (test) return
-	var d = new Datum(-1), r, q
-	if (inner || now.io >= 0 || now.layer)
-		r = 0, q = z.ox < 0 ? 0 : z.rows[r].length
+	var d = new Datum(-1), R, D
+	if (z == now || now.io >= 0 || now.layer)
+		R = 0, D = z.ox < 0 ? 0 : z.rows[R].length
 	else
-		r = now.zone.rows.indexOf(now.row), q = now.row.indexOf(now) + 1
+		R = z.rows.indexOf(now.row), D = now.row.indexOf(now) + 1
+	while (D > 0 && z.rows[R][D-1].yield)
+		D--
 	this.go(function (redo)
 	{
 		if (redo)
-			d.addTo(z, r, q), this.edit.Now(d)
+			d.addTo(z, R, D), this.edit.Now(d)
 		else
-			d.unadd(r, q), this.edit.Now(now)
+			d.unadd(R, D), this.edit.Now(now)
 	})
 },
 
@@ -126,21 +98,21 @@ datum: function (inner, test)
 	var now = this.edit.now, z = !inner && now.zone || now
 	if ( !now.deep) return 'must be datum'
 	if (z.layer) return 'can not change layer 2'
-	if (inner && z.yield) return 'can not change yield'
+	if (z.yield) return 'can not change yield'
 	if (this.edit.drag) return 'not available while dragging'
 	if (test) return
-	var d = new Datum(0), r, q
-	if (inner || now.io || !now.zone)
-		z.ox <= 1 ? (r = 1, q = -1) : (r = z.ox - 1, q = z.rows[r].length),
-		q >= 4 && (r++, q = -1)
+	var d = new Datum(0), R, D
+	if (z == now || now.io)
+		z.ox <= 1 ? (R = 1, D = -1) : (R = z.ox - 1, D = z.rows[R].length),
+		D >= 4 && (R++, D = -1)
 	else
-		r = now.zone.rows.indexOf(now.row), q = now.row.indexOf(now) + 1
+		R = z.rows.indexOf(now.row), D = now.row.indexOf(now) + 1
 	this.go(function (redo)
 	{
 		if (redo)
-			d.addTo(z, r, q), this.edit.Now(d)
+			d.addTo(z, R, D), this.edit.Now(d)
 		else
-			d.unadd(r, q < 0 ? 0 : q), this.edit.Now(now)
+			d.unadd(R, D < 0 ? 0 : D), this.edit.Now(now)
 	})
 },
 
@@ -149,20 +121,22 @@ output: function (inner, test)
 	var now = this.edit.now, z = !inner && now.zone || now
 	if ( !now.deep) return 'must be datum'
 	if (z.layer) return 'can not change layer 2'
-	if (inner && z.yield) return 'can not change yield'
+	if (z.yield) return 'can not change yield'
 	if (this.edit.drag) return 'not available while dragging'
 	if (test) return
-	var d = new Datum(1), r, q
-	if (inner || now.io <= 0 || now.layer)
-		r = z.ox < 0 ? 1 : z.ox, q = z.ox < 0 ? 0 : z.rows[r].length
+	var d = new Datum(1), R, D
+	if (z == now || now.io <= 0 || now.layer)
+		R = z.ox < 0 ? 1 : z.ox, D = z.ox < 0 ? 0 : z.rows[r].length
 	else
-		r = now.zone.rows.indexOf(now.row), q = now.row.indexOf(now) + 1
+		R = z.rows.indexOf(now.row), D = now.row.indexOf(now) + 1
+	while (D > 0 && z.rows[R][D-1].yield)
+		D--
 	this.go(function (redo)
 	{
 		if (redo)
-			d.addTo(z, r, q), this.edit.Now(d)
+			d.addTo(z, R, D), this.edit.Now(d)
 		else
-			d.unadd(r, q), this.edit.Now(now)
+			d.unadd(R, D), this.edit.Now(now)
 	})
 },
 
@@ -376,7 +350,7 @@ baseWire: function (b, test)
 	var now = this.edit.now
 	if (now.deep) return 'must be wire'
 	if (now.zone.layer) return 'can not change layer 2'
-	if (now.agent.yield) return 'can not change yield'
+	if (now.yield || now.agent.yield) return 'can not change yield'
 	if (test && !b) return
 	if ( !b.deep) return 'must be datum'
 	if (b.yield) return 'can not change yield'
@@ -404,7 +378,7 @@ agentWire: function (a, test)
 	var now = this.edit.now
 	if (now.deep) return 'must be wire'
 	if (now.zone.layer) return 'can not change layer 2'
-	if (now.base.yield) return 'can not change yield'
+	if (now.yield || now.base.yield) return 'can not change yield'
 	if (test && !a) return
 	if ( !a.deep) return 'must be datum'
 	if (a.yield) return 'can not change yield'
@@ -432,6 +406,7 @@ trialVeto: function (tv, test)
 	var now = this.edit.now, tv0 = now.tv
 	if ( !now.deep) return 'must be datum'
 	if (now.layer) return 'can not change layer 2'
+	if (now.yield) return 'can not change yield'
 	if (this.edit.drag) return 'not available while dragging'
 	if (test) return
 	tv0 == tv && (tv = 0)
@@ -471,7 +446,7 @@ nonyieldDatum: function (test)
 nonyieldWire: function (test)
 {
 	var now = this.edit.now, bz, bzz, az, azz
-	if ( !now.yield) return 'ust be yield'
+	if ( !now.yield) return 'must be yield'
 	if (this.edit.drag) return 'not available while dragging'
 	if (test) return
 	this.go(function (redo)
@@ -495,7 +470,6 @@ nonyieldWire: function (test)
 		this.edit.Now(now), now.showing = true, edit.show(true)
 	})
 },
-
 
 breakRow: function (test)
 {
@@ -535,6 +509,7 @@ removeDatum: function (test)
 	var now = this.edit.now
 	if ( !now.row) return now.deep ? 'must not be zonest' : 'must be datum'
 	if (now.layer) return 'can not change layer 2'
+	if (now.yield) return 'can not change yield'
 	if (this.edit.drag) return 'not available while dragging'
 	if (test) return
 	var z = now.zone, rs = z.rows, r = rs.indexOf(now.row), q = now.row.indexOf(now), addRow
@@ -607,6 +582,7 @@ removeWire: function (test)
 	var now = this.edit.now
 	if (now.deep) return 'must be wire'
 	if (now.zone.layer) return 'can not change layer 2'
+	if (now.yield) return 'can not change yield'
 	if (this.edit.drag) return 'not available while dragging'
 	if (test) return
 	this.go(function (redo)

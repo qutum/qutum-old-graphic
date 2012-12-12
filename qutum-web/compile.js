@@ -11,14 +11,13 @@ Compile = function (edit)
 	edit.compileTime = 0
 	var time = Date.now()
 	var log = $info('compile ')
-	edit.fatal = true, edit.errorN = 0, edit.yields = []
+	edit.fatal = true, edit.errorN = 0
 	datum1(edit.zonest)
 	datum2(edit.zonest)
 	while (datum3(edit.zonest, edit.zonest.mn))
 		;
-	edit.yields.push(null)
 	datum4(edit.zonest)
-	$logmore(log), $info(Date.now() - time, 'ms', edit.yields.length)
+	$logmore(log), $info(Date.now() - time, 'ms')
 	edit.fatal = false
 }
 Compile.wire1 = wire1
@@ -210,7 +209,6 @@ function matchBaseUnity(b, a, ad, Mn)
 		d.unityTo(ad), b.us[ad.unity] = d
 		d.us = {}, d.bbs = []
 		d.mn = Mn + 1
-		b.edit.yields.push(d)
 	}
 	if ((d.layer = b.layer))
 		d.err = 'Yield forbidden here',
@@ -253,7 +251,7 @@ function matchWire(zb, b, za, a, b_)
 				if (w.base == bw.b)
 					break WW
 			w = new Wire
-			w.yield = 1, b.edit.yields.push(w)
+			w.yield = 1
 			bw.b.as.push(w), b.bs.push(w)
 			w.addTo(bw.b, b)
 		}
@@ -291,13 +289,12 @@ function datum4(d) // TODO bbs = null
 	for (var R = 0, r; r = d.rows[R]; R++)
 		for (var D = r.length - 1, dd; dd = r[D]; D--)
 			if (dd.yield < 0)
-				dd.unyR = R, dd.unyX = D,
-				dd.unadd(R, D), d.edit.yields.push(dd) // ox may < 0
+				dd.unadd(R, D) // ox may < 0
 			else
 				datum4(dd)
 	for (var W = d.ws.length - 1, w; w = d.ws[W]; W--)
 		if (w.yield < 0)
-			w.base.unagent(w), d.edit.yields.push(w)
+			w.base.unagent(w)
 	d.us = null
 	var e = datumError4(d)
 	d.err || (d.err = e)

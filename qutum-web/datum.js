@@ -26,7 +26,7 @@ Datum.prototype =
 {
 
 edit: null,
-zone: null,
+zone: null, // null for zonest
 deep: 1, // zone.deep + 1
 io: 0, // <0 input >0 output 0 neither input nor output
 unity: 0, // >0 for layer 1 <0 for layer 2
@@ -51,8 +51,6 @@ mustRun: false, // must run or may run, as agent zoner
 yield: 0, // 0 nonyield >0 yield <0 yield while compiling
 yR: 0,
 yD: 0,
-unyR: 0,
-unyD: 0,
 us: null, // { unity:Datum }
 bbs: null, // [Wiring]
 base0: 0, // the maximum deep of all outermost bases
@@ -76,7 +74,7 @@ navNext: null,
 //////////////////////////////// logic ////////////////////////////////
 ////////////////////////////////       ////////////////////////////////
 
-addTo: function (z, r, q) // q < 0 to add row
+addTo: function (z, R, D) // D < 0 to add row
 {
 	if (z == null)
 	{
@@ -89,11 +87,11 @@ addTo: function (z, r, q) // q < 0 to add row
 	if (z.ox < 0)
 		z.rows[0] = Row(z, []), z.rows[1] = Row(z, []),
 		z.ox = 1
-	if (q < 0)
-		z.rows.splice(r, 0, this.row = Row(z, [ this ])),
-		z.ox++, q = 0
+	if (D < 0)
+		z.rows.splice(R, 0, this.row = Row(z, [ this ])),
+		z.ox++, D = 0
 	else
-		(this.row = z.rows[r]).splice(q, 0, this)
+		(this.row = z.rows[R]).splice(D, 0, this)
 	if ( !this.zone)
 	{
 		this.edit = z.edit
@@ -132,12 +130,12 @@ _addTo: function (deep)
 },
 
 // return true if the row is unadd
-unadd: function (r, q)
+unadd: function (R, D)
 {
 	this._unadd(this.deep)
 	var z = this.zone, unrow = false
-	this.row.splice(q, 1)
-	this.io || this.row.length || (z.rows.splice(r, 1), z.ox--, unrow = true)
+	this.row.splice(D, 1)
+	this.io || this.row.length || (z.rows.splice(R, 1), z.ox--, unrow = true)
 	if (z.ox == 1 && z.rows[0].length + z.rows[1].length == 0)
 		z.rows = [], z.ox = -1
 	this.showing = 0, z.show(3)
@@ -151,12 +149,14 @@ unadd: function (r, q)
 _unadd: function (deep)
 {
 	this.uNext != this && this.unityTo(this, true)
-	for (var W = 0, w; w = this.bs[W]; W++)
+	for (var s = this.bs, W = 0, Q = 0, w; w = s[Q] = s[W]; W++, Q++)
 		if (w.zone.deep < deep)
-			ArrayRem(w.base.as, w), w.unadd()
-	for (var W = 0, w; w = this.as[W]; W++)
+			ArrayRem(w.base.as, w), w.unadd(), w.yield && Q--,
+	s.length = Q
+	for (var s = this.as, W = 0, Q = 0, w; w = s[Q] = s[W]; W++, Q++)
 		if (w.zone.deep < deep)
-			ArrayRem(w.agent.bs, w), w.unadd()
+			ArrayRem(w.agent.bs, w), w.unadd(), w.yield && Q--,
+	s.length = Q
 	for (var R = 0, r; r = this.rows[R]; R++)
 		for (var D = 0, d; d = r[D]; D++)
 			d._unadd(deep)

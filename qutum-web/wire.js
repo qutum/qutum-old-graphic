@@ -34,8 +34,10 @@ navNext: null,
 
 addTo: function (b, a)
 {
-	if (b != a)
+	if (b || a)
 	{
+		if (b == a)
+			throw 'wire self'
 		var d = b.deep - a.deep
 		var zb = this.base = b, za = this.agent = a
 		while (d > 0)
