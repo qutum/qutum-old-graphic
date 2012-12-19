@@ -130,7 +130,7 @@ layout: function (force)
 				xys.push(x, y = ay - a.y + r.y - S - SS * a.x / r.w)
 			}
 			if (a == za)
-				break // base == zone
+				break; // base == zone
 			ax -= a.x, ay -= a.y
 			a = a.zone
 			if (a.detail >= 2)

@@ -254,8 +254,8 @@ Hit: function (e)
 HitXY: function ()
 {
 	var t = Date.now(), h = this.zonest.hit(
-		[ this.hitX - Util.pageX(this.whole), this.hitY - Util.pageY(this.whole) ]),
-		t = Date.now() - t
+		[ this.hitX - Util.pageX(this.whole), this.hitY - Util.pageY(this.whole) ])
+	t = Date.now() - t
 	t > 50 && $info('slow: zonest.hit')
 	return h
 },
@@ -380,9 +380,14 @@ focUnfold: function (x, test)
 },
 nowName: function (ok, test)
 {
-	if ( !this.drag && this.now.deep)
-		return ok ? test || this.Name(this.naming.parentNode.style.display == '' || null)
-		: this.naming.parentNode.style.display == '' && (test || this.Name(false))
+	if (this.naming.parentNode.style.display == '')
+	{
+		var err = ok && this.com.Name(this.naming.value, true)
+		test || this.Name(ok)
+		return err || test
+	}
+	else
+		return ok && !this.drag && this.now.deep && (test || this.Name())
 },
 nowOk: function (ok, test)
 {
@@ -414,7 +419,8 @@ Name: function (done, doing)
 	}
 	else
 		parent.display != (parent.display = 'none') && this.dom.focus(),
-		done ? this.com.Name(naming.value) : this.compile(false)
+		done && this.com.Name(naming.value),
+		this.compile(false)
 },
 
 // start if drag is a command, done if drag is true, cancel if drag is false

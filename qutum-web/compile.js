@@ -95,7 +95,7 @@ function datum2(d)
 				bw.err = 'only one base allowed for cycle agent'
 				bw.showing = true
 				d.edit.show(true), d.edit.errorN++
-				continue
+				continue;
 			}
 			w = new Wiring
 			d.bbs.push(w)
@@ -142,7 +142,7 @@ function match(zb, b, za, a, Mn)
 {
 	if (a.ox < 0)
 		return false
-	var _ = false, bd, ad, W, w
+	var _ = false, bd, W, w
 	for (var r = a.rows[0], D = 0, ad; ad = r[D]; D++)
 		if (ad.name && ad.yield >= 0)
 			if ((bd = matchBaseUnity(b, a, ad, Mn)) && !bd.err)
@@ -157,7 +157,7 @@ function match(zb, b, za, a, Mn)
 				for (w = null, W = ad.bs.length - 1; w = ad.bs[W]; W--)
 					if ( !w.err && !w.yield &&
 						(w.base == w.zone || w.base.bzer.io < 0 && !w.base.bzer.bs.length))
-						break
+						break;
 				_ = w && W < 0 || match(zb, bd, za, ad, Mn) || bd.mn > Mn || _
 			}
 			bd && bd.err || matchWire(zb, bd, za, ad, b)
@@ -191,7 +191,7 @@ function matchBaseUnity(b, a, ad, Mn)
 				return z // not yield
 			err = 'yield zone must be cycle agent of zone of\
   innermost zone of same unity inside base zoner'
-			break
+			break;
 		}
 	if (d) // d.yield < 0
 		d.yield = 1,
@@ -240,7 +240,7 @@ function matchWire(zb, b, za, a, b_)
 	W: {
 		if (bw.from && bw.from.err || bw.deep9 < a0b9
 			|| bw.b != zb && bw.b.bzer.io >= 0 && bw.b.base0 <= a0b9)
-			continue
+			continue;
 		n++
 		if ((awb = zb.deep > bw.deep0 ? bw.b : matchDatum(zb, bw.b, za)))
 			for (var WW = 0, aw; aw = a.bbs[WW]; WW++)
@@ -274,7 +274,7 @@ function matchWire(zb, b, za, a, b_)
 					b.err = "output must have base to match\n  '"
 						+ za.name + "' and '" + a.name + "' inside"
 					b.show(-1), b.edit.errorN++
-					break
+					break;
 				}
 	}
 }

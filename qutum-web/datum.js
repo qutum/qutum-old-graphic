@@ -25,7 +25,7 @@ var SIZE0 = Datum.SIZE0 = 20, SPACE = Datum.SPACE = 20, NAME_WIDTH = Datum.NAME_
 Datum.prototype =
 {
 
-edit: null,
+edit: null, // null for unadd
 zone: null, // null for zonest
 deep: 1, // zone.deep + 1
 io: 0, // <0 input >0 output 0 neither input nor output
@@ -84,6 +84,7 @@ addTo: function (z, R, D) // D < 0 to add row
 		this.azer = this
 		return this // zonest
 	}
+	this.edit = z.edit
 	if (z.ox < 0)
 		z.rows[0] = Row(z, []), z.rows[1] = Row(z, []),
 		z.ox = 1
@@ -94,7 +95,6 @@ addTo: function (z, R, D) // D < 0 to add row
 		(this.row = z.rows[R]).splice(D, 0, this)
 	if ( !this.zone)
 	{
-		this.edit = z.edit
 		this.zone = z
 		this.deep = z.deep + 1
 		if (this.io < 0)
@@ -135,7 +135,9 @@ unadd: function (R, D)
 	this._unadd(this.deep)
 	var z = this.zone, unrow = false
 	this.row.splice(D, 1)
-	this.io || this.row.length || (z.rows.splice(R, 1), z.ox--, unrow = true)
+	if ( !this.io && !this.row.length)
+		z.rows.splice(R, 1), z.ox--, unrow = true // nonput all nonyield
+	this.row = null
 	if (z.ox == 1 && z.rows[0].length + z.rows[1].length == 0)
 		z.rows = [], z.ox = -1
 	this.showing = 0, z.show(3)
@@ -143,6 +145,7 @@ unadd: function (R, D)
 	this.edit.now == this && this.edit.Now(p, false)
 	p && (p.navNext = n), n && (n.navPrev = p)
 	this.navPrev = this.navNext = null
+	this.edit = null
 	return unrow
 },
 
@@ -226,26 +229,26 @@ unagent: function (w)
 	w.unadd()
 },
 
-breakRow: function (r, x)
+breakRow: function (R, D)
 {
-	var r0 = this.rows[r], r1 = Row(this, r0.splice(x)), d
-	this.rows.splice(r + 1, 0, r1)
-	for (d = r1.length - 1; d >= 0; d--)
-		r1[d].row = r1
+	var r0 = this.rows[R], r1 = Row(this, r0.splice(D))
+	this.rows.splice(R + 1, 0, r1)
+	for (var D = r1.length - 1; D >= 0; D--)
+		r1[D].row = r1
 	this.ox++
 	this.show(3)
 },
 
 // return the length before merge
-mergeRow: function (r)
+mergeRow: function (R)
 {
-	var r0 = this.rows[r], r1 = this.rows.splice(r + 1, 1)
+	var r0 = this.rows[R], r1 = this.rows.splice(R + 1, 1)
 	if (r1 == null)
 		return -1
 	var n0 = r0.length, r1 = r1[0]
 	r0.push.apply(r0, r1)
-	for (d = r1.length - 1; d >= 0; d--)
-		r1[d].row = r0
+	for (var D = r1.length - 1; D >= 0; D--)
+		r1[D].row = r0
 	this.ox--
 	this.show(3)
 	return n0
@@ -277,10 +280,10 @@ unityTo: function (u, keepUnity)
 	}
 },
 
-nonyield: function ()
+uNonyield: function ()
 {
 	if ( !this.yield)
-		return this
+		return this // use self rather than edit.us
 	var uu = this.edit.us[this.unity], u = uu
 	if ( !uu)
 		return null
@@ -422,7 +425,8 @@ _show: function (draw, X, Y, W, H)
 				draw.fillRect(x, y, dw = d.w, d.y - y), // top
 				draw.fillRect(x, dh = d.y + d.h, dw, y + rh - dh), // bottom
 				x += dw
-			D && (d = r[D - 1], draw.fillRect(dw = d.x + d.w, y, w - dw, rh))
+			if (D)
+				d = r[D - 1], draw.fillRect(dw = d.x + d.w, y, w - dw, rh)
 			y += rh
 		}
 	else
@@ -482,11 +486,11 @@ hit: function (xy, wire)
 					return xy[0] += w.x, xy[1] += w.y, w
 		var i = d.searchRow(y)
 		if (i < 0)
-			break
+			break;
 		var r = d.rows[i]
 		i = r.searchDatum(x, y)
 		if (i < 0)
-			break
+			break;
 		d = r[i]
 		x -= d.x, y -= d.y
 		xy[0] += d.x, xy[1] += d.y

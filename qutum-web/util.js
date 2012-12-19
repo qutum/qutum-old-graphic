@@ -22,6 +22,7 @@ Log = function (s, clazz)
 	else
 		l = Util.add(log, 'div', clazz ? 'line ' + clazz : 'line'),
 		l.textContent = s, l.scrollIntoView()
+	L = null
 	return l
 }
 $info = function (v)

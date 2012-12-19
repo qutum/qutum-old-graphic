@@ -51,20 +51,24 @@ undo: function (test)
 
 Name: function (v, test)
 {
-	var now = this.edit.now, m = now.name, c0 = v.charCodeAt(0)
+	var now = this.edit.now, m = now.name
+	var c0 = v.charCodeAt(0)
 	if (c0 == 63 || c0 == 33) // ? !
 		v = v.substr(1)
 	if ( !now.deep) return 'must be datum'
 	if (m == v) return 'no change'
 	if (now.layer || now.unity < 0) return 'can not change layer 2'
+	if ( !v && now.yield) return 'can not change yield'
+	now = now.uNonyield()
+	if ( !now) return 'can not change yield'
 	if (test) return
-	var u = now.uNext, um = u.name
+	var u = v || now.uNext.uNonyield()
 	this.go(function (redo)
 	{
 		if (redo)
-			now != u && !v && now.unityTo(now), now.Name(v)
+			v || now.unityTo(now), now.Name(v)
 		else
-			now.unityTo(u), now.Name(m)
+			v || now.unityTo(u), now.Name(m)
 		this.edit.Now(now)
 	})
 },
@@ -82,7 +86,7 @@ input: function (inner, test)
 		R = 0, D = z.ox < 0 ? 0 : z.rows[R].length
 	else
 		R = z.rows.indexOf(now.row), D = now.row.indexOf(now) + 1
-	while (D > 0 && z.rows[R][D-1].yield)
+	while (D > 0 && z.rows[R][D - 1].yield)
 		D--
 	this.go(function (redo)
 	{
@@ -126,10 +130,10 @@ output: function (inner, test)
 	if (test) return
 	var d = new Datum(1), R, D
 	if (z == now || now.io <= 0 || now.layer)
-		R = z.ox < 0 ? 1 : z.ox, D = z.ox < 0 ? 0 : z.rows[r].length
+		R = z.ox < 0 ? 1 : z.ox, D = z.ox < 0 ? 0 : z.rows[R].length
 	else
 		R = z.rows.indexOf(now.row), D = now.row.indexOf(now) + 1
-	while (D > 0 && z.rows[R][D-1].yield)
+	while (D > 0 && z.rows[R][D - 1].yield)
 		D--
 	this.go(function (redo)
 	{
@@ -152,22 +156,23 @@ early: function (e, test)
 	if (e.io != now.io) return now.io < 0 ? 'must be input' : now.io > 0 ? 'must be output'
 		: 'must be nonput'
 	if (e.layer) return 'can not change layer 2'
+	var rs = z.rows, R = rs.indexOf(e.row), D = e.row.indexOf(e)
+	if (D >= 1 && !e.row[D - 1].yield) return 'can not change yield'
 	if ( !test && this.edit.drag) return 'not available while dragging'
 	if (test) return
-	var rs = z.rows, nr = rs.indexOf(now.row), nq = now.row.indexOf(now),
-		r = rs.indexOf(e.row), q = e.row.indexOf(e),
-		empty = r != nr && now.row.length == 1
-	if (r == nr && q > nq)
-		q--
+	var R0 = rs.indexOf(now.row), D0 = now.row.indexOf(now)
+	var unrow = R != R0 && now.row.length == 1
+	R == R0 && D > D0 && D--
+	e = null
 	this.go(function (redo)
 	{
 		if (redo)
-			rs[nr].splice(nq, 1), rs[r].splice(q, 0, now), now.row = rs[r],
-			empty && (z.ox--, rs.splice(nr, 1)),
+			rs[R0].splice(D0, 1), rs[R].splice(D, 0, now), now.row = rs[R],
+			unrow && (z.ox--, rs.splice(R0, 1)),
 			z.show(-1), this.edit.Now(now)
 		else
-			empty && (z.ox++, rs.splice(nr, 0, Row(z, []))),
-			rs[r].splice(q, 1), rs[nr].splice(nq, 0, now), now.row = rs[nr],
+			unrow && (z.ox++, rs.splice(R0, 0, Row(z, []))),
+			rs[R].splice(D, 1), rs[R0].splice(D0, 0, now), now.row = rs[R0],
 			z.show(-1), this.edit.Now(now)
 	})
 },
@@ -183,22 +188,23 @@ later: function (l, test)
 	if (l.io != now.io) return now.io < 0 ? 'must be input' : now.io > 0 ? 'must be output'
 		: 'must be nonput'
 	if (l.layer) return 'can not change layer 2'
+	if (l.yield) return 'can not change yield'
 	if ( !test && this.edit.drag) return 'not available while dragging'
 	if (test) return
-	var rs = z.rows, nr = rs.indexOf(now.row), nq = now.row.indexOf(now),
-		r = rs.indexOf(l.row), q = l.row.indexOf(l) + 1,
-		empty = r != nr && rs[nr].length == 1
-	if (r == nr && q > nq)
-		q--
+	var rs = z.rows, R = rs.indexOf(l.row), D = l.row.indexOf(l) + 1
+	var R0 = rs.indexOf(now.row), D0 = now.row.indexOf(now)
+	var unrow = R != R0 && rs[R0].length == 1
+	R == R0 && D > D0 && D--
+	l = null
 	this.go(function (redo)
 	{
 		if (redo)
-			rs[nr].splice(nq, 1), rs[r].splice(q, 0, now), now.row = rs[r],
-			empty && (z.ox--, rs.splice(nr, 1)),
+			rs[R0].splice(D0, 1), rs[R].splice(D, 0, now), now.row = rs[R],
+			unrow && (z.ox--, rs.splice(R0, 1)),
 			z.show(-1), this.edit.Now(now)
 		else
-			empty && (z.ox++, rs.splice(nr, 0, Row(z, []))),
-			rs[r].splice(q, 1), rs[nr].splice(nq, 0, now), now.row = rs[nr],
+			unrow && (z.ox++, rs.splice(R0, 0, Row(z, []))),
+			rs[R].splice(D, 1), rs[R0].splice(D0, 0, now), now.row = rs[R0],
 			z.show(-1), this.edit.Now(now)
 	})
 },
@@ -215,19 +221,20 @@ earlyRow: function (e, test)
 	if (e.zone != z) return 'must be same zone'
 	if ( !test && this.edit.drag) return 'not available while dragging'
 	if (test) return
-	var rs = z.rows, nr = rs.indexOf(now.row), nq = now.row.indexOf(now),
-		r = rs.indexOf(e.row), empty = now.row.length == 1
-	if (empty && r > nr)
-		r--
+	var rs = z.rows, R = rs.indexOf(e.row)
+	var R0 = rs.indexOf(now.row), D0 = now.row.indexOf(now)
+	var unrow = now.row.length == 1
+	unrow && R > R0 && R--
+	e = null
 	this.go(function (redo)
 	{
 		if (redo)
-			empty ? rs.splice(r, 0, rs.splice(nr, 1)[0]) :
-				(z.ox++, rs[nr].splice(nq, 1), rs.splice(r, 0, now.row = Row(z, [ now ]))),
+			unrow ? rs.splice(R, 0, rs.splice(R0, 1)[0]) :
+				(z.ox++, rs[R0].splice(D0, 1), rs.splice(R, 0, now.row = Row(z, [ now ]))),
 			z.show(-1), this.edit.Now(now)
 		else
-			empty ? rs.splice(nr, 0, rs.splice(r, 1)[0]) :
-				(z.ox--, rs.splice(r, 1), rs[nr].splice(nq, 0, now), now.row = rs[nr]),
+			unrow ? rs.splice(R0, 0, rs.splice(R, 1)[0]) :
+				(z.ox--, rs.splice(R, 1), rs[R0].splice(D0, 0, now), now.row = rs[R0]),
 			z.show(-1), this.edit.Now(now)
 	})
 },
@@ -244,44 +251,46 @@ laterRow: function (l, test)
 	if (l.zone != z) return 'must be same zone'
 	if ( !test && this.edit.drag) return 'not available while dragging'
 	if (test) return
-	var rs = z.rows, nr = rs.indexOf(now.row), nq = now.row.indexOf(now),
-		r = rs.indexOf(l.row) + 1, empty = now.row.length == 1
-	if (empty && r > nr)
-		r--
+	var rs = z.rows, R = rs.indexOf(l.row) + 1
+	var R0 = rs.indexOf(now.row), D0 = now.row.indexOf(now)
+	var unrow = now.row.length == 1
+	unrow && R > R0 && R--
+	l = null
 	this.go(function (redo)
 	{
 		if (redo)
-			empty ? rs.splice(r, 0, rs.splice(nr, 1)[0]) :
-				(z.ox++, rs[nr].splice(nq, 1), rs.splice(r, 0, now.row = Row(z, [ now ]))),
+			unrow ? rs.splice(R, 0, rs.splice(R0, 1)[0]) :
+				(z.ox++, rs[R0].splice(D0, 1), rs.splice(R, 0, now.row = Row(z, [ now ]))),
 			z.show(-1), this.edit.Now(now)
 		else
-			empty ? rs.splice(nr, 0, rs.splice(r, 1)[0]) :
-				(z.ox--, rs.splice(r, 1), rs[nr].splice(nq, 0, now), now.row = rs[nr]),
+			unrow ? rs.splice(R0, 0, rs.splice(R, 1)[0]) :
+				(z.ox--, rs.splice(R, 1), rs[R0].splice(D0, 0, now), now.row = rs[R0]),
 			z.show(-1), this.edit.Now(now)
 	})
 },
 
 unity: function (u, test)
 {
-	var now = this.edit.now, unity = now.unity, m = now.name
+	var now = this.edit.now, m = now.name
 	if ( !now.io) return 'must be input or output'
 	if (now.layer) return 'can not change layer 2'
 	if (now.yield) return 'can not change yield'
 	if (test && !u) return
-	var uu = u.unity, um = u.name
+	var um = u.name
 	if (u.io != now.io) return now.io < 0 ? 'must be input' : 'must be output'
-	if (u != now && uu == unity) return 'already same unity'
+	if (u != now && u.unity == now.unity) return 'already same unity'
 	if ( !m && !um) return 'must have name'
-	u = u.nonyield()
+	u = u.uNonyield()
 	if ( !u) return 'can not change yield'
 	if ( !test && this.edit.drag) return 'not available while dragging'
 	if (test) return
+	var nowu = now.uNext.uNonyield()
 	this.go(function (redo)
 	{
 		if (redo)
 			now.unityTo(u)
 		else
-			now.unityTo(this.edit.us[unity] || now), now.Name(m),
+			now.unityTo(nowu), now.Name(m),
 			um || (u.unityTo(u), u.Name(um)) // unity self if no name
 		this.edit.Now(now)
 	})
@@ -473,19 +482,20 @@ nonyieldWire: function (test)
 
 breakRow: function (test)
 {
-	var now = this.edit.now, r, q
+	var now = this.edit.now
 	if ( !now.row) return now.deep ? 'must not be zonest' : 'must be datum'
 	if (now.io) return 'must be nonput'
-	if ((q = now.row.indexOf(now)) <= 0) return 'must not be first of row'
+	var D = now.row.indexOf(now)
+	if (D <= 0) return 'must not be first of row'
 	if (this.edit.drag) return 'not available while dragging'
 	if (test) return
-	r = now.zone.rows.indexOf(now.row)
+	var R = now.zone.rows.indexOf(now.row)
 	this.go(function (redo)
 	{
 		if (redo)
-			now.zone.breakRow(r, q), this.edit.Now(now)
+			now.zone.breakRow(R, D), this.edit.Now(now)
 		else
-			now.zone.mergeRow(r), this.edit.Now(now)
+			now.zone.mergeRow(R), this.edit.Now(now)
 	})
 },
 
@@ -512,16 +522,17 @@ removeDatum: function (test)
 	if (now.yield) return 'can not change yield'
 	if (this.edit.drag) return 'not available while dragging'
 	if (test) return
-	var z = now.zone, rs = z.rows, r = rs.indexOf(now.row), q = now.row.indexOf(now), addRow
+	var z = now.zone, rs = z.rows
+	var R = rs.indexOf(now.row), D = now.row.indexOf(now), unrow
 	this.go(function (redo)
 	{
 		if (redo)
-			addRow = now.unadd(r, q),
+			unrow = now.unadd(R, D),
 			this.edit.Now(z.ox < 0 ? z
-				: rs[r][q] || rs[r + 1] && rs[r + 1][0]
-				|| rs[r][q - 1] || ArrayLast(rs[r - 1]))
+				: rs[R][D] || rs[R + 1] && rs[R + 1][0]
+				|| rs[R][D - 1] || ArrayLast(rs[R - 1]))
 		else
-			now.addTo(z, r, addRow ? -1 : q), this.edit.Now(now)
+			now.addTo(z, R, unrow ? -1 : D), this.edit.Now(now)
 	})
 },
 
@@ -530,25 +541,35 @@ removeLeftDatum: function (test)
 	var now = this.edit.now
 	if ( !now.row) return now.deep ? 'must not be zonest' : 'must be datum'
 	if (now.layer) return 'can not change layer 2'
-	if (this.edit.drag) return 'not available while dragging'
-	if (test) return
-	var z = now.zone, r = z.rows.indexOf(now.row), q = now.row.indexOf(now), d
-	if (r > 1 && r < z.ox && q == 0)
+	var z = now.zone, R = z.rows.indexOf(now.row), D = now.row.indexOf(now)
+	if (R > 1 && R < z.ox && D == 0)
+	{
+		if (this.edit.drag) return 'not available while dragging'
+		if (test) return
 		this.go(function (redo)
 		{
 			if (redo)
-				q = z.mergeRow(r - 1), this.edit.Now(now)
+				D = z.mergeRow(R - 1), this.edit.Now(now)
 			else
-				z.breakRow(r - 1, q), this.edit.Now(now)
+				z.breakRow(R - 1, D), this.edit.Now(now)
 		})
-	else if ((d = z.rows[r][q - 1]) && !d.layer)
+	}
+	else
+	{
+		var d = now.row[D - 1]
+		if ( !d) return 'no change'
+		if (d.layer) return 'can not change layer 2'
+		if (d.yield) return 'can not change yield'
+		if (this.edit.drag) return 'not available while dragging'
+		if (test) return
 		this.go(function (redo)
 		{
 			if (redo)
-				d.unadd(r, q - 1), this.edit.Now(now)
+				d.unadd(R, D - 1), this.edit.Now(now)
 			else
-				d.addTo(z, r, q - 1), this.edit.Now(now)
+				d.addTo(z, R, D - 1), this.edit.Now(now)
 		})
+	}
 },
 
 removeRightDatum: function (test)
@@ -556,25 +577,35 @@ removeRightDatum: function (test)
 	var now = this.edit.now
 	if ( !now.row) return now.deep ? 'must not be zonest' : 'must be datum'
 	if (now.layer) return 'can not change layer 2'
-	if (this.edit.drag) return 'not available while dragging'
-	if (test) return
-	var z = now.zone, r = z.rows.indexOf(now.row), q = now.row.indexOf(now), d
-	if (r > 0 && r < z.ox - 1 && q == now.row.length - 1)
+	var z = now.zone, R = z.rows.indexOf(now.row), D = now.row.indexOf(now)
+	if (R > 0 && R < z.ox - 1 && D == now.row.length - 1)
+	{
+		if (this.edit.drag) return 'not available while dragging'
+		if (test) return
 		this.go(function (redo)
 		{
 			if (redo)
-				q = z.mergeRow(r), this.edit.Now(now)
+				D = z.mergeRow(R), this.edit.Now(now)
 			else
-				z.breakRow(r, q), this.edit.Now(now)
+				z.breakRow(R, D), this.edit.Now(now)
 		})
-	else if ((d = z.rows[r][q + 1]) && !d.layer)
+	}
+	else
+	{
+		var d = z.rows[R][D + 1]
+		if ( !d) return 'no change'
+		if (d.layer) return 'can not change layer 2'
+		if (d.yield) return 'can not change yield'
+		if (this.edit.drag) return 'not available while dragging'
+		if (test) return
 		this.go(function (redo)
 		{
 			if (redo)
-				d.unadd(r, q + 1), this.edit.Now(now)
+				d.unadd(R, D + 1), this.edit.Now(now)
 			else
-				d.addTo(z, r, q + 1), this.edit.Now(now)
+				d.addTo(z, R, D + 1), this.edit.Now(now)
 		})
+	}
 },
 
 removeWire: function (test)

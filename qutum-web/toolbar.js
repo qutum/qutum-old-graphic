@@ -93,7 +93,8 @@ Toolbar = function (edit, dom1, dom2)
 			{
 				last && last()
 				var err = click.apply(This, tests)
-				This == edit && (err = !err && 'not available')
+				if (This == edit)
+					err = err != true && (typeof err=='string' ? err : 'not available')
 				if (err)
 					o.setAttribute('disabled', ''), err && Util.text(e, '\n' + err)
 				else
