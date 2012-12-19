@@ -118,7 +118,7 @@ function Remove(key)
 		Key = null, E.removeChild(e.dom), tooltest = null,
 		Util.dom('.tool', E).innerHTML = Util.dom('.toolv', E).innerHTML = ''
 	localStorage.removeItem(key)
-	
+
 }
 
 onbeforeunload = function ()

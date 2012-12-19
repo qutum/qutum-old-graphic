@@ -52,7 +52,7 @@ function wire1(w)
 
 function wireError1(w)
 {
-	var base = w.base, agent = w.agent 
+	var base = w.base, agent = w.agent
 	if (base.tv > 0 || base.zv)
 		return 'base must not be veto or inside'
 	if (agent.tv > 0 || agent.zv)
@@ -263,7 +263,7 @@ function matchWire(zb, b, za, a, b_)
 			b.edit.show(true), b.edit.errorN++
 	}
 	B: {
-		awb = matchDatum(zb, b, za) 
+		awb = matchDatum(zb, b, za)
 		for (var W = 0, aw; aw = a.bbs[W]; W++)
 			if (aw.b == awb)
 				break B // base outsite cycle agent and agent inside cycle agent

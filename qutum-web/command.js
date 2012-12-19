@@ -9,7 +9,8 @@
 Command = function (edit)
 {
 	this.edit = edit
-	this.coms = []
+	this.redos = []
+	this.undos = []
 }
 //var UNDOn = 301
 
@@ -17,35 +18,34 @@ Command.prototype =
 {
 
 edit: null,
-coms: null, // [ function ]
-x: 0, // next command index, <= coms.length
+redos: null, // [ function ]
+undos: null, // [ function ]
+x: 0, // next command index, <= redos/undos.length
 
-go: function (f)
+go: function (redo, undo)
 {
-	var s = this.coms, x = this.x
-	f.call(this, true)
-	s[x++] = f, s.length = this.x = x
+	redo.call(this)
+	this.redos[this.x] = redo
+	this.undos[this.x] = undo
+	this.redos.length = this.undos.length = ++this.x
 	this.edit.Unsave(1)
 },
 
 redo: function (test)
 {
-	var com = this.coms[this.x]
-	if ( !com) return 'nothing to redo'
+	if ( !this.redos[this.x]) return 'nothing to redo'
 	if (this.edit.drag) return 'not available under dragging'
 	if (test) return
-	com.call(this, true), this.x++
+	this.redos[this.x++].call(this)
 	this.edit.Unsave(1)
 },
 
 undo: function (test)
 {
-	var x = this.x
-	if ( !x) return 'nothing to undo'
+	if ( !this.x) return 'nothing to undo'
 	if (this.edit.drag) return 'not available under dragging'
 	if (test) return
-	var r = this.coms[x], com = this.coms[this.x = x - 1]
-	com.call(this, false)
+	this.undos[--this.x].call(this)
 	this.edit.Unsave(-1)
 },
 
@@ -63,12 +63,14 @@ Name: function (v, test)
 	if ( !now) return 'can not change yield'
 	if (test) return
 	var u = v || now.uNext.uNonyield()
-	this.go(function (redo)
+	this.go(function ()
 	{
-		if (redo)
-			v || now.unityTo(now), now.Name(v)
-		else
-			v || now.unityTo(u), now.Name(m)
+		v || now.unityTo(now), now.Name(v)
+		this.edit.Now(now)
+	},
+	function ()
+	{
+		v || now.unityTo(u), now.Name(m)
 		this.edit.Now(now)
 	})
 },
@@ -88,12 +90,13 @@ input: function (inner, test)
 		R = z.rows.indexOf(now.row), D = now.row.indexOf(now) + 1
 	while (D > 0 && z.rows[R][D - 1].yield)
 		D--
-	this.go(function (redo)
+	this.go(function ()
 	{
-		if (redo)
-			d.addTo(z, R, D), this.edit.Now(d)
-		else
-			d.unadd(R, D), this.edit.Now(now)
+		d.addTo(z, R, D), this.edit.Now(d)
+	},
+	function ()
+	{
+		d.unadd(R, D), this.edit.Now(now)
 	})
 },
 
@@ -111,12 +114,13 @@ datum: function (inner, test)
 		D >= 4 && (R++, D = -1)
 	else
 		R = z.rows.indexOf(now.row), D = now.row.indexOf(now) + 1
-	this.go(function (redo)
+	this.go(function ()
 	{
-		if (redo)
-			d.addTo(z, R, D), this.edit.Now(d)
-		else
-			d.unadd(R, D < 0 ? 0 : D), this.edit.Now(now)
+		d.addTo(z, R, D), this.edit.Now(d)
+	},
+	function ()
+	{
+		d.unadd(R, D < 0 ? 0 : D), this.edit.Now(now)
 	})
 },
 
@@ -135,12 +139,13 @@ output: function (inner, test)
 		R = z.rows.indexOf(now.row), D = now.row.indexOf(now) + 1
 	while (D > 0 && z.rows[R][D - 1].yield)
 		D--
-	this.go(function (redo)
+	this.go(function ()
 	{
-		if (redo)
-			d.addTo(z, R, D), this.edit.Now(d)
-		else
-			d.unadd(R, D), this.edit.Now(now)
+		d.addTo(z, R, D), this.edit.Now(d)
+	},
+	function ()
+	{
+		d.unadd(R, D), this.edit.Now(now)
 	})
 },
 
@@ -162,18 +167,18 @@ early: function (e, test)
 	if (test) return
 	var R0 = rs.indexOf(now.row), D0 = now.row.indexOf(now)
 	var unrow = R != R0 && now.row.length == 1
-	R == R0 && D > D0 && D--
-	e = null
-	this.go(function (redo)
+	R == R0 && D > D0 && D--, e = null
+	this.go(function ()
 	{
-		if (redo)
-			rs[R0].splice(D0, 1), rs[R].splice(D, 0, now), now.row = rs[R],
-			unrow && (z.ox--, rs.splice(R0, 1)),
-			z.show(-1), this.edit.Now(now)
-		else
-			unrow && (z.ox++, rs.splice(R0, 0, Row(z, []))),
-			rs[R].splice(D, 1), rs[R0].splice(D0, 0, now), now.row = rs[R0],
-			z.show(-1), this.edit.Now(now)
+		rs[R0].splice(D0, 1), rs[R].splice(D, 0, now), now.row = rs[R]
+		unrow && (z.ox--, rs.splice(R0, 1))
+		z.show(-1), this.edit.Now(now)
+	},
+	function ()
+	{
+		unrow && (z.ox++, rs.splice(R0, 0, Row(z, [])))
+		rs[R].splice(D, 1), rs[R0].splice(D0, 0, now), now.row = rs[R0]
+		z.show(-1), this.edit.Now(now)
 	})
 },
 
@@ -194,18 +199,18 @@ later: function (l, test)
 	var rs = z.rows, R = rs.indexOf(l.row), D = l.row.indexOf(l) + 1
 	var R0 = rs.indexOf(now.row), D0 = now.row.indexOf(now)
 	var unrow = R != R0 && rs[R0].length == 1
-	R == R0 && D > D0 && D--
-	l = null
-	this.go(function (redo)
+	R == R0 && D > D0 && D--, l = null
+	this.go(function ()
 	{
-		if (redo)
-			rs[R0].splice(D0, 1), rs[R].splice(D, 0, now), now.row = rs[R],
-			unrow && (z.ox--, rs.splice(R0, 1)),
-			z.show(-1), this.edit.Now(now)
-		else
-			unrow && (z.ox++, rs.splice(R0, 0, Row(z, []))),
-			rs[R].splice(D, 1), rs[R0].splice(D0, 0, now), now.row = rs[R0],
-			z.show(-1), this.edit.Now(now)
+		rs[R0].splice(D0, 1), rs[R].splice(D, 0, now), now.row = rs[R]
+		unrow && (z.ox--, rs.splice(R0, 1))
+		z.show(-1), this.edit.Now(now)
+	},
+	function ()
+	{
+		unrow && (z.ox++, rs.splice(R0, 0, Row(z, [])))
+		rs[R].splice(D, 1), rs[R0].splice(D0, 0, now), now.row = rs[R0]
+		z.show(-1), this.edit.Now(now)
 	})
 },
 
@@ -224,18 +229,22 @@ earlyRow: function (e, test)
 	var rs = z.rows, R = rs.indexOf(e.row)
 	var R0 = rs.indexOf(now.row), D0 = now.row.indexOf(now)
 	var unrow = now.row.length == 1
-	unrow && R > R0 && R--
-	e = null
-	this.go(function (redo)
+	unrow && R > R0 && R--, e = null
+	this.go(function ()
 	{
-		if (redo)
-			unrow ? rs.splice(R, 0, rs.splice(R0, 1)[0]) :
-				(z.ox++, rs[R0].splice(D0, 1), rs.splice(R, 0, now.row = Row(z, [ now ]))),
-			z.show(-1), this.edit.Now(now)
+		if (unrow)
+			rs.splice(R, 0, rs.splice(R0, 1)[0])
 		else
-			unrow ? rs.splice(R0, 0, rs.splice(R, 1)[0]) :
-				(z.ox--, rs.splice(R, 1), rs[R0].splice(D0, 0, now), now.row = rs[R0]),
-			z.show(-1), this.edit.Now(now)
+			z.ox++, rs[R0].splice(D0, 1), rs.splice(R, 0, now.row = Row(z, [ now ]))
+		z.show(-1), this.edit.Now(now)
+	},
+	function ()
+	{
+		if (unrow)
+			rs.splice(R0, 0, rs.splice(R, 1)[0])
+		else
+			z.ox--, rs.splice(R, 1), rs[R0].splice(D0, 0, now), now.row = rs[R0]
+		z.show(-1), this.edit.Now(now)
 	})
 },
 
@@ -254,18 +263,22 @@ laterRow: function (l, test)
 	var rs = z.rows, R = rs.indexOf(l.row) + 1
 	var R0 = rs.indexOf(now.row), D0 = now.row.indexOf(now)
 	var unrow = now.row.length == 1
-	unrow && R > R0 && R--
-	l = null
-	this.go(function (redo)
+	unrow && R > R0 && R--, l = null
+	this.go(function ()
 	{
-		if (redo)
-			unrow ? rs.splice(R, 0, rs.splice(R0, 1)[0]) :
-				(z.ox++, rs[R0].splice(D0, 1), rs.splice(R, 0, now.row = Row(z, [ now ]))),
-			z.show(-1), this.edit.Now(now)
+		if (unrow)
+			rs.splice(R, 0, rs.splice(R0, 1)[0])
 		else
-			unrow ? rs.splice(R0, 0, rs.splice(R, 1)[0]) :
-				(z.ox--, rs.splice(R, 1), rs[R0].splice(D0, 0, now), now.row = rs[R0]),
-			z.show(-1), this.edit.Now(now)
+			z.ox++, rs[R0].splice(D0, 1), rs.splice(R, 0, now.row = Row(z, [ now ]))
+		z.show(-1), this.edit.Now(now)
+	},
+	function ()
+	{
+		if (unrow)
+			rs.splice(R0, 0, rs.splice(R, 1)[0])
+		else
+			z.ox--, rs.splice(R, 1), rs[R0].splice(D0, 0, now), now.row = rs[R0]
+		z.show(-1), this.edit.Now(now)
 	})
 },
 
@@ -285,13 +298,14 @@ unity: function (u, test)
 	if ( !test && this.edit.drag) return 'not available while dragging'
 	if (test) return
 	var nowu = now.uNext.uNonyield()
-	this.go(function (redo)
+	this.go(function ()
 	{
-		if (redo)
-			now.unityTo(u)
-		else
-			now.unityTo(nowu), now.Name(m),
-			um || (u.unityTo(u), u.Name(um)) // unity self if no name
+		now.unityTo(u), this.edit.Now(now)
+	},
+	function ()
+	{
+		now.unityTo(nowu), now.Name(m)
+		um || (u.unityTo(u), u.Name(um)) // unity self if no name
 		this.edit.Now(now)
 	})
 },
@@ -320,13 +334,13 @@ baseDatum: function (b, test)
 	if ( !test && this.edit.drag) return 'not available while dragging'
 	if (test) return
 	var w = new Wire, w0
-	this.go(function (redo)
+	this.go(function ()
 	{
-		if (redo)
-			w0 = b.agent(w, now)
-		else
-			w0 ? b.agent(w0, now) : b.unagent(w)
-		this.edit.Now(now)
+		w0 = b.agent(w, now), this.edit.Now(now)
+	},
+	function ()
+	{
+		w0 ? b.agent(w0, now) : b.unagent(w), this.edit.Now(now)
 	})
 },
 
@@ -344,13 +358,13 @@ agentDatum: function (a, test)
 	if ( !test && this.edit.drag) return 'not available while dragging'
 	if (test) return
 	var w = new Wire, w0
-	this.go(function (redo)
+	this.go(function ()
 	{
-		if (redo)
-			w0 = now.agent(w, a)
-		else
-			w0 ? now.agent(w0, a) : now.unagent(w)
-		this.edit.Now(now)
+		w0 = now.agent(w, a), this.edit.Now(now)
+	},
+	function ()
+	{
+		w0 ? now.agent(w0, a) : now.unagent(w), this.edit.Now(now)
 	})
 },
 
@@ -367,18 +381,17 @@ baseWire: function (b, test)
 	if ( !test && this.edit.drag) return 'not available while dragging'
 	if (test) return
 	var w = new Wire, w0
-	this.go(function (redo)
+	this.go(function ()
 	{
-		if (redo)
-			now.base.unagent(now),
-			w0 = b.agent(w, now.agent),
-			this.edit.Now(w)
-		else
-		{
-			w0 ? b.agent(w0, now.agent) : b.unagent(w)
-			now.base.agent(now, now.agent, false)
-			this.edit.Now(now)
-		}
+		now.base.unagent(now)
+		w0 = b.agent(w, now.agent)
+		this.edit.Now(w)
+	},
+	function ()
+	{
+		w0 ? b.agent(w0, now.agent) : b.unagent(w)
+		now.base.agent(now, now.agent, false)
+		this.edit.Now(now)
 	})
 },
 
@@ -395,18 +408,17 @@ agentWire: function (a, test)
 	if ( !test && this.edit.drag) return 'not available while dragging'
 	if (test) return
 	var w = new Wire, w0
-	this.go(function (redo)
+	this.go(function ()
 	{
-		if (redo)
-			now.base.unagent(now),
-			w0 = now.base.agent(w, a),
-			this.edit.Now(w)
-		else
-		{
-			w0 ? now.base.agent(w0, a) : now.base.unagent(w)
-			now.base.agent(now, now.agent, false)
-			this.edit.Now(now)
-		}
+		now.base.unagent(now)
+		w0 = now.base.agent(w, a)
+		this.edit.Now(w)
+	},
+	function ()
+	{
+		w0 ? now.base.agent(w0, a) : now.base.unagent(w)
+		now.base.agent(now, now.agent, false)
+		this.edit.Now(now)
 	})
 },
 
@@ -419,13 +431,13 @@ trialVeto: function (tv, test)
 	if (this.edit.drag) return 'not available while dragging'
 	if (test) return
 	tv0 == tv && (tv = 0)
-	this.go(function (redo)
+	this.go(function ()
 	{
-		if (redo)
-			now.Tv(tv)
-		else
-			now.Tv(tv0)
-		this.edit.Now(now)
+		now.Tv(tv), this.edit.Now(now)
+	},
+	function ()
+	{
+		now.Tv(tv0), this.edit.Now(now)
 	})
 },
 
@@ -440,14 +452,16 @@ nonyieldDatum: function (test)
 	if ( !now.yield) return 'must be yield'
 	if (this.edit.drag) return 'not available while dragging'
 	if (test) return
-	this.go(function (redo)
+	this.go(function ()
 	{
-		if (redo)
-			for (z = now; (zz = z).yield; z = z.zone)
-				z.yield = 0, z.show(-1)
-		else
-			for (z = now; z != zz; z = z.zone)
-				z.yield = 1, z.show(-1)
+		for (z = now; (zz = z).yield; z = z.zone)
+			z.yield = 0, z.show(-1)
+		this.edit.Now(now)
+	},
+	function ()
+	{
+		for (z = now; z != zz; z = z.zone)
+			z.yield = 1, z.show(-1)
 		this.edit.Now(now)
 	})
 },
@@ -458,24 +472,22 @@ nonyieldWire: function (test)
 	if ( !now.yield) return 'must be yield'
 	if (this.edit.drag) return 'not available while dragging'
 	if (test) return
-	this.go(function (redo)
+	this.go(function ()
 	{
-		if (redo)
-		{
-			now.yield = 0
-			for (bz = now.base; (bzz = bz).yield; bz = bz.zone)
-				bz.yield = 0, bz.show(-1)
-			for (az = now.agent; (azz = az).yield; az = az.zone)
-				az.yield = 0, az.show(-1)
-		}
-		else
-		{
-			now.yield = 1
-			for (bz = now.base; bz != bzz; bz = bz.zone)
-				bz.yield = 1, bz.show(-1)
-			for (az = now.agent; az != azz; az = az.zone)
-				az.yield = 1, az.show(-1)
-		}
+		now.yield = 0
+		for (bz = now.base; (bzz = bz).yield; bz = bz.zone)
+			bz.yield = 0, bz.show(-1)
+		for (az = now.agent; (azz = az).yield; az = az.zone)
+			az.yield = 0, az.show(-1)
+		this.edit.Now(now), now.showing = true, edit.show(true)
+	},
+	function ()
+	{
+		now.yield = 1
+		for (bz = now.base; bz != bzz; bz = bz.zone)
+			bz.yield = 1, bz.show(-1)
+		for (az = now.agent; az != azz; az = az.zone)
+			az.yield = 1, az.show(-1)
 		this.edit.Now(now), now.showing = true, edit.show(true)
 	})
 },
@@ -490,12 +502,13 @@ breakRow: function (test)
 	if (this.edit.drag) return 'not available while dragging'
 	if (test) return
 	var R = now.zone.rows.indexOf(now.row)
-	this.go(function (redo)
+	this.go(function ()
 	{
-		if (redo)
-			now.zone.breakRow(R, D), this.edit.Now(now)
-		else
-			now.zone.mergeRow(R), this.edit.Now(now)
+		now.zone.breakRow(R, D), this.edit.Now(now)
+	},
+	function ()
+	{
+		now.zone.mergeRow(R), this.edit.Now(now)
 	})
 },
 
@@ -524,15 +537,15 @@ removeDatum: function (test)
 	if (test) return
 	var z = now.zone, rs = z.rows
 	var R = rs.indexOf(now.row), D = now.row.indexOf(now), unrow
-	this.go(function (redo)
+	this.go(function ()
 	{
-		if (redo)
-			unrow = now.unadd(R, D),
-			this.edit.Now(z.ox < 0 ? z
-				: rs[R][D] || rs[R + 1] && rs[R + 1][0]
-				|| rs[R][D - 1] || ArrayLast(rs[R - 1]))
-		else
-			now.addTo(z, R, unrow ? -1 : D), this.edit.Now(now)
+		unrow = now.unadd(R, D)
+		this.edit.Now(z.ox < 0 ? z :
+			rs[R][D] || rs[R + 1] && rs[R + 1][0] || rs[R][D - 1] || ArrayLast(rs[R - 1]))
+	},
+	function ()
+	{
+		now.addTo(z, R, unrow ? -1 : D), this.edit.Now(now)
 	})
 },
 
@@ -546,12 +559,13 @@ removeLeftDatum: function (test)
 	{
 		if (this.edit.drag) return 'not available while dragging'
 		if (test) return
-		this.go(function (redo)
+		this.go(function ()
 		{
-			if (redo)
-				D = z.mergeRow(R - 1), this.edit.Now(now)
-			else
-				z.breakRow(R - 1, D), this.edit.Now(now)
+			D = z.mergeRow(R - 1), this.edit.Now(now)
+		},
+		function ()
+		{
+			z.breakRow(R - 1, D), this.edit.Now(now)
 		})
 	}
 	else
@@ -562,12 +576,13 @@ removeLeftDatum: function (test)
 		if (d.yield) return 'can not change yield'
 		if (this.edit.drag) return 'not available while dragging'
 		if (test) return
-		this.go(function (redo)
+		this.go(function ()
 		{
-			if (redo)
-				d.unadd(R, D - 1), this.edit.Now(now)
-			else
-				d.addTo(z, R, D - 1), this.edit.Now(now)
+			d.unadd(R, D - 1), this.edit.Now(now)
+		},
+		function ()
+		{
+			d.addTo(z, R, D - 1), this.edit.Now(now)
 		})
 	}
 },
@@ -582,12 +597,13 @@ removeRightDatum: function (test)
 	{
 		if (this.edit.drag) return 'not available while dragging'
 		if (test) return
-		this.go(function (redo)
+		this.go(function ()
 		{
-			if (redo)
-				D = z.mergeRow(R), this.edit.Now(now)
-			else
-				z.breakRow(R, D), this.edit.Now(now)
+			D = z.mergeRow(R), this.edit.Now(now)
+		},
+		function ()
+		{
+			z.breakRow(R, D), this.edit.Now(now)
 		})
 	}
 	else
@@ -598,12 +614,13 @@ removeRightDatum: function (test)
 		if (d.yield) return 'can not change yield'
 		if (this.edit.drag) return 'not available while dragging'
 		if (test) return
-		this.go(function (redo)
+		this.go(function ()
 		{
-			if (redo)
-				d.unadd(R, D + 1), this.edit.Now(now)
-			else
-				d.addTo(z, R, D + 1), this.edit.Now(now)
+			d.unadd(R, D + 1), this.edit.Now(now)
+		},
+		function ()
+		{
+			d.addTo(z, R, D + 1), this.edit.Now(now)
 		})
 	}
 },
@@ -616,14 +633,15 @@ removeWire: function (test)
 	if (now.yield) return 'can not change yield'
 	if (this.edit.drag) return 'not available while dragging'
 	if (test) return
-	this.go(function (redo)
+	this.go(function ()
 	{
-		if (redo)
-			this.edit.Now(now.keyPrev || now.agent),
-			now.base.unagent(now)
-		else
-			now.base.agent(now, now.agent, false),
-			this.edit.Now(now)
+		this.edit.Now(now.keyPrev || now.agent)
+		now.base.unagent(now)
+	},
+	function ()
+	{
+		now.base.agent(now, now.agent, false)
+		this.edit.Now(now)
 	})
 },
 

@@ -193,13 +193,13 @@ _show: function ()
 				else if (drag == com.earlyRow || drag == com.laterRow)
 					draw.strokeRect(Dx - h.w / 2, Dy, h.w, 0)
 			if (drag == com.base
-				&& (x = Dx - dx, y = Dy - dy, z = Math.sqrt(x * x + y * y)) >= 1)
-				x *= 5 / z, y *= 5 / z, draw.beginPath(), 
+					&& (x = Dx - dx, y = Dy - dy, z = Math.sqrt(x * x + y * y)) >= 1)
+				x *= 5 / z, y *= 5 / z, draw.beginPath(),
 				draw.moveTo(dx + x + x - y, dy + y + y + x),
 				draw.lineTo(dx + x + x + y, dy + y + y - x),
 				draw.lineTo(dx, dy), draw.fill()
 			else if (drag == com.agent
-				&& (x = dx - Dx, y = dy - Dy, z = Math.sqrt(x * x + y * y)) >= 1)
+					&& (x = dx - Dx, y = dy - Dy, z = Math.sqrt(x * x + y * y)) >= 1)
 				x *= 5 / z, y *= 5 / z, draw.beginPath(),
 				draw.moveTo(Dx + x + x - y, Dy + y + y + x),
 				draw.lineTo(Dx + x + x + y, Dy + y + y - x),
