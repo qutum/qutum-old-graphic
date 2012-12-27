@@ -28,17 +28,17 @@ Datum.prototype =
 edit: null, // null for unadd
 zone: null, // null for zonest
 deep: 1, // zone.deep + 1
-io: 0, // <0 input >0 output 0 neither input nor output
+io: 0, // <0 input >0 output 0 nonput
 unity: 0, // >0 for layer 1 <0 for layer 2
 uNext: null, // next unity
 uPrev: null, // previous unity
 gene: false,
-tv: 0, // >0 trial <0 veto 0 neither
+tv: 0, // <0 trial >0 veto 0 neither
 zv: false, // zoner is veto
-bzer: null, // innermost non output zoner or this, as base zoner
-azer: null, // innermost non input zoner or this, as agent zoner
-bs: null, // [Wire]
-as: null, // [Wire]
+bzer: null, // innermost nonput or input zoner, or this, as base zoner
+azer: null, // innermost nonput or output zoner, or this, as agent zoner
+bs: null, // [ Wire ]
+as: null, // [ Wire ]
 cycle: null, // cycle base
 layer: 0, // 0 for layer 1, 2 for layer 2
 row: null, // null for zonest
@@ -48,19 +48,19 @@ ws: null, // [ Wire inside this ]
 
 el: NaN, // small early, big later, asynchronous update
 mustRun: false, // must run or may run, as agent zoner
-yield: 0, // 0 nonyield >0 yield <0 yield while compiling
+yield: 0, // 0 nonyield >0 yield <0 old yield while compiling
 yR: 0,
 yD: 0,
 us: null, // { unity:Datum }
-bbs: null, // [Wiring]
-base0: 0, // the maximum deep of all outermost bases
+qs: null, // [ Quote ]
+base0: 0, // the innermost deep of all outermost base bases
 mn: 0, // match iteration
 
 name: '',
 nameY: 0, // text top
 nameR: 0, // with left and right margin of around 3px each
 nameH: 0, // with top and bottom margin of around 3px each
-err: '',
+err: null, // '' or [ '' or Datum... ]
 x: 0,
 y: 0,
 w: 0,
@@ -124,7 +124,7 @@ _addTo: function (deep)
 	for (var W = 0, w; w = this.as[W]; W++)
 		if (w.zone.deep < deep)
 			w.agent.bs.push(w), w.addTo()
-	for (var R = 0, r; r = this.rows[R]; X++)
+	for (var R = 0, r; r = this.rows[R]; R++)
 		for (var D = 0, d; d = r[D]; D++)
 			d._addTo(deep)
 },
@@ -154,11 +154,11 @@ _unadd: function (deep)
 	this.uNext != this && this.unityTo(this, true)
 	for (var s = this.bs, W = 0, Q = 0, w; w = s[Q] = s[W]; W++, Q++)
 		if (w.zone.deep < deep)
-			ArrayRem(w.base.as, w), w.unadd(), w.yield && Q--,
+			ArrayRem(w.base.as, w), w.unadd(), w.yield && Q--
 	s.length = Q
 	for (var s = this.as, W = 0, Q = 0, w; w = s[Q] = s[W]; W++, Q++)
 		if (w.zone.deep < deep)
-			ArrayRem(w.agent.bs, w), w.unadd(), w.yield && Q--,
+			ArrayRem(w.agent.bs, w), w.unadd(), w.yield && Q--
 	s.length = Q
 	for (var R = 0, r; r = this.rows[R]; R++)
 		for (var D = 0, d; d = r[D]; D++)
@@ -350,14 +350,12 @@ layout: function (force)
 	var nr = this.nameR, nh = this.nameH
 	if (this.ox < 0)
 	{
-		this.w = Math.max(SIZE0, nr)
-		this.h = Math.max(SIZE0, nh)
+		this.w = Math.max(SIZE0, nr), this.h = Math.max(SIZE0, nh)
 		this.nameY = 2
 	}
 	else if (this.detail == 2)
 	{
-		this.w = Math.max(SIZE0, nr)
-		this.h = Math.max(SIZE0, nh + 6)
+		this.w = Math.max(SIZE0, nr), this.h = Math.max(SIZE0, nh + 6)
 		this.nameY = 2
 		w2 = this.w >> 1, h2 = nh || this.h >> 1
 		rs[0].layout(0, w2, w2, 0)
@@ -377,11 +375,9 @@ layout: function (force)
 			w = Math.max(w, r.layoutW())
 		r = rs[0]
 		if (r.length && nr > NAME_WIDTH)
-			r.layout(1, 0, w, 0),
-			h = r.h + 3
+			r.layout(1, 0, w, 0), h = r.h + 3
 		else
-			r.layout(1, nr, w, 0),
-			h = 0
+			r.layout(1, nr, w, 0), h = 0
 		this.nameY = h + 2
 		h = Math.max(h + nh, r.h + SPACE)
 		for (var R = 1; r = rs[R]; R++)
@@ -411,11 +407,11 @@ _show: function (draw, X, Y, W, H)
 		return
 	draw.translate(-X, -Y)
 
-	var edit = this.edit, io = this.io, s = this.rows, R, r, D, d, x, y, rh, dw, dh
+	var edit = this.edit, io = this.io, R, r, D, d, x, y, rh, dw, dh
 
 	draw.fillStyle = io < 0 ? '#fbf6ff' : io > 0 ? '#f3f8ff' : '#f9fff9'
 	if (this.detail > 2 && this.ox > 0)
-		for (R = this.searchRow(Y), R ^= R >> 31, y = 0; (r = s[R]) && y < Y + H; R++)
+		for (R = this.searchRow(Y), R ^= R >> 31, y = 0; (r = this.rows[R]) && y < Y + H; R++)
 		{
 			draw.fillRect(0, y, w, -y + (y = r.y))
 			rh = r.h
@@ -447,13 +443,15 @@ _show: function (draw, X, Y, W, H)
 	if (this.uNext != this && this.unity == edit.nav.unity)
 		draw.fillStyle = io < 0 ? '#ecf' : '#cce3ff',
 		draw.fillRect(2, this.nameY, this.nameR - 4, edit.nameH + 1)
-	if (D = this.tv)
-		draw.fillStyle = '#000', draw.fillText(D < 0 ? '?' : '!', 3, this.nameY + edit.nameH)
-	if (d = this.name)
-		draw.fillStyle = '#000', draw.fillText(d, (D && edit.nameTvW) + 3, this.nameY + edit.nameH)
+	if (this.tv)
+		draw.fillStyle = '#000',
+		draw.fillText(this.tv < 0 ? '?' : '!', 3, this.nameY + edit.nameH)
+	if (this.name)
+		draw.fillStyle = '#000',
+		draw.fillText(this.name, (this.tv && edit.nameTvW) + 3, this.nameY + edit.nameH)
 
 	draw.translate(X, Y)
-	for (R = 0; r = s[R]; R++)
+	for (R = 0; r = this.rows[R]; R++)
 		if (Y - r.y < r.h && Y + H > r.y)
 			for (D = 0; d = r[D]; D++)
 				d._show(draw, X - d.x, Y - d.y, W, H)
@@ -468,8 +466,8 @@ _show: function (draw, X, Y, W, H)
 		draw.translate(X, Y)
 
 	if (this.detail >= 3)
-		for (s = this.ws, x = 0; s[x]; x++)
-			s[x]._show(draw, X, Y, W, H)
+		for (var w, x = 0; w = this.ws[x]; x++)
+			w._show(draw, X, Y, W, H)
 },
 
 hit: function (xy, wire)

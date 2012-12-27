@@ -47,6 +47,13 @@ ArrayRem = function (s, v)
 	(v = s.indexOf(v)) >= 0 && s.splice(v, 1)
 	return s
 }
+ArrayFind = function (s, key, v)
+{
+	for (var i = 0, a; a = s[i]; i++)
+		if (a[key] == v)
+			return i
+	return null
+}
 
 Util =
 {

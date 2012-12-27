@@ -341,6 +341,7 @@ baseDatum: function (b, test)
 	if (b.bzer.azer.layer) return 'can not change layer 2'
 	if (b.yield) return 'can not change yield'
 	if (b == now) return 'must not be self'
+	if (ArrayFind(now.bs, 'base', b) != null) return 'already base'
 	if ( !test && this.edit.drag) return 'not available while dragging'
 	if (test) return
 	var w = new Wire, w0
@@ -365,6 +366,7 @@ agentDatum: function (a, test)
 	if (a.azer.bzer.layer) return 'can not change layer 2'
 	if (a.yield) return 'can not change yield'
 	if (a == now) return 'must not be self'
+	if (ArrayFind(now.as, 'agent', a) != null) return 'already agent'
 	if ( !test && this.edit.drag) return 'not available while dragging'
 	if (test) return
 	var w = new Wire, w0
@@ -388,6 +390,7 @@ baseWire: function (b, test)
 	if ( !b.deep) return 'must be datum'
 	if (b.yield) return 'can not change yield'
 	if (b == now.agent) return 'must not be self'
+	if (ArrayFind(now.agent.bs, 'base', b) != null) return 'already base'
 	if ( !test && this.edit.drag) return 'not available while dragging'
 	if (test) return
 	var w = new Wire, w0
@@ -415,6 +418,7 @@ agentWire: function (a, test)
 	if ( !a.deep) return 'must be datum'
 	if (a.yield) return 'can not change yield'
 	if (a == now.base) return 'must not be self'
+	if (ArrayFind(now.base.as, 'agent', a) != null) return 'already base'
 	if ( !test && this.edit.drag) return 'not available while dragging'
 	if (test) return
 	var w = new Wire, w0
