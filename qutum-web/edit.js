@@ -71,7 +71,7 @@ showTime: 0, // to show in milliseconds
 layouting: false, // to layout while showing
 scrolling: false, // to scroll while showing
 
-us: null, // { unity: Datum }
+us: null, // { unity:Datum }
 com: null, // commands
 unsave: 0, // >0 saved and redos <0 saved and undos
 fatal: false, // fatal error
@@ -133,7 +133,7 @@ _show: function ()
 		var com = this.com, n = this.now, dx, dy, Dx, Dy, x, y
 		if (drag)
 		{
-			var xys, d, D = Infinity, xs = [], ys = [], Xs = [], Ys = [], i, I
+			var xys, xs = [], ys = [], Xs = [], Ys = []
 			if (n.deep)
 				xs[1] = (xs[0] = n.offsetX()) + n.w, ys[0] = ys[1] = n.offsetY(),
 				drag == com.base ? null :
@@ -157,10 +157,7 @@ _show: function ()
 				xys = h.xys, Xs[1] = (Xs[0] = h.zone.offsetX()) + xys[xys.length -2],
 				Ys[1] = (Ys[0] = h.zone.offsetY()) + xys[xys.length -1],
 				Xs[0] += xys[0], Ys[0] += xys[1]
-			for (i = 0; i < xs.length; i++)
-				for (I = 0; I < Xs.length; I++)
-					if ((d = (d = xs[i] - Xs[I]) * d + (d = ys[i] - Ys[I]) * d) < D)
-						D = d, dx = xs[i], dy = ys[i], Dx = Xs[I], Dy = Ys[I]
+			Util.shortest(xs, ys, Xs, Ys), dx = xs[0], dy = ys[0], Dx = Xs[0], Dy = Ys[0]
 		}
 		var dom = this.dom, X = dom.scrollLeft, Y = dom.scrollTop,
 			W = Math.max(dom.clientWidth, 1), H = Math.max(dom.clientHeight, 1)
@@ -192,43 +189,70 @@ _show: function ()
 					draw.strokeRect(Dx, Dy - h.h / 2, 0, h.h)
 				else if (drag == com.earlyRow || drag == com.laterRow)
 					draw.strokeRect(Dx - h.w / 2, Dy, h.w, 0)
+			var xy
 			if (drag == com.base
-					&& (x = Dx - dx, y = Dy - dy, z = Math.sqrt(x * x + y * y)) >= 1)
-				x *= 5 / z, y *= 5 / z, draw.beginPath(),
+					&& (x = Dx - dx, y = Dy - dy, xy = Math.sqrt(x * x + y * y)) >= 1)
+				x *= 5 / xy, y *= 5 / xy, draw.beginPath(),
 				draw.moveTo(dx + x + x - y, dy + y + y + x),
 				draw.lineTo(dx + x + x + y, dy + y + y - x),
-				draw.lineTo(dx, dy), draw.fill()
+				draw.lineTo(dx, dy), draw.fill() // arrow
 			else if (drag == com.agent
-					&& (x = dx - Dx, y = dy - Dy, z = Math.sqrt(x * x + y * y)) >= 1)
-				x *= 5 / z, y *= 5 / z, draw.beginPath(),
+					&& (x = dx - Dx, y = dy - Dy, xy = Math.sqrt(x * x + y * y)) >= 1)
+				x *= 5 / xy, y *= 5 / xy, draw.beginPath(),
 				draw.moveTo(Dx + x + x - y, Dy + y + y + x),
 				draw.lineTo(Dx + x + x + y, Dy + y + y - x),
-				draw.lineTo(Dx, Dy), draw.fill()
+				draw.lineTo(Dx, Dy), draw.fill() // arrow
 			draw.lineWidth = 5, draw.lineCap = 'round', draw.globalAlpha = 0.375
 			draw.beginPath(), draw.moveTo(dx, dy), draw.lineTo(Dx, Dy)
 			draw.stroke(), draw.globalAlpha = 1
 		}
-		if ((this.drag ? this.dragerr : h.err) &&
-			(dx = this.hitX - Util.pageX(this.whole), dy = this.hitY - Util.pageY(this.whole),
-			dx >= z.x && dx < z.x + z.w && dy >= z.y && dy < z.y + z.h))
-		{
-			this.err.style.display = ''
-			this.err.textContent = this.drag ? this.dragerr : h.err
-			Dx = this.err.offsetWidth, Dy = this.err.offsetHeight
-			if ((x = dx + 10) + Dx > X + W && (dx = dx - 1 - Dx) >= X)
-				x = dx
-			if ((y = dy + 3) + Dy > Y + H && (dy = dy - 1 - Dy) >= Y)
-				y = dy
-			this.err.style.left = x + 'px', this.err.style.top = y + 'px'
-		}
-		else
-			this.err.style.display = 'none'
+		this._showErr(this.drag ? this.dragerr : h.err, X, Y, W, H)
 	}
 	finally
 	{
 		this.showTime = -time + (time = Date.now()) + time + 40
 		re && this.show()
 	}
+},
+
+_showErr: function (err, X, Y, W, H)
+{
+	this.err.style.display = 'none'
+	if ( !err)
+		return
+	var z = this.zonest, draw = this.draw
+	var hx = this.hitX - Util.pageX(this.whole), hy = this.hitY - Util.pageY(this.whole)
+	if (hx < z.x || hx >= z.x + z.w || hy < z.y || hy >= z.y + z.h)
+		return
+	this.err.style.display = '', this.err.innerHTML = ''
+	if (typeof err == 'string')
+		this.err.textContent = err
+	else
+		for (var E = 0, e; e = err[E]; E++)
+			Util.text(Util.add(this.err, 'span', typeof e == 'string' ? '' : 'ref'),
+				typeof e == 'string' ? e : e.name)
+	var x = hx + 10, y = hy + 3, w = this.err.offsetWidth, h = this.err.offsetHeight
+	x + w > X + W && hx - 1 - w >= X && (x = hx - 1 - w)
+	y + h > Y + H && hy - 1 - h >= Y && (y = hy - 1 - h)
+	this.err.style.left = x + 'px', this.err.style.top = y + 'px'
+
+	if (typeof err != 'string')
+		for (var E = 0, e, xs = [], ys = [], Xs = [], Ys = []; e = err[E]; E++)
+			if (typeof e != 'string')
+			{
+				var n = this.err.childNodes[E]
+				xs[0] = xs[2] = n.offsetLeft + x - X, ys[0] = ys[1] = n.offsetTop + y - Y + 2
+				xs[1] = xs[3] = xs[0] + n.offsetWidth, ys[2] = ys[3] = ys[0] + n.offsetHeight - 2
+				Xs[0] = Xs[2] = e.offsetX() - X, Ys[0] = Ys[1] = e.offsetY() - Y
+				Xs[1] = Xs[3] = Xs[0] + e.w, Ys[2] = Ys[3] = Ys[0] + e.h
+				draw.lineWidth = 2, draw.lineCap = 'round', draw.globalAlpha = 0.75
+				draw.strokeStyle = '#c90', draw.beginPath()
+				draw.strokeRect(Xs[0] - 1, Ys[0] - 1, Xs[1] - Xs[0] + 2, Ys[2] - Ys[0] + 2)
+				draw.stroke(), draw.globalAlpha = 1
+				draw.strokeStyle = '#c00', draw.beginPath()
+				Util.shortest(xs, ys, Xs, Ys)
+				draw.moveTo(xs[0], ys[0]), draw.lineTo(Xs[0], Ys[0]), draw.stroke()
+			}
 },
 
 Hit: function (e)

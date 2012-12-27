@@ -148,6 +148,18 @@ pageY: function (o)
 	return y
 },
 
+shortest: function (xs, ys, Xs, Ys)
+{
+	var dx, dy, Dx, Dy
+	for (var i = 0, D = 1/0; i < xs.length; i++)
+		for (var I = 0, d; I < Xs.length; I++)
+			if (d = (d = xs[i] - Xs[I]) * d + (d = ys[i] - Ys[I]) * d, d < D)
+				D = d, dx = xs[i], dy = ys[i], Dx = Xs[I], Dy = Ys[I]
+	if (dx != null)
+		xs[0] = dx, ys[0] = dy, Xs[0] = Dx, Ys[0] = Dy
+	return dx != null
+},
+
 saveN: function (out, n)
 	// Webkit localStorage can't save \0 and Firefox \ud800-\udfff \ufffe \uffff
 {
