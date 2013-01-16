@@ -10,44 +10,46 @@ Compile = function (edit)
 {
 	edit.compileTime = 0
 	var time = Date.now()
-	var log = $info('compile ')
+	var log = Info('compile ')
 	edit.fatal = true, edit.errorN = 0
 	datum1(edit.zonest)
 	datum2(edit.zonest)
 	while (datum3(edit.zonest, edit.zonest.mn))
 		;
 	datum4(edit.zonest)
-	$logmore(log), $info(Date.now() - time, 'ms')
+	LogTo(log), Info(Date.now() - time, 'ms')
 	edit.fatal = false
 }
 Compile.wire1 = wire1
 
 function datum1(d)
 {
-	if (d.gene != (d.gene =
-		d.io >= 0 && ( !d.zone || d.zone.gene && d.bs.length == 0)))
+	if (d.gene != (d.gene = d.io >= 0 && ( !d.zone || d.zone.gene && d.bs.length == 0)))
 		d.show(-1)
 	d.zv = d.zone != null && (d.zone.tv > 0 || d.zone.zv)
 	d.cycle = null
+	d.yield && (d.yield = -1) // old yield
+	d.us = {}
+	d.qs ? d.qs.length = 0 : d.qs = []
 	if (d.ox > 0)
 	{
 		for (var R = 0, el = 0, r; r = d.rows[R]; R++)
 			for (var D = 0, dd; dd = r[D]; D++)
-				dd.el = ++el, dd.yield && (dd.yield = -1),
-				datum1(dd)
+				dd.el = ++el,
+				datum1(dd),
+				dd.uNext == dd || dd.yield && d.us[dd.unity] || (d.us[dd.unity] = dd)
 		for (var W = 0, w; w = d.ws[W]; W++)
-			w.yield && (w.yield = -1),
 			wire1(w)
 	}
-	d.bbs ? d.bbs.length = 0 : d.bbs = []
-	d.err && (d.err = '', d.show(-1))
+	d.err && (d.err = null, d.show(-1))
 }
 
 function wire1(w)
 {
+	w.yield && (w.yield = -1)
 	if (w.err != (w.err = wireError1(w)))
 		w.showing = true, w.edit.show(true)
-	w.err && (w.edit.errorN++)
+	w.err && w.edit.errorN++
 }
 
 function wireError1(w)
@@ -80,56 +82,49 @@ function wireError1(w)
 
 function datum2(d)
 {
-	d.us = {}
-	var bw // Wire
-	var w, wb, wbb, ww // Wiring
-	for (var W = 0; bw = d.bs[W]; W++)
-		if ( !bw.err && !bw.yield && bw.base == bw.zone)
-			d.cycle = bw.base
+	for (var W = 0, w; w = d.bs[W]; W++)
+		if ( !w.err && !w.yield && w.base == w.zone)
+			d.cycle = w.base
 	d.base0 = d.bs.length ? 1 : d.deep
-	for (var W = d.bs.length - 1; bw = d.bs[W]; W--)
-		if ( !bw.err && !bw.yield)
+	for (var W = d.bs.length - 1, w; w = d.bs[W]; W--)
+	{
+		if (w.err || w.yield)
+			continue;
+		var b = w.base
+		if (d.cycle && b != d.cycle)
 		{
-			if (d.cycle && bw.base != d.cycle)
-			{
-				bw.err = 'only one base allowed for cycle agent'
-				bw.showing = true
-				d.edit.show(true), d.edit.errorN++
-				continue;
-			}
-			w = new Wiring
-			d.bbs.push(w)
-			w.b = bw.base
-			w.deep0 = bw.zone.deep, w.deep9 = d.azer.deep - 1
-			d.base0 = Math.max(d.base0, Math.min(w.b.base0,
-				bw.base == bw.zone || bw.zb.io < 0 ? bw.zone.deep : bw.zb.deep))
-			for (var B = 0; wb = w.b.bbs[B]; B++)
-				if (wb.deep0 <= w.deep0)
-				B: {
-					for (var BB = 0; wbb = d.bbs[BB]; BB++)
-						if (wbb.b == wb.b)
-							break B // continue
-					ww = new Wiring
-					d.bbs.push(ww)
-					ww.b = wb.b
-					ww.deep0 = wb.deep0
-					ww.deep9 = wb.deep9 < w.deep0 ? wb.deep9 : w.deep9
-					ww.from = bw
-				}
+			w.err = 'only one base allowed for cycle agent' // only the cycle wire is no error
+			w.showing = true, d.edit.show(true), d.edit.errorN++
+			continue;
 		}
-//		namey.text = namey.text.replace(/:.*/, '') + ':' + base0 // TODO debug
+		var q = new Quote
+		d.qs.push(q)
+		q.b = b
+		q.deep0 = w.zone.deep, q.deep9 = d.azer.deep
+		d.base0 = Math.max(d.base0, Math.min(b.base0, // already set b.base0
+			w.zb.io < 0 ? w.zone.deep : w.zb.deep)) // same if cycle
+		for (var Q = 0, bq; bq = b.qs[Q]; Q++)
+			if (bq.deep0 <= q.deep0 // skip quotes that cross base edge
+				&& ArrayFind(d.qs, 'b', bq.b) == null)
+			{
+				var qq = new Quote
+				d.qs.push(qq)
+				qq.b = bq.b, qq.w = w
+				qq.deep0 = bq.deep0 // <= q.deep0
+				qq.deep9 = bq.deep9 <= q.deep0 ? bq.deep9 // bq outside q zone
+					: q.deep9 // bq cross q zone edge
+			}
+	}
 	for (var R = 0, r; r = d.rows[R]; R++)
 		for (var D = 0, dd; dd = r[D]; D++)
-			datum2(dd)
+			datum2(dd) // early before later, i.e. base base before agent agent
 	d.mn = 0
-	if (d.uNext != d && (!d.yield || !d.zone.us[d.unity]))
-		d.zone.us[d.unity] = d
 }
 
 function datum3(d, Mn)
 {
 	for (var R = d.ox, r; r = d.rows[R]; R--)
-		for (var D = 0, dd; dd = r[D]; D--)
+		for (var D = r.length - 1, dd; dd = r[D]; D--)
 			d.mn = Math.max(datum3(dd, Mn), d.mn)
 	if (d.ox > 0 && !d.tv)
 		for (var W = 0, w; w = d.bs[W]; W++)
@@ -138,93 +133,108 @@ function datum3(d, Mn)
 	return d.mn > Mn ? d.mn : 0
 }
 
+// base b in zone zb matchs agent a in zone za, return true if anything changes
 function match(zb, b, za, a, Mn)
 {
 	if (a.ox < 0)
 		return false
-	var _ = false, bd, W, w
-	for (var r = a.rows[0], D = 0, ad; ad = r[D]; D++)
-		if (ad.name && ad.yield >= 0)
-			if ((bd = matchBaseUnity(b, a, ad, Mn)) && !bd.err)
-				_ = match(ad, ad, bd, bd, Mn) || bd.mn > Mn || _,
-				b != zb && matchWire(zb, bd, za, ad, b)
-	for (var r = a.rows[a.ox], D = 0, ad; ad = r[D]; D++)
-		if (ad.tv >= 0 && ad.name && ad.yield >= 0)
+	Assert( !a.gene, 'never match a gene')
+	var change = false
+	for (var r = a.rows[0], D = 0, ai; ai = r[D]; D++)
+		if (ai.name && ai.yield >= 0) // skip no unity and old yield
 		{
-			bd = matchBaseUnity(b, a, ad, Mn)
-			if (bd && !bd.err)
-			{
-				for (w = null, W = ad.bs.length - 1; w = ad.bs[W]; W--)
-					if ( !w.err && !w.yield &&
-						(w.base == w.zone || w.base.bzer.io < 0 && !w.base.bzer.bs.length))
-						break;
-				_ = w && W < 0 || match(zb, bd, za, ad, Mn) || bd.mn > Mn || _
-			}
-			bd && bd.err || matchWire(zb, bd, za, ad, b)
+			var bi = searchBaseUnity(b, a, ai, Mn)
+			if (bi && !bi.err)
+				change = match(ai, ai, bi, bi, Mn) || bi.mn > Mn || change,
+				b != zb && matchWire(zb, bi, za, ai)
 		}
-	_ && (b.mn = a.mn = Mn + 1)
-	return _
+	for (var r = a.rows[a.ox], D = 0, ao; ao = r[D]; D++)
+		if (ao.tv >= 0 && ao.name && ao.yield >= 0) // skip trial and no unity and old yield
+		{
+			var bo = searchBaseUnity(b, a, ao, Mn)
+			if (bo && !bo.err)
+			{
+				for (var W = ao.bs.length - 1, w; w = ao.bs[W]; W--)
+					if ( !w.err && !w.yield)
+						if (w.base == w.zone)
+							break;
+						else
+						{
+							Assert(w.base.bzer.io < 0, 'base zoner must be input inside nongene')
+							if ( !w.base.bzer.bs.length)
+								break;
+						}
+				if (w || !ao.bs.length)
+					change = match(zb, bo, za, ao, Mn) || bo.mn > Mn || change
+					// TODO maybe bo.err ?
+			}
+			if ( !bo)
+				matchWire(zb, null, za, ao, b)
+			else if ( !bo.err)
+				matchWire(zb, bo, za, ao)
+		}
+	change && (b.mn = a.mn = Mn + 1)
+	return change
 }
 
-function matchBaseUnity(b, a, ad, Mn)
+// search the ad unity in base b or b cycle
+function searchBaseUnity(b, a, ad, Mn)
 {
-	var d = b.us[ad.unity], err
-	if (d && d.yield >= 0)
+	var bd = b.us[ad.unity]
+	if (bd && bd.yield >= 0)
 	{
-		if (d.tv <= 0 && ad.tv > 0 && !ad.err)
-			ad.err = "veto must be matched\n  by '"
-				+ b.name + "' and '" + d.name + "' inside",
+		if (bd.tv <= 0 && ad.tv > 0 && !ad.err)
+			ad.err = [ 'must not be veto to be matched\n  by ', bd ],
 			ad.show(-1), b.edit.errorN++
-		else if (d.tv > 0 && ad.tv <= 0 && !d.err)
-			d.err = (d.io < 0 ? "input must not be veto to match\n  '"
-				: "output must not be veto to match\n  '")
-				+ a.name + "' and '" + ad.name + "' inside",
-			d.show(-1), b.edit.errorN++
-		return d
+		else if (bd.tv > 0 && ad.tv <= 0 && !bd.err)
+			bd.err = [ 'must not be veto to match\n  ', ad ],
+			bd.show(-1), b.edit.errorN++
+		return bd
 	}
 	if (ad.tv > 0 && (b.gene || b.layer))
-		return null
-	for (var z = b; z.io > 0; z = z.zone)
-		if (z.unity == ad.unity)
-		{
-			if (b.cycle == z.zone)
-				return z // not yield
-			err = 'yield zone must be cycle agent of zone of\
-  innermost zone of same unity inside base zoner'
-			break;
-		}
-	if (d) // d.yield < 0
-		d.yield = 1,
-		d.Tv(ad.tv > 0 ? 1 : 0),
-		d.mn = Mn + 1
+		return null // don't yield veto inside gene or layer 2
+	var err
+// TODO why check this ? search ad unity in cycle base ?
+//	for (var z = b; z.io > 0; z = z.zone)
+//		if (z.unity == ad.unity)
+//		{
+//			if (b.cycle == z.zone)
+//				return z // not yield
+//			err = 'yield zone must be cycle agent of zone of\n\
+//  innermost zone of same unity inside base zoner'
+//			break;
+//		}
+	if (bd) // old yield
+		bd.yield = 1,
+		bd.Tv(ad.tv > 0 ? 1 : 0),
+		bd.mn = Mn + 1
 	else
 	{
-		d = new Datum(ad.io)
-		d.yield = 1
-		ad.tv > 0 && (d.tv = 1)
-		var r = ad.io < 0 ? 0 : b.ox < 0 ? 1 : b.ox
-		d.yR = r, d.yX = b.ox < 0 ? 0 : b.rows[r].length
-		d.addTo(b, d.yR, d.yX, false)
-		ad.uNext == ad && (a.us[ad.unity] = ad)
-		d.unityTo(ad), b.us[ad.unity] = d
-		d.us = {}, d.bbs = []
-		d.mn = Mn + 1
+		bd = new Datum(ad.io)
+		bd.yield = 1
+		ad.tv > 0 && (bd.tv = 1)
+		var r = bd.io < 0 ? 0 : b.ox < 0 ? 1 : b.ox
+		bd.addTo(b, r, b.ox < 0 ? 0 : b.rows[r].length)
+		ad.uNext == ad && (a.us[ad.unity] = ad), b.us[ad.unity] = bd
+		bd.unityTo(ad)
+		bd.us = {}, bd.qs = []
+		bd.mn = Mn + 1
 	}
-	if ((d.layer = b.layer))
-		d.err = 'Yield forbidden here',
-		d.show(-1), b.edit.errorN++
+	if ((bd.layer = b.layer))
+		bd.err = 'yield must not change layer 2',
+		bd.show(-1), b.edit.errorN++
 	else if (err)
-		d.err = err,
-		d.show(-1), b.edit.errorN++
-	return d
+		bd.err = err,
+		bd.show(-1), b.edit.errorN++
+	return bd
 }
 
 function matchWire(zb, b, za, a, b_)
 {
 	var a0b9 = a.deep, n = 0, awb, w
-	for (var W = 0, aw; aw = a.bbs[W]; W++)
-		if (a.azer.zone.deep == aw.deep9)
-			n++, aw.deep0 < a0b9 && (a0b9 = aw.deep0)
+	for (var Q = 0, aq; aq = a.qs[Q]; Q++)
+		if (a.azer.deep == aq.deep9)
+			n++, aq.deep0 < a0b9 && (a0b9 = aq.deep0)
 	if ( !n)
 		return
 	if ( !b)
@@ -236,14 +246,14 @@ function matchWire(zb, b, za, a, b_)
 		return
 	}
 	a0b9 = a0b9 - a.deep + b.deep, n = 0
-	for (var W = 0; bw = b.bbs[W]; W++)
+	for (var W = 0; bw = b.qs[W]; W++)
 	W: {
-		if (bw.from && bw.from.err || bw.deep9 < a0b9
+		if (bw.w && bw.w.err || bw.deep9 <= a0b9
 			|| bw.b != zb && bw.b.bzer.io >= 0 && bw.b.base0 <= a0b9)
 			continue;
 		n++
-		if ((awb = zb.deep > bw.deep0 ? bw.b : matchDatum(zb, bw.b, za)))
-			for (var WW = 0, aw; aw = a.bbs[WW]; WW++)
+		if ((awb = zb.deep > bw.deep0 ? bw.b : searchZoneUnity(zb, bw.b, za)))
+			for (var WW = 0, aw; aw = a.qs[WW]; WW++)
 				if (aw.b == awb)
 					break W // continue
 		WW: {
@@ -263,28 +273,29 @@ function matchWire(zb, b, za, a, b_)
 			b.edit.show(true), b.edit.errorN++
 	}
 	B: {
-		awb = matchDatum(zb, b, za)
-		for (var W = 0, aw; aw = a.bbs[W]; W++)
+		awb = searchZoneUnity(zb, b, za)
+		for (var W = 0, aw; aw = a.qs[W]; W++)
 			if (aw.b == awb)
-				break B // base outsite cycle agent and agent inside cycle agent
+				break B // base outside cycle agent and agent inside cycle agent
 		if ( !n && !b.err)
-			for (var W = 0, aw; aw = a.bbs[W]; W++)
+			for (var W = 0, aw; aw = a.qs[W]; W++)
 				if (aw.b != b)
 				{
-					b.err = "output must have base to match\n  '"
-						+ za.name + "' and '" + a.name + "' inside"
+					b.err = [ 'output must have base to match\n  ',
+						za, ' and ', a, ' inside' ]
 					b.show(-1), b.edit.errorN++
 					break;
 				}
 	}
 }
 
-function matchDatum(z, d, zz)
+// for d and zoners inside z, find their unities inside z2, return d unity
+function searchZoneUnity(z, d, z2)
 {
-	return d == z ? zz : (z = matchDatum(z, d.zone, zz)) && z.us[d.unity]
+	return d == z ? z2 : (z = searchZoneUnity(z, d.zone, z2)) && z.us[d.unity]
 }
 
-function datum4(d) // TODO bbs = null
+function datum4(d)
 {
 	for (var R = 0, r; r = d.rows[R]; R++)
 		for (var D = r.length - 1, dd; dd = r[D]; D--)
@@ -295,7 +306,7 @@ function datum4(d) // TODO bbs = null
 	for (var W = d.ws.length - 1, w; w = d.ws[W]; W--)
 		if (w.yield < 0)
 			w.base.unagent(w)
-	d.us = null
+	d.us = d.qs = null
 	var e = datumError4(d)
 	d.err || (d.err = e)
 	d.err && (d.show(-1), d.edit.errorN++)
@@ -305,7 +316,7 @@ function datumError4(d)
 {
 	d.mustRun = d.tv >= 0
 	if (d.io < 0 && !d.zone.zone && !d.layer)
-		return 'your input zone must not be zonest'
+		return 'can not change layer 2'
 	if (d.zv)
 		return d.io < 0 ? 'input must not be inside veto' :
 			d.io ? 'output must not be inside veto' : 'datum must not be inside veto'
