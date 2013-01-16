@@ -280,7 +280,7 @@ HitXY: function ()
 	var t = Date.now(), h = this.zonest.hit(
 		[ this.hitX - Util.pageX(this.whole), this.hitY - Util.pageY(this.whole) ])
 	t = Date.now() - t
-	t > 50 && $info('slow: zonest.hit')
+	t > 50 && Info('slow: zonest.hit')
 	return h
 },
 

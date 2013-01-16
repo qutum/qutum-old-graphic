@@ -17,9 +17,9 @@ Wire.prototype =
 edit: null,
 base: null,
 agent: null,
-zone: null,
-zb: null,
-za: null,
+zone: null, // common zone of zb and za, should be cycle zone or base.bzer.zone
+zb: null, // outermost zone of base, or base, inside wire, should be cycle zone or base.bzer
+za: null, // outermost zone of agent, or agent, inside wire
 yield: 0, // 0 nonyield >0 yield <0 yield while compiling // with error ?
 
 err: '',
@@ -39,17 +39,17 @@ addTo: function (b, a)
 		if (b == a)
 			throw 'wire self'
 		var d = b.deep - a.deep
-		var zb = this.base = b, za = this.agent = a
+		var zzb = b, zb = b, zza = a, za = a
 		while (d > 0)
-			b = (zb = b).zone, --d
+			zb = zzb, zzb = zb.zone, --d
 		while (d < 0)
-			a = (za = a).zone, ++d
-		while (b != a)
-			b = (zb = b).zone, a = (za = a).zone
-		this.edit = b.edit
-		this.zone = b
-		b.ws.push(this)
+			za = zza, zza = za.zone, ++d
+		while (zzb != zza)
+			zb = zzb, zzb = zb.zone, za = zza, zza = za.zone
+		this.base = b, this.agent = a
 		this.zb = zb, this.za = za
+		this.edit = zzb.edit
+		this.zone = zzb, zzb.ws.push(this)
 		this.yield || Compile.wire1(this) // skip layout if error
 	}
 	else

@@ -25,17 +25,21 @@ Log = function (s, clazz)
 	L = null
 	return l
 }
-$info = function (v)
+LogTo = function (log)
+{
+	L = log
+}
+Info = function (v)
 {
 	return Log(Array.prototype.join.call(arguments, ' '))
 }
-$err = function (v)
+Err = function (v)
 {
 	return Log(Array.prototype.join.call(arguments, ' '), 'err')
 }
-$logmore = function (log)
+Assert = function (v, err)
 {
-	L = log
+	v || Log('ASSERT ' + Array.prototype.slice.call(arguments, 1).join(' '), 'err')
 }
 
 ArrayLast = function (s)
@@ -80,15 +84,15 @@ on: function (dom, event, This, func, args, capture)
 	dom.addEventListener(event,
 		args===null ? function ()
 		{
-			try { var _; func.call(This); _ = true } finally { _ || $err('event error') }
+			try { var _; func.call(This); _ = true } finally { _ || Err('event error') }
 		}
 		: args ? function ()
 		{
-			try { var _; func.apply(This, args); _ = true } finally { _ || $err('event error') }
+			try { var _; func.apply(This, args); _ = true } finally { _ || Err('event error') }
 		}
 		: function (e)
 		{
-			try { var _; func.call(This, e); _ = true } finally { _ || $err('event error') }
+			try { var _; func.call(This, e); _ = true } finally { _ || Err('event error') }
 		},
 		!!capture)
 },
@@ -98,11 +102,11 @@ timer: function (time, This, func, args)
 	func.call.call
 	return setTimeout(args ? function ()
 		{
-			try { var _; func.apply(This, args); _ = true } finally { _ || $err('timer error') }
+			try { var _; func.apply(This, args); _ = true } finally { _ || Err('timer error') }
 		}
 		: function ()
 		{
-			try { var _; func.call(This); _ = true } finally { _ || $err('timer error') }
+			try { var _; func.call(This); _ = true } finally { _ || Err('timer error') }
 		},
 		time >= 0 ? time : 0)
 },

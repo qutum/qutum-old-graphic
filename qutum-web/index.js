@@ -76,6 +76,7 @@ function Load(key)
 
 function Save(key)
 {
+	Es[key] || Load(key)
 	var e = Es[key], z = Zs[key], out = e.save()
 	if (e.zonest.name == key.substr(key.indexOf('!') + 1))
 		Unsave()
