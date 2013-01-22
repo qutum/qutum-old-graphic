@@ -34,9 +34,9 @@ uNext: null, // next unity
 uPrev: null, // previous unity
 gene: false,
 tv: 0, // <0 trial >0 veto 0 neither
-zv: false, // zoner is veto
-bzer: null, // innermost nonput or input zoner, or this, as base zoner
-azer: null, // innermost nonput or output zoner, or this, as agent zoner
+zv: false, // outside zone is veto
+zb: null, // innermost outside nonput or input zones, or this, as zoner base
+za: null, // innermost outside nonput or output zones, or this, as zoner agent
 bs: null, // [ Wire ]
 as: null, // [ Wire ]
 cycle: null, // cycle base
@@ -47,13 +47,12 @@ ox: -1, // -1: no inner datum, >=1: output row index, == rows.length - 1
 ws: null, // [ Wire inside this ]
 
 el: NaN, // small early, big later, asynchronous update
-mustRun: false, // must run or may run, as agent zoner
+mustRun: false, // must run or may run, as zoner agent
 yield: 0, // 0 nonyield >0 yield <0 old yield while compiling
-yR: 0,
-yD: 0,
 us: null, // { unity:Datum }
 qs: null, // [ Quote ]
 base0: 0, // the innermost deep of all outermost base bases
+gzb: false, // gene, or has base and all zoner base zoner bases are gene
 mn: 0, // match iteration
 
 name: '',
@@ -80,8 +79,8 @@ addTo: function (z, R, D) // D < 0 to add row
 	{
 		this.deep = 1
 		this.gene = true
-		this.bzer = this
-		this.azer = this
+		this.zb = this
+		this.za = this
 		return this // zonest
 	}
 	this.edit = z.edit
@@ -98,15 +97,15 @@ addTo: function (z, R, D) // D < 0 to add row
 		this.zone = z
 		this.deep = z.deep + 1
 		if (this.io < 0)
-			this.bzer = this,
-			this.azer = z.io < 0 ? z.azer : z
+			this.zb = this,
+			this.za = z.io < 0 ? z.za : z
 		else if (this.io > 0)
 			this.gene = z.gene,
-			this.bzer = z.io > 0 ? z.bzer : z,
-			this.azer = this
+			this.zb = z.io > 0 ? z.zb : z,
+			this.za = this
 		else
 			this.gene = z.gene,
-			this.bzer = this.azer = this
+			this.zb = this.za = this
 	}
 	this._addTo(this.deep)
 	this.showing = 0 // drop last showing to force layout for redo

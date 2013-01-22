@@ -17,9 +17,9 @@ Wire.prototype =
 edit: null,
 base: null,
 agent: null,
-zone: null, // common zone of zb and za, should be cycle zone or base.bzer.zone
-zb: null, // outermost zone of base, or base, inside wire, should be cycle zone or base.bzer
-za: null, // outermost zone of agent, or agent, inside wire
+zone: null, // common zone of bz and az, should be cycle zone or base.zb.zone
+bz: null, // outermost zone of base, or base, should be cycle zone or base.zb
+az: null, // outermost zone of agent, or agent, be or inside wire zone
 yield: 0, // 0 nonyield >0 yield <0 yield while compiling // with error ?
 
 err: '',
@@ -39,17 +39,17 @@ addTo: function (b, a)
 		if (b == a)
 			throw 'wire self'
 		var d = b.deep - a.deep
-		var zzb = b, zb = b, zza = a, za = a
+		var bzz = b, bz = b, azz = a, az = a
 		while (d > 0)
-			zb = zzb, zzb = zb.zone, --d
+			bz = bzz, bzz = bz.zone, --d
 		while (d < 0)
-			za = zza, zza = za.zone, ++d
-		while (zzb != zza)
-			zb = zzb, zzb = zb.zone, za = zza, zza = za.zone
+			az = azz, azz = az.zone, ++d
+		while (bzz != azz)
+			bz = bzz, bzz = bz.zone, az = azz, azz = az.zone
 		this.base = b, this.agent = a
-		this.zb = zb, this.za = za
-		this.edit = zzb.edit
-		this.zone = zzb, zzb.ws.push(this)
+		this.bz = bz, this.az = az
+		this.edit = bzz.edit
+		this.zone = bzz, bzz.ws.push(this)
 		this.yield || Compile.wire1(this) // skip layout if error
 	}
 	else
@@ -79,16 +79,16 @@ layout: function (force)
 		return this.xys = null
 
 	var xys = this.xys = [], zone = this.zone, base = this.base, agent = this.agent,
-		zb = this.zb, za = this.za, bx, by, b5, bq, ax, ay, aw, a5, aq, x, y
+		bz = this.bz, az = this.az, bx, by, b5, bq, ax, ay, aw, a5, aq, x, y
 	bx = base.offsetX(zone), b5 = bx + base.w / 2
 	bq = base.w ? 1 : 0
 	if (base != zone)
-		by = this.err ? base.offsetY(zone) + base.h - bq : zb.y + zb.h - 1
+		by = this.err ? base.offsetY(zone) + base.h - bq : bz.y + bz.h - 1
 	x = agent.offsetX(zone), y = agent.offsetY(zone)
 	if (this.err || base == zone)
 		ax = x, ay = y, aw = agent.w, a5 = ax + aw / 2
 	else
-		ax = za.x, ay = za.y, aw = za.w, a5 = ax + aw / 2
+		ax = az.x, ay = az.y, aw = az.w, a5 = ax + aw / 2
 	aq = agent.w ? 1 : 0
 	if (b5 < ax && bx + base.w < a5)
 		bx += base.w - bq, aw = 0 // right of base, left of agent
@@ -104,15 +104,15 @@ layout: function (force)
 	{
 		ax = aw ? x - aq : x + aq, ay = y + aq
 		xys.push(x = aw ? ax + agent.w : ax, y = ay)
-		var azer = agent.azer, a = agent, r
-		for (; a != azer; a = a.zone)
+		var za = agent.za, a = agent, r
+		for (; a != za; a = a.zone)
 			ax -= a.x, ay -= a.y
-		while (a != za || base == zone)
+		while (a != az || base == zone)
 		{
 			Up: if (a.detail >= 2)
 			{
 				r = a.row
-				Hori: if (a != azer || agent == azer)
+				Hori: if (a != za || agent == za)
 					if (aw)
 					{
 						for (var D = r.length - 1; a != r[D]; D--)
@@ -129,7 +129,7 @@ layout: function (force)
 					}
 				xys.push(x, y = ay - a.y + r.y - S - SS * a.x / r.w)
 			}
-			if (a == za)
+			if (a == az)
 				break; // base == zone
 			ax -= a.x, ay -= a.y
 			a = a.zone
@@ -139,12 +139,12 @@ layout: function (force)
 		}
 		if (base == zone)
 			by = y
-		else if ((r = a.row) == zb.row)
+		else if ((r = a.row) == bz.row)
 		{
 			ax = x
 			if (ax == a.x + aq)
 				xys.push(ax -= S + S, y)
-			if (r[r.indexOf(a) - 1] == zb && base == zb)
+			if (r[r.indexOf(a) - 1] == bz && base == bz)
 				xys.push(ax, by)
 			else
 				xys.push(ax, ay = r.y + r.h + S + SS * bx / r.w, bx, ay)
@@ -154,7 +154,7 @@ layout: function (force)
 			ax = x, ay = r.y - S - SS * a.x / zone.w
 			xys.push(ax, ay)
 			var i = zone.rows.indexOf(r)
-			while ((r = zone.rows[--i]) != zb.row)
+			while ((r = zone.rows[--i]) != bz.row)
 			{
 				d = r[r.searchDatumX(ax)]
 				if (d && ax > d.x - S && ax < d.x + d.w + S)

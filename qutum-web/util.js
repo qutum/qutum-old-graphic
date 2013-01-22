@@ -20,8 +20,8 @@ Log = function (s, clazz)
 	if (l)
 		l.textContent = l.textContent + s
 	else
-		l = Util.add(log, 'div', clazz ? 'line ' + clazz : 'line'),
-		l.textContent = s, l.scrollIntoView()
+		l = Util.add(log, 'div'), l.textContent = s, l.scrollIntoView()
+	l.className = clazz ? 'line ' + clazz : 'line'
 	L = null
 	return l
 }
@@ -84,15 +84,15 @@ on: function (dom, event, This, func, args, capture)
 	dom.addEventListener(event,
 		args===null ? function ()
 		{
-			try { var _; func.call(This); _ = true } finally { _ || Err('event error') }
+			try { var _; func.call(This); _ = true } finally { _ || Err('event fatal') }
 		}
 		: args ? function ()
 		{
-			try { var _; func.apply(This, args); _ = true } finally { _ || Err('event error') }
+			try { var _; func.apply(This, args); _ = true } finally { _ || Err('event fatal') }
 		}
 		: function (e)
 		{
-			try { var _; func.call(This, e); _ = true } finally { _ || Err('event error') }
+			try { var _; func.call(This, e); _ = true } finally { _ || Err('event fatal') }
 		},
 		!!capture)
 },
@@ -102,11 +102,11 @@ timer: function (time, This, func, args)
 	func.call.call
 	return setTimeout(args ? function ()
 		{
-			try { var _; func.apply(This, args); _ = true } finally { _ || Err('timer error') }
+			try { var _; func.apply(This, args); _ = true } finally { _ || Err('timer fatal') }
 		}
 		: function ()
 		{
-			try { var _; func.call(This); _ = true } finally { _ || Err('timer error') }
+			try { var _; func.call(This); _ = true } finally { _ || Err('timer fatal') }
 		},
 		time >= 0 ? time : 0)
 },

@@ -59,18 +59,20 @@ Name: function (v, test)
 	if (m == v) return 'no change'
 	if (now.layer || now.unity < 0) return 'can not change layer 2'
 	if ( !v && now.yield) return 'can not change yield'
-	now = now.uNonyield()
-	if ( !now) return 'can not change yield'
+	var d = now.uNonyield()
+	if ( !d) return 'can not change yield'
 	if (test) return
-	var u = v || now.uNext.uNonyield()
+	var u = v && m || d.uNext.uNonyield()
 	this.go(function ()
 	{
-		v || now.unityTo(now), now.Name(v)
+		v || d.unityTo(d), d.Name(v)
+		now.edit || (now = d)
 		this.edit.Now(now)
 	},
 	function ()
 	{
-		v || now.unityTo(u), now.Name(m)
+		v && m || d.unityTo(u), d.Name(m)
+		now.edit || (now = d)
 		this.edit.Now(now)
 	})
 },
@@ -334,11 +336,11 @@ baseDatum: function (b, test)
 {
 	var now = this.edit.now
 	if ( !now.deep) return 'must be datum'
-	if (now.azer.bzer.layer) return 'can not change layer 2'
+	if (now.za.zb.layer) return 'can not change layer 2'
 	if (now.yield) return 'can not change yield'
 	if (test && !b) return
 	if ( !b.deep) return 'must be datum'
-	if (b.bzer.azer.layer) return 'can not change layer 2'
+	if (b.zb.za.layer) return 'can not change layer 2'
 	if (b.yield) return 'can not change yield'
 	if (b == now) return 'must not be self'
 	if (ArrayFind(now.bs, 'base', b) != null) return 'already base'
@@ -359,11 +361,11 @@ agentDatum: function (a, test)
 {
 	var now = this.edit.now
 	if ( !now.deep) return 'must be datum'
-	if (now.bzer.azer.layer) return 'can not change layer 2'
+	if (now.zb.za.layer) return 'can not change layer 2'
 	if (now.yield) return 'can not change yield'
 	if (test && !a) return
 	if ( !a.deep) return 'must be datum'
-	if (a.azer.bzer.layer) return 'can not change layer 2'
+	if (a.za.zb.layer) return 'can not change layer 2'
 	if (a.yield) return 'can not change yield'
 	if (a == now) return 'must not be self'
 	if (ArrayFind(now.as, 'agent', a) != null) return 'already agent'

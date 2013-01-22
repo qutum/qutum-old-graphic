@@ -18,6 +18,8 @@ Compile = function (edit)
 		;
 	datum4(edit.zonest)
 	LogTo(log), Info(Date.now() - time, 'ms')
+	if (edit.errorN > 0)
+		LogTo(log), Err(' ', edit.errorN, 'errors')
 	edit.fatal = false
 }
 Compile.wire1 = wire1
@@ -59,22 +61,22 @@ function wireError1(w)
 		return 'base must not be veto or inside'
 	if (agent.tv > 0 || agent.zv)
 		return 'agent must not be veto or inside'
-	var zone = w.zone, az = agent.azer, a, z
-	if (base != zone && base.bzer != w.zb)
-		return "base or base zoner's zone must be wire zone"
-	if (az.deep <= zone.deep)
-		return 'agent zoner must be inside wire zone'
-	if (base != zone && w.zb.el >= w.za.el) // NaN
+	var zone = w.zone, za = agent.za, a, z
+	if (base != zone && base.zb != w.bz)
+		return "wire must not cross base zone edge"
+	if (za.deep <= zone.deep)
+		return 'zoner agent must be inside wire zone'
+	if (base != zone && w.bz.el >= w.az.el) // NaN
 		return 'must wire early to later'
 	if ( !zone.gene)
 		if (base != zone && !base.io)
 			return 'wire inside agent must have input or output base'
 		else if ( !agent.io)
 			return 'wire inside agent must have input or output agent'
-	for (a = az.zone; a != zone; a = a.zone)
+	for (a = za.zone; a != zone; a = a.zone)
 		if (a.io < 0)
 			return 'wire must not cross input edge'
-	for (a = az.zone; a != zone; a = z, z = z.zone)
+	for (a = za.zone; a != zone; a = z, z = z.zone)
 		if (z = a.zone, !a.gene && z.gene)
 			return 'wire must not cross agent edge from gene'
 	return ''
@@ -86,6 +88,7 @@ function datum2(d)
 		if ( !w.err && !w.yield && w.base == w.zone)
 			d.cycle = w.base
 	d.base0 = d.bs.length ? 1 : d.deep
+	var gzb = 0
 	for (var W = d.bs.length - 1, w; w = d.bs[W]; W--)
 	{
 		if (w.err || w.yield)
@@ -97,12 +100,13 @@ function datum2(d)
 			w.showing = true, d.edit.show(true), d.edit.errorN++
 			continue;
 		}
+		gzb |= b.zb.gzb ? 1 : -1
 		var q = new Quote
 		d.qs.push(q)
 		q.b = b
-		q.deep0 = w.zone.deep, q.deep9 = d.azer.deep
+		q.deep0 = w.zone.deep, q.deep9 = d.za.deep
 		d.base0 = Math.max(d.base0, Math.min(b.base0, // already set b.base0
-			w.zb.io < 0 ? w.zone.deep : w.zb.deep)) // same if cycle
+			w.bz.io < 0 ? w.zone.deep : w.bz.deep)) // same if cycle
 		for (var Q = 0, bq; bq = b.qs[Q]; Q++)
 			if (bq.deep0 <= q.deep0 // skip quotes that cross base edge
 				&& ArrayFind(d.qs, 'b', bq.b) == null)
@@ -115,6 +119,7 @@ function datum2(d)
 					: q.deep9 // bq cross q zone edge
 			}
 	}
+	d.gzb = gzb > 0 || d.gene || d.io < 0 && d.zone.gene
 	for (var R = 0, r; r = d.rows[R]; R++)
 		for (var D = 0, dd; dd = r[D]; D++)
 			datum2(dd) // early before later, i.e. base base before agent agent
@@ -129,12 +134,13 @@ function datum3(d, Mn)
 	if (d.ox > 0 && !d.tv)
 		for (var W = 0, w; w = d.bs[W]; W++)
 			if ( !w.err && !w.yield && (d.mn >= Mn || w.base.mn >= Mn))
-				match(w.base, w.base, d, d, Mn)
+				match(w.base, w.base, d, d, false, Mn)
 	return d.mn > Mn ? d.mn : 0
 }
 
-// base b in zone zb matchs agent a in zone za, return true if anything changes
-function match(zb, b, za, a, Mn)
+// base b inside bz matchs agent a inside az, return true if anything changes
+// im is input match considering Datum.gzb always false
+function match(bz, b, az, a, im, Mn)
 {
 	if (a.ox < 0)
 		return false
@@ -145,8 +151,8 @@ function match(zb, b, za, a, Mn)
 		{
 			var bi = searchBaseUnity(b, a, ai, Mn)
 			if (bi && !bi.err)
-				change = match(ai, ai, bi, bi, Mn) || bi.mn > Mn || change,
-				b != zb && matchWire(zb, bi, za, ai)
+				change = match(ai, ai, bi, bi, true, Mn) || bi.mn > Mn || change,
+				b != bz && matchWire(bz, bi, az, ai)
 		}
 	for (var r = a.rows[a.ox], D = 0, ao; ao = r[D]; D++)
 		if (ao.tv >= 0 && ao.name && ao.yield >= 0) // skip trial and no unity and old yield
@@ -154,24 +160,14 @@ function match(zb, b, za, a, Mn)
 			var bo = searchBaseUnity(b, a, ao, Mn)
 			if (bo && !bo.err)
 			{
-				for (var W = ao.bs.length - 1, w; w = ao.bs[W]; W--)
-					if ( !w.err && !w.yield)
-						if (w.base == w.zone)
-							break;
-						else
-						{
-							Assert(w.base.bzer.io < 0, 'base zoner must be input inside nongene')
-							if ( !w.base.bzer.bs.length)
-								break;
-						}
-				if (w || !ao.bs.length)
-					change = match(zb, bo, za, ao, Mn) || bo.mn > Mn || change
+				if (im || !ao.gzb)
+					change = match(bz, bo, az, ao, im, Mn) || bo.mn > Mn || change
 					// TODO maybe bo.err ?
 			}
 			if ( !bo)
-				matchWire(zb, null, za, ao, b)
+				matchWire(bz, null, az, ao, b)
 			else if ( !bo.err)
-				matchWire(zb, bo, za, ao)
+				matchWire(bz, bo, az, ao)
 		}
 	change && (b.mn = a.mn = Mn + 1)
 	return change
@@ -201,7 +197,7 @@ function searchBaseUnity(b, a, ad, Mn)
 //			if (b.cycle == z.zone)
 //				return z // not yield
 //			err = 'yield zone must be cycle agent of zone of\n\
-//  innermost zone of same unity inside base zoner'
+//  innermost zone of same unity inside zoner base'
 //			break;
 //		}
 	if (bd) // old yield
@@ -221,19 +217,18 @@ function searchBaseUnity(b, a, ad, Mn)
 		bd.mn = Mn + 1
 	}
 	if ((bd.layer = b.layer))
-		bd.err = 'yield must not change layer 2',
-		bd.show(-1), b.edit.errorN++
-	else if (err)
+		err = 'yield must not change layer 2'
+	if (err && !bd.err)
 		bd.err = err,
 		bd.show(-1), b.edit.errorN++
 	return bd
 }
 
-function matchWire(zb, b, za, a, b_)
+function matchWire(bz, b, az, a, b_)
 {
 	var a0b9 = a.deep, n = 0, awb, w
 	for (var Q = 0, aq; aq = a.qs[Q]; Q++)
-		if (a.azer.deep == aq.deep9)
+		if (a.za.deep == aq.deep9)
 			n++, aq.deep0 < a0b9 && (a0b9 = aq.deep0)
 	if ( !n)
 		return
@@ -241,7 +236,7 @@ function matchWire(zb, b, za, a, b_)
 	{
 		if (a.tv <= 0 && !a.err)
 			a.err = "output having base must be matched\n  by '"
-				+ (zb == b_ ? b_.name + "'" : zb.name + "' and '" + b_.name + "' inside"),
+				+ (bz == b_ ? b_.name + "'" : bz.name + "' and '" + b_.name + "' inside"),
 			a.show(-1), a.edit.errorN++
 		return
 	}
@@ -249,10 +244,10 @@ function matchWire(zb, b, za, a, b_)
 	for (var W = 0; bw = b.qs[W]; W++)
 	W: {
 		if (bw.w && bw.w.err || bw.deep9 <= a0b9
-			|| bw.b != zb && bw.b.bzer.io >= 0 && bw.b.base0 <= a0b9)
+			|| bw.b != bz && bw.b.zb.io >= 0 && bw.b.base0 <= a0b9)
 			continue;
 		n++
-		if ((awb = zb.deep > bw.deep0 ? bw.b : searchZoneUnity(zb, bw.b, za)))
+		if ((awb = bz.deep > bw.deep0 ? bw.b : searchZoneUnity(bz, bw.b, az)))
 			for (var WW = 0, aw; aw = a.qs[WW]; WW++)
 				if (aw.b == awb)
 					break W // continue
@@ -268,12 +263,12 @@ function matchWire(zb, b, za, a, b_)
 		w.yield < 0 && (w.yield = 1)
 		if ( !w.err)
 			w.err = "wire must match a wire\n  inside '"
-				+ za.name + "' with agent '" + a.name + "'",
+				+ az.name + "' with agent '" + a.name + "'",
 			w.showing = true,
 			b.edit.show(true), b.edit.errorN++
 	}
 	B: {
-		awb = searchZoneUnity(zb, b, za)
+		awb = searchZoneUnity(bz, b, az)
 		for (var W = 0, aw; aw = a.qs[W]; W++)
 			if (aw.b == awb)
 				break B // base outside cycle agent and agent inside cycle agent
@@ -282,14 +277,14 @@ function matchWire(zb, b, za, a, b_)
 				if (aw.b != b)
 				{
 					b.err = [ 'output must have base to match\n  ',
-						za, ' and ', a, ' inside' ]
+						az, ' and ', a, ' inside' ]
 					b.show(-1), b.edit.errorN++
 					break;
 				}
 	}
 }
 
-// for d and zoners inside z, find their unities inside z2, return d unity
+// for each d and outside zones inside z, find their unities inside z2, return d unity
 function searchZoneUnity(z, d, z2)
 {
 	return d == z ? z2 : (z = searchZoneUnity(z, d.zone, z2)) && z.us[d.unity]
@@ -308,8 +303,7 @@ function datum4(d)
 			w.base.unagent(w)
 	d.us = d.qs = null
 	var e = datumError4(d)
-	d.err || (d.err = e)
-	d.err && (d.show(-1), d.edit.errorN++)
+	d.err || (d.err = e) && (d.show(-1), d.edit.errorN++)
 }
 
 function datumError4(d)
@@ -330,8 +324,8 @@ function datumError4(d)
 	if (d.tv < 0)
 		if (d.cycle)
 			return 'cycle agent must not be trial'
-		else if ( !d.azer.gene && !d.azer.zone.gene)
-			return "agent zoner or zoner's zone of trial must be gene"
+		else if ( !d.za.gene && !d.za.zone.gene)
+			return "zoner agent or zoner's zone of trial must be gene"
 	if (d.tv > 0)
 		if ( !d.io)
 			return 'veto must be input or output'
@@ -358,7 +352,7 @@ function datumError4(d)
 		var n = 0
 		for (var W = 0, w; w = d.bs[W]; W++)
 			if ( !w.err)
-				if (n++, w.base == w.zone || w.base.bzer.io || w.base.bzer.mustRun)
+				if (n++, w.base == w.zone || w.base.zb.io || w.base.zb.mustRun)
 					break Must
 		d.mustRun = n == 0
 	}

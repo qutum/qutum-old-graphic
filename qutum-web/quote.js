@@ -16,8 +16,8 @@ Quote.prototype =
 
 b: null, // base, or base base
 w: null, // base wire to quote if b is base base
-deep0: 0, // outermost zone deep of all wires to b, i.e. deep of cycle zone or b.bzer.zone
-deep9: 0, // deep9 of outermost base base wire, or deep of agent zoner
+deep0: 0, // outermost zone deep of all wires to b, i.e. deep of cycle zone or b.zb.zone
+deep9: 0, // deep9 of outermost base base wire, or deep of zoner agent
 
 }
 
