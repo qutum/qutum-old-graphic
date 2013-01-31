@@ -541,14 +541,17 @@ searchRow: function (y)
 save: function (out, us, el)
 {
 	this.el = ++el
-	var uel
+	var uel = 0
 	if (this.unity < 0)
 		uel = this.unity;
 	else if (this.io && this.uNext != this)
 		(uel = us[this.unity]) || (us[this.unity] = el)
 	Util.saveN(out, (this.tv < 0 ? 8 : this.tv ? 16 : 0) | (uel && 32) |
-		(this.io < 0 ? 1 : this.io > 0 ? 3 : !this.zone || this != this.row[0] ? 2 : 34))
-	uel ? Util.saveN(out, uel) : Util.saveS(out, this.name)
+		(this.io < 0 ? 1 : this.io > 0 ? 3 : this.row && this == this.row[0] ? 34 : 2))
+	if (uel)
+		Util.saveN(out, uel)
+	else
+		Util.saveS(out, this.zone ? this.name : '')
 	for (var R = 0, r; r = this.rows[R]; R++)
 		for (var D = 0, d; d = r[D]; D++)
 			d.yield || d.layer || (el = d.save(out, us, el))
@@ -563,8 +566,14 @@ load: function (In, els)
 	this.el = els.push(this)
 	var x = Util.loadN(In), d
 	this.Tv(x & 8 ? -1 : x & 16 ? 1 : 0)
-	if (~x & 32 || this.io == 0)
-		this.Name(Util.loadS(In))
+	if (this.io == 0 || ~x & 32)
+	{
+		var name = Util.loadS(In)
+		if (this.zone)
+			this.Name(name)
+		else if (name)
+			throw 'invalid name'
+	}
 	else if (d = els[Util.loadN(In)])
 		this.unityTo(d)
 	else

@@ -106,15 +106,15 @@ function wireError1(w)
 		return 'must wire early to later'
 	if ( !zone.gene)
 		if (base != zone && !base.io)
-			return 'wire inside agent must have input or output base'
+			return 'wire inside non gene must have input or output base'
 		else if ( !agent.io)
-			return 'wire inside agent must have input or output agent'
+			return 'wire inside non gene must have input or output agent'
 	for (a = za.zone; a != zone; a = a.zone)
 		if (a.io < 0)
 			return 'wire must not cross input edge'
 	for (a = za.zone; a != zone; a = z, z = z.zone)
 		if (z = a.zone, !a.gene && z.gene)
-			return 'wire must not cross agent edge from gene'
+			return 'wire must not cross non gene edge from gene'
 	return ''
 }
 

@@ -66,7 +66,8 @@ function Load(key)
 	if (e)
 		e.dom.style.display = ''
 	else
-		e = Es[key] = new Edit(Util.add(E, 'div', 'edit'), localStorage.getItem(key))
+		e = Es[key] = new Edit(Util.add(E, 'div', 'edit'),
+			localStorage.getItem(key), key.substr(key.indexOf('!') + 1))
 	setTimeout(function () { e.dom.focus() }, 0)
 	e.onUnsave = Unsave
 	Zs[key].className = 'active'

@@ -6,7 +6,7 @@
 //
 (function(){
 
-Edit = function (dom, In)
+Edit = function (dom, In, zonestName)
 {
 	this.dom = dom, dom.tabIndex >= 1 || (dom.tabIndex = 1)
 	var whole = this.whole = Util.add(dom, 'div', 'whole')
@@ -41,6 +41,7 @@ Edit = function (dom, In)
 	var els = In && []
 	Layer(z, els)
 	In && this._load(In, els)
+	zonestName && z.Name(zonestName)
 	z.show(4)
 	this.com = new Command(this)
 }
@@ -560,6 +561,8 @@ _load: function (In, els)
 		throw 'unknown format'
 	els[0] = null
 	this.zonest.load(In, els)
+	if (In.x != In.length)
+		throw 'unexpected end'
 	this.compile()
 },
 
