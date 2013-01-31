@@ -48,6 +48,8 @@ Edit = function (dom, In)
 Edit.prototype =
 {
 
+newId: 1, // new datum id
+newUnity: 1, // new unity
 zonest: null,
 now: null, // being edited
 hit: null, // hit by mouse pointer or changed now
@@ -402,6 +404,7 @@ focUnfold: function (x, test)
 {
 	return this.foc.deep && (x >= 4 || this.foc.detail < x) && (test || this.foc.show(x))
 },
+
 nowName: function (ok, test)
 {
 	if (this.naming.parentNode.style.display == '')
@@ -527,6 +530,11 @@ key: function (e)
 		e && e.preventDefault() // key consumed
 	}
 },
+
+
+////////////////////////////////           ////////////////////////////////
+//////////////////////////////// load save ////////////////////////////////
+////////////////////////////////           ////////////////////////////////
 
 Unsave: function (delta)
 {

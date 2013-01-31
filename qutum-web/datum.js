@@ -11,21 +11,19 @@ Datum = function (io, layer, layerU)
 	this.io = io
 	if (layer)
 		this.layer = layer, this.unity = layerU
-	else if (io)
-		this.unity = ++Unity
 	this.uNext = this.uPrev = this
 	this.rows = []
 	this.ws = []
 	this.bs = []
 	this.as = []
 }
-var Unity = 0
 var SIZE0 = Datum.SIZE0 = 20, SPACE = Datum.SPACE = 20, NAME_WIDTH = Datum.NAME_WIDTH = 50
 
 Datum.prototype =
 {
 
 edit: null, // null for unadd
+id: 0,
 zone: null, // null for zonest
 deep: 1, // zone.deep + 1
 io: 0, // <0 input >0 output 0 nonput
@@ -37,8 +35,8 @@ tv: 0, // <0 trial >0 veto 0 neither
 zv: false, // outside zone is veto
 zb: null, // innermost outside nonput or input zones, or this, as zoner base
 za: null, // innermost outside nonput or output zones, or this, as zoner agent
-bs: null, // [ Wire ]
-as: null, // [ Wire ]
+bs: null, // [ base wire ]
+as: null, // [ agent wire ]
 cycle: null, // cycle base
 layer: 0, // 0 for layer 1, 2 for layer 2
 row: null, // null for zonest
@@ -49,10 +47,11 @@ ws: null, // [ Wire inside this ]
 el: NaN, // small early, big later, asynchronous update
 mustRun: false, // must run or may run, as zoner agent
 yield: 0, // 0 nonyield >0 yield <0 old yield while compiling
-us: null, // { unity:Datum }
-qs: null, // [ Quote ]
-base0: 0, // the innermost deep of all outermost base bases
+us: null, // { unity: Datum }
 gzb: false, // gene, or has base and all zoner base zoner bases are gene
+ps: null, // wired passes from base or base base, { base.id: outermost wire }
+pdeep0: 0, // outermost zone deep of passes
+padeep0: 0, // outermost zone deep of passes which agents are this
 mn: 0, // match iteration
 
 name: '',
@@ -60,6 +59,7 @@ nameY: 0, // text top
 nameR: 0, // with left and right margin of around 3px each
 nameH: 0, // with top and bottom margin of around 3px each
 err: null, // '' or [ '' or Datum... ]
+derr: false, // error inside
 x: 0,
 y: 0,
 w: 0,
@@ -77,6 +77,7 @@ addTo: function (z, R, D) // D < 0 to add row
 {
 	if (z == null)
 	{
+		this.id = this.edit.newId++
 		this.deep = 1
 		this.gene = true
 		this.zb = this
@@ -84,6 +85,10 @@ addTo: function (z, R, D) // D < 0 to add row
 		return this // zonest
 	}
 	this.edit = z.edit
+	if ( !this.id)
+		this.id = this.edit.newId++
+	if (this.io && !this.unity)
+		this.unity = this.edit.newUnity++
 	if (z.ox < 0)
 		z.rows[0] = Row(z, []), z.rows[1] = Row(z, []),
 		z.ox = 1
@@ -268,7 +273,7 @@ unityTo: function (u, keepUnity)
 			this.edit.us[this.unity] == this && (this.edit.us[this.unity] = this.uNext)
 	if (u == this)
 		this.uNext = this.uPrev = this,
-		!keepUnity && (this.unity = ++Unity)
+		!keepUnity && (this.unity = this.edit.newUnity++)
 	else
 	{
 		u.uNext == u && (this.edit.us[u.unity] = u)
@@ -437,7 +442,8 @@ _show: function (draw, X, Y, W, H)
 		draw.fillStyle = c, draw.beginPath(),
 		draw.moveTo(0, 0), draw.lineTo(-3, 0), draw.lineTo(0, 6), draw.fill()
 	if (this.detail == 2 && this.ox > 0)
-		draw.lineWidth = 2, draw.strokeRect((w >> 1) - 3, this.nameH || h >> 1, 6, 0)
+		draw.lineWidth = 2, draw.strokeStyle = this.derr ? '#f00' : c,
+		draw.strokeRect((w >> 1) - 3, this.nameH || h >> 1, 6, 0)
 
 	if (this.uNext != this && this.unity == edit.nav.unity)
 		draw.fillStyle = io < 0 ? '#ecf' : '#cce3ff',
@@ -526,10 +532,6 @@ searchRow: function (y)
 	}
 	return ~low
 },
-
-////////////////////////////////      ////////////////////////////////
-//////////////////////////////// edit ////////////////////////////////
-////////////////////////////////      ////////////////////////////////
 
 ////////////////////////////////           ////////////////////////////////
 //////////////////////////////// load save ////////////////////////////////

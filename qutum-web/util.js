@@ -58,6 +58,12 @@ ArrayFind = function (s, key, v)
 			return i
 	return null
 }
+NoKey = function (s)
+{
+	for (var k in s)
+		return false
+	return true
+}
 
 Util =
 {

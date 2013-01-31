@@ -31,19 +31,53 @@ function datum1(d)
 	d.zv = d.zone != null && (d.zone.tv > 0 || d.zone.zv)
 	d.cycle = null
 	d.yield && (d.yield = -1) // old yield
-	d.us = {}
-	d.qs ? d.qs.length = 0 : d.qs = []
+	d.us || (d.us = {})
+	d.ps || (d.ps = {})
+	d.uNext == d || d.yield && d.zone.us[d.unity] || (d.zone.us[d.unity] = d)
 	if (d.ox > 0)
 	{
 		for (var R = 0, el = 0, r; r = d.rows[R]; R++)
 			for (var D = 0, dd; dd = r[D]; D++)
-				dd.el = ++el,
-				datum1(dd),
-				dd.uNext == dd || dd.yield && d.us[dd.unity] || (d.us[dd.unity] = dd)
+				dd.el = ++el, datum1(dd)
 		for (var W = 0, w; w = d.ws[W]; W++)
 			wire1(w)
 	}
-	d.err && (d.err = null, d.show(-1))
+	d.err && (d.err = '', d.show(-1))
+	if (d.yield >= 0)
+		(d.err = datumError1(d)) && (d.show(-1), d.edit.errorN++)
+}
+
+function datumError1(d)
+{
+	if (d.io < 0 && !d.zone.zone && !d.layer)
+		return 'can not change layer 2'
+	if (d.zv)
+		return d.io < 0 ? 'input must not be inside veto' :
+			d.io ? 'output must not be inside veto' : 'nonput must not be inside veto'
+	if (d.zone && !d.zone.gene)
+		if ( !d.io)
+			return 'agent can only have input and output inside'
+		else if ( !d.name && !d.tv)
+			return 'non trial inside agent must have name'
+	if (d.tv && d.gene)
+		return 'gene must not be trial or veto'
+	if (d.tv < 0 && !d.za.gene && !d.za.zone.gene)
+		return 'datum which zoner agent and zone is not gene must not be trial'
+	if (d.tv > 0)
+		if ( !d.io)
+			return 'veto must be input or output'
+		else if ( !d.name)
+			return 'veto must have name'
+		else if (d.zone && d.zone.gene)
+			return 'veto must be inside agent'
+	if (d.uNext != d && d.zone.us[d.unity] != d)
+		return 'unity must be different in same zone'
+	if (d.io < 0)
+		if (d.bs.length && d.zone.io < 0 && !d.zone.bs.length)
+			return 'input inside input having no base must not have base'
+		else if ( !d.bs.length && d.zone.zone && d.zone.gene)
+			return "gene's input must have base"
+	return ''
 }
 
 function wire1(w)
@@ -62,6 +96,8 @@ function wireError1(w)
 	if (agent.tv > 0 || agent.zv)
 		return 'agent must not be veto or inside'
 	var zone = w.zone, za = agent.za, a, z
+	if (agent.tv < 0 && w.base == zone)
+		return "trial's base must not be cycle"
 	if (base != zone && base.zb != w.bz)
 		return "wire must not cross base zone edge"
 	if (za.deep <= zone.deep)
@@ -87,43 +123,57 @@ function datum2(d)
 	for (var W = 0, w; w = d.bs[W]; W++)
 		if ( !w.err && !w.yield && w.base == w.zone)
 			d.cycle = w.base
-	d.base0 = d.bs.length ? 1 : d.deep
+	d.pdeep0 = d.deep, d.padeep0 = d.deep
 	var gzb = 0
 	for (var W = d.bs.length - 1, w; w = d.bs[W]; W--)
 	{
 		if (w.err || w.yield)
 			continue;
-		var b = w.base
-		if (d.cycle && b != d.cycle)
+		var b = w.base, p, pp
+// TODO must only one base ?
+//		if (d.cycle && b != d.cycle)
+//			w.err = 'only one base allowed for cycle agent' // only the cycle wire is not error
+//			...
+		if (b == w.zone && b != d.cycle)
 		{
-			w.err = 'only one base allowed for cycle agent' // only the cycle wire is no error
+			w.err = [ 'only one cycle ', d.cycle, ' allowed' ] // only the cycle wire is not error
 			w.showing = true, d.edit.show(true), d.edit.errorN++
 			continue;
 		}
 		gzb |= b.zb.gzb ? 1 : -1
-		var q = new Quote
-		d.qs.push(q)
-		q.b = b
-		q.deep0 = w.zone.deep, q.deep9 = d.za.deep
-		d.base0 = Math.max(d.base0, Math.min(b.base0, // already set b.base0
-			w.bz.io < 0 ? w.zone.deep : w.bz.deep)) // same if cycle
-		for (var Q = 0, bq; bq = b.qs[Q]; Q++)
-			if (bq.deep0 <= q.deep0 // skip quotes that cross base edge
-				&& ArrayFind(d.qs, 'b', bq.b) == null)
-			{
-				var qq = new Quote
-				d.qs.push(qq)
-				qq.b = bq.b, qq.w = w
-				qq.deep0 = bq.deep0 // <= q.deep0
-				qq.deep9 = bq.deep9 <= q.deep0 ? bq.deep9 // bq outside q zone
-					: q.deep9 // bq cross q zone edge
-			}
+		if (b.zb.io >= 0 && b != w.zone && b.pdeep0 < w.bz.deep)
+			for (var PP in b.ps) // w.zone should be gene
+				if (pp = b.ps[PP], pp.zone == w.zone)
+				{
+					p = new Wire
+					p.zone = pp.zone, p.base = pp.base, p.bz = pp.bz
+					p.agent = d, p.az = w.az
+					p.yield = 1
+					datumPass2(d, p)
+				}
+		p || datumPass2(d, w)
 	}
 	d.gzb = gzb > 0 || d.gene || d.io < 0 && d.zone.gene
 	for (var R = 0, r; r = d.rows[R]; R++)
 		for (var D = 0, dd; dd = r[D]; D++)
 			datum2(dd) // early before later, i.e. base base before agent agent
 	d.mn = 0
+}
+
+function datumPass2(d, p)
+{
+	d.ps[p.base.id] = p
+	var deep = p.zone.deep, pp
+	deep < d.pdeep0 && (d.pdeep0 = deep)
+	deep < d.padeep0 && (d.padeep0 = deep) // p.agent == d
+	for (var PP in p.base.ps)
+		if (pp = p.base.ps[PP], pp.zone.deep <= deep)
+		{
+			if ( !d.ps[pp.base.id])
+				d.ps[pp.base.id] = pp, pp.zone.deep < d.pdeep0 && (d.pdeep0 = pp.zone.deep)
+			else if (pp.agent.za.deep > d.ps[pp.base.id].agent.za.deep)
+				d.ps[pp.base.id] = pp // same zone.deep
+		}
 }
 
 function datum3(d, Mn)
@@ -151,23 +201,18 @@ function match(bz, b, az, a, im, Mn)
 		{
 			var bi = searchBaseUnity(b, a, ai, Mn)
 			if (bi && !bi.err)
-				change = match(ai, ai, bi, bi, true, Mn) || bi.mn > Mn || change,
-				b != bz && matchWire(bz, bi, az, ai)
+				change = match(ai, ai, bi, bi, true, Mn) || bi.mn > Mn || change
+			if (bi && !bi.err && b != bz)
+				matchWire(bz, bi, az, ai)
 		}
 	for (var r = a.rows[a.ox], D = 0, ao; ao = r[D]; D++)
 		if (ao.tv >= 0 && ao.name && ao.yield >= 0) // skip trial and no unity and old yield
 		{
 			var bo = searchBaseUnity(b, a, ao, Mn)
+			if (bo && !bo.err && (im || !ao.gzb))
+				change = match(bz, bo, az, ao, im, Mn) || bo.mn > Mn || change
 			if (bo && !bo.err)
-			{
-				if (im || !ao.gzb)
-					change = match(bz, bo, az, ao, im, Mn) || bo.mn > Mn || change
-					// TODO maybe bo.err ?
-			}
-			if ( !bo)
-				matchWire(bz, null, az, ao, b)
-			else if ( !bo.err)
-				matchWire(bz, bo, az, ao)
+				matchWire(bz, bo, az, ao) // skip null bo since ao is veto
 		}
 	change && (b.mn = a.mn = Mn + 1)
 	return change
@@ -190,7 +235,7 @@ function searchBaseUnity(b, a, ad, Mn)
 	if (ad.tv > 0 && (b.gene || b.layer))
 		return null // don't yield veto inside gene or layer 2
 	var err
-// TODO why check this ? search ad unity in cycle base ?
+// TODO must check this ? search ad unity in cycle base ?
 //	for (var z = b; z.io > 0; z = z.zone)
 //		if (z.unity == ad.unity)
 //		{
@@ -213,75 +258,45 @@ function searchBaseUnity(b, a, ad, Mn)
 		bd.addTo(b, r, b.ox < 0 ? 0 : b.rows[r].length)
 		ad.uNext == ad && (a.us[ad.unity] = ad), b.us[ad.unity] = bd
 		bd.unityTo(ad)
-		bd.us = {}, bd.qs = []
+		bd.us = {}, bd.ps = {}
 		bd.mn = Mn + 1
 	}
 	if ((bd.layer = b.layer))
 		err = 'yield must not change layer 2'
-	if (err && !bd.err)
-		bd.err = err,
-		bd.show(-1), b.edit.errorN++
+	else
+		err = datumError1(bd)
+	if (err)
+		bd.err = err, bd.show(-1), b.edit.errorN++
 	return bd
 }
 
-function matchWire(bz, b, az, a, b_)
+function matchWire(bz, b, az, a)
 {
-	var a0b9 = a.deep, n = 0, awb, w
-	for (var Q = 0, aq; aq = a.qs[Q]; Q++)
-		if (a.za.deep == aq.deep9)
-			n++, aq.deep0 < a0b9 && (a0b9 = aq.deep0)
-	if ( !n)
+	if (a.err || NoKey(a))
 		return
-	if ( !b)
-	{
-		if (a.tv <= 0 && !a.err)
-			a.err = "output having base must be matched\n  by '"
-				+ (bz == b_ ? b_.name + "'" : bz.name + "' and '" + b_.name + "' inside"),
-			a.show(-1), a.edit.errorN++
-		return
-	}
-	a0b9 = a0b9 - a.deep + b.deep, n = 0
-	for (var W = 0; bw = b.qs[W]; W++)
-	W: {
-		if (bw.w && bw.w.err || bw.deep9 <= a0b9
-			|| bw.b != bz && bw.b.zb.io >= 0 && bw.b.base0 <= a0b9)
-			continue;
-		n++
-		if ((awb = bz.deep > bw.deep0 ? bw.b : searchZoneUnity(bz, bw.b, az)))
-			for (var WW = 0, aw; aw = a.qs[WW]; WW++)
-				if (aw.b == awb)
-					break W // continue
-		WW: {
-			for (var WW = 0; w = b.bs[WW]; WW++)
-				if (w.base == bw.b)
-					break WW
-			w = new Wire
-			w.yield = 1
-			bw.b.as.push(w), b.bs.push(w)
-			w.addTo(bw.b, b)
+	var bdeep = b.deep + a.padeep0 - a.deep, n = 0, bp
+	for (var P in b.ps)
+		if (bp = b.ps[P], bp.agent.za.deep > bdeep) // also bp.agent == b
+		{
+			n++
+			var ab = bp.zone.deep < bz.deep ? bp.base : searchZoneUnity(bz, bp.base, az)
+			if ( !ab)
+				a.err || (a.err = [ 'to match ', b ]),
+				a.err.push(',\n  must have a wire matching ', bp.base),
+				a.show(-1), a.edit.errorN++
+			else if ( !a.ps[ab.id])
+				a.err || (a.err = [ 'to match ', b ]),
+				a.err.push(',\n  must have a wire matching ', bp.base, ' of ', ab),
+				a.show(-1), a.edit.errorN++
 		}
-		w.yield < 0 && (w.yield = 1)
-		if ( !w.err)
-			w.err = "wire must match a wire\n  inside '"
-				+ az.name + "' with agent '" + a.name + "'",
-			w.showing = true,
-			b.edit.show(true), b.edit.errorN++
-	}
-	B: {
-		awb = searchZoneUnity(bz, b, az)
-		for (var W = 0, aw; aw = a.qs[W]; W++)
-			if (aw.b == awb)
-				break B // base outside cycle agent and agent inside cycle agent
-		if ( !n && !b.err)
-			for (var W = 0, aw; aw = a.qs[W]; W++)
-				if (aw.b != b)
-				{
-					b.err = [ 'output must have base to match\n  ',
-						az, ' and ', a, ' inside' ]
-					b.show(-1), b.edit.errorN++
-					break;
-				}
-	}
+	if ( !n)
+		a.err || (a.err = [ 'to match ', b ]),
+		a.err.push(',\n  must have no base'),
+		a.show(-1), a.edit.errorN++
+// TODO must check this ?
+//	B: { var awb = searchZoneUnity(bz, b, az)
+//		if (ArrayFind(a.ps, 'b', awb) != null)
+//			break B // base outside cycle agent and agent inside cycle agent
 }
 
 // for each d and outside zones inside z, find their unities inside z2, return d unity
@@ -297,49 +312,20 @@ function datum4(d)
 			if (dd.yield < 0)
 				dd.unadd(R, D) // ox may < 0
 			else
-				datum4(dd)
+				datum4(dd), dd.err && (d.derr = true)
 	for (var W = d.ws.length - 1, w; w = d.ws[W]; W--)
 		if (w.yield < 0)
 			w.base.unagent(w)
-	d.us = d.qs = null
-	var e = datumError4(d)
-	d.err || (d.err = e) && (d.show(-1), d.edit.errorN++)
+	NoKey(d.us) || (d.us = null)
+	NoKey(d.ps) || (d.ps = null)
+	var e = datumRun4(d)
+	if ( !d.err)
+		(d.err = e) && (d.show(-1), d.edit.errorN++)
 }
 
-function datumError4(d)
+function datumRun4(d)
 {
 	d.mustRun = d.tv >= 0
-	if (d.io < 0 && !d.zone.zone && !d.layer)
-		return 'can not change layer 2'
-	if (d.zv)
-		return d.io < 0 ? 'input must not be inside veto' :
-			d.io ? 'output must not be inside veto' : 'datum must not be inside veto'
-	if (d.zone && !d.zone.gene)
-		if ( !d.io)
-			return 'agent can only have input and output inside'
-		else if ( !d.name && !d.tv)
-			return 'non trial inside agent must have name'
-	if (d.tv && d.gene)
-		return 'gene must not be trial or veto'
-	if (d.tv < 0)
-		if (d.cycle)
-			return 'cycle agent must not be trial'
-		else if ( !d.za.gene && !d.za.zone.gene)
-			return "zoner agent or zoner's zone of trial must be gene"
-	if (d.tv > 0)
-		if ( !d.io)
-			return 'veto must be input or output'
-		else if ( !d.name)
-			return 'veto must have name'
-		else if (d.zone && d.zone.gene)
-			return 'veto must be inside agent'
-	if (d.uNext != d && d.zone.us[d.unity] != d)
-		return 'unity must be different in same zone'
-	if (d.io < 0)
-		if (d.bs.length && d.zone.io < 0 && !d.zone.bs.length)
-			return 'input inside input having no base must not have base'
-		else if ( !d.bs.length && d.zone.zone && d.zone.gene)
-			return "gene's input must have base"
 	Must: if (d.mustRun)
 	{
 		d.mustRun = false

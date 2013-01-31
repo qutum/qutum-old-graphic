@@ -20,7 +20,7 @@ agent: null,
 zone: null, // common zone of bz and az, should be cycle zone or base.zb.zone
 bz: null, // outermost zone of base, or base, should be cycle zone or base.zb
 az: null, // outermost zone of agent, or agent, be or inside wire zone
-yield: 0, // 0 nonyield >0 yield <0 yield while compiling // with error ?
+yield: 0, // 0 nonyield >0 yield <0 yield while compiling
 
 err: '',
 showing: false,
@@ -237,10 +237,6 @@ offsetY: function (z)
 		y += d.y
 	return y
 },
-
-////////////////////////////////      ////////////////////////////////
-//////////////////////////////// edit ////////////////////////////////
-////////////////////////////////      ////////////////////////////////
 
 ////////////////////////////////           ////////////////////////////////
 //////////////////////////////// load save ////////////////////////////////
