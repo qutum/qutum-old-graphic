@@ -454,6 +454,7 @@ _show: function (draw, X, Y, W, H)
 	if (this.name)
 		draw.fillStyle = '#000',
 		draw.fillText(this.name, (this.tv && edit.nameTvW) + 3, this.nameY + edit.nameH)
+//	draw.fillStyle = '#777', draw.fillText(this.gzb ? '_' : '', -12, this.nameY + edit.nameH)
 
 	draw.translate(X, Y)
 	for (R = 0; r = this.rows[R]; R++)

@@ -272,7 +272,7 @@ function searchBaseUnity(b, a, ad, Mn)
 
 function matchWire(bz, b, az, a)
 {
-	if (a.err || NoKey(a))
+	if (a.err || NoKey(a.ps))
 		return
 	var bdeep = b.deep + a.padeep0 - a.deep, n = 0, bp
 	for (var P in b.ps)
