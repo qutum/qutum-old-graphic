@@ -65,13 +65,13 @@ Name: function (v, test)
 	var u = v && m || d.uNext.uNonyield()
 	this.go(function ()
 	{
-		v || d.unityTo(d), d.Name(v)
+		v || d.io == 0 || d.unityTo(d), d.Name(v)
 		now.edit || (now = d)
 		this.edit.Now(now)
 	},
 	function ()
 	{
-		v && m || d.unityTo(u), d.Name(m)
+		v && m || d.io == 0 || d.unityTo(u), d.Name(m)
 		now.edit || (now = d)
 		this.edit.Now(now)
 	})

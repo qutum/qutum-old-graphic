@@ -238,25 +238,6 @@ offsetY: function (z)
 	return y
 },
 
-////////////////////////////////           ////////////////////////////////
-//////////////////////////////// load save ////////////////////////////////
-////////////////////////////////           ////////////////////////////////
-
-save: function (out)
-{
-	Util.saveN(out, this.base.el)
-	Util.saveN(out, this.agent.el)
-},
-
-load: function (In, els)
-{
-	var b = els[Util.loadN(In)], a = els[Util.loadN(In)]
-	if ( !b || !a || b == a)
-		throw 'invalid wire'
-	if (b.agent(this, a))
-		throw 'duplicate wire'
-},
-
 }
 
 })()

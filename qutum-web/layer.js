@@ -53,7 +53,7 @@ Layer = function (zonest, els)
 		var d = new Datum(-1, 2, nameU.deep ? nameU.u : uEl)
 		d.addTo(z, 0, z.ox < 0 ? 0 : z.rows[0].length)
 		nameU.deep ? d.unityTo(nameU) : d.Name(nameU)
-		d.el = uEl, els && (els[uEl] = d)
+		d.el = uEl, els[uEl] = d
 		return d
 	}
 	function output(z, nameU, uEl)
@@ -61,7 +61,7 @@ Layer = function (zonest, els)
 		var d = new Datum(1, 2, nameU.deep ? nameU.u : uEl)
 		d.addTo(z, 1, z.ox < 0 ? 0 : z.rows[1].length)
 		nameU.deep ? d.unityTo(nameU) : d.Name(nameU)
-		d.el = uEl, els && (els[uEl] = d)
+		d.el = uEl, els[uEl] = d
 		return d
 	}
 }

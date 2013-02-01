@@ -6,7 +6,7 @@
 //
 (function(){
 
-Edit = function (dom, In, zonestName)
+Edit = function (dom, els)
 {
 	this.dom = dom, dom.tabIndex >= 1 || (dom.tabIndex = 1)
 	var whole = this.whole = Util.add(dom, 'div', 'whole')
@@ -38,10 +38,8 @@ Edit = function (dom, In, zonestName)
 	z.edit = this, z.x = z.y = Datum.SPACE + 4 >> 1
 	z.addTo(null, 0, 0)
 	this.Now(this.now = this.hit = this.nav = this.foc = z)
-	var els = In && []
 	Layer(z, els)
-	In && this._load(In, els)
-	zonestName && z.Name(zonestName)
+	this.compile()
 	z.show(4)
 	this.com = new Command(this)
 }
@@ -287,9 +285,9 @@ HitXY: function ()
 	return h
 },
 
-////////////////////////////////      ////////////////////////////////
-//////////////////////////////// edit ////////////////////////////////
-////////////////////////////////      ////////////////////////////////
+////////////////////////////////          ////////////////////////////////
+//////////////////////////////// navigate ////////////////////////////////
+////////////////////////////////          ////////////////////////////////
 
 navPrev: function (test)
 {
@@ -405,6 +403,10 @@ focUnfold: function (x, test)
 {
 	return this.foc.deep && (x >= 4 || this.foc.detail < x) && (test || this.foc.show(x))
 },
+
+////////////////////////////////      ////////////////////////////////
+//////////////////////////////// edit ////////////////////////////////
+////////////////////////////////      ////////////////////////////////
 
 nowName: function (ok, test)
 {
@@ -532,7 +534,6 @@ key: function (e)
 	}
 },
 
-
 ////////////////////////////////           ////////////////////////////////
 //////////////////////////////// load save ////////////////////////////////
 ////////////////////////////////           ////////////////////////////////
@@ -540,31 +541,15 @@ key: function (e)
 Unsave: function (delta)
 {
 	if ( !this.unsave != !(this.unsave += delta))
-		this.onUnsave(this.unsave)
+		this.onUnsave(this, this.unsave)
 	this.compile()
 },
 
-onUnsave: function (unsave) {},
+onUnsave: function (edit, unsave) {},
 
-save: function ()
-{
-	var out = [ '\u0a51' ] // Q 10
-	this.zonest.save(out, {}, 0)
-	this.unsave = 0
-	return out.join('')
-},
-
-_load: function (In, els)
-{
-	In = new String(In), In.x = 0
-	if (In[In.x++] != '\u0a51')
-		throw 'unknown format'
-	els[0] = null
-	this.zonest.load(In, els)
-	if (In.x != In.length)
-		throw 'unexpected end'
-	this.compile()
-},
+////////////////////////////////         ////////////////////////////////
+//////////////////////////////// compile ////////////////////////////////
+////////////////////////////////         ////////////////////////////////
 
 compile: function (pause)
 {

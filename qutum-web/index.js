@@ -10,16 +10,15 @@ var Z = Util.dom('#zonest'), ZT = Util.dom('#left > .tool'), E = Util.dom('.edit
 var Zs = {}, Es = {}, Key, tooltest
 
 Tool()
-for (var i = 0; i < localStorage.length; i++)
-	Zonest(localStorage.key(i))
-i || New()
+Saver.all(Zonest) || New()
 setInterval(function () { tooltest && tooltest() }, 200)
 
 function Zonest(key)
 {
-	var name = key.substr(key.indexOf('!') + 1)
-	var z = Util.add(null, 'div'), n = Util.add(z, 'div', name ? null : 'unnamed')
-	Util.text(n, name || 'qutum')
+	var name = Saver.Name(key)
+	var z = Util.add(null, 'div')
+	Util.text(Util.add(z, 'span'), '*')
+	Util.text(Util.add(z, 'span', name ? null : 'unnamed'), name || 'qutum')
 	Zs[key] = z
 	var t = Util.add(z, 'div', 'tool')
 	var load = Util.add(t, 'a')
@@ -52,9 +51,7 @@ function Tool()
 
 function New()
 {
-	var key = Date.now() + '!'
-	if (Es[key])
-		throw 'duplicate'
+	var key = Saver.New()
 	Zonest(key).scrollIntoView(), Load(key), Save(key)
 }
 
@@ -66,68 +63,64 @@ function Load(key)
 	if (e)
 		e.dom.style.display = ''
 	else
-		e = Es[key] = new Edit(Util.add(E, 'div', 'edit'),
-			localStorage.getItem(key), key.substr(key.indexOf('!') + 1))
+	{
+		var els = []
+		e = Es[key] = new Edit(Util.add(E, 'div', 'edit'), els)
+		Saver.load(key, e.zonest, els)
+		e.onUnsave = Unsave
+		tooltest = Toolbar(e, Util.dom('.tool', E), Util.dom('.toolv', E))
+	}
 	setTimeout(function () { e.dom.focus() }, 0)
-	e.onUnsave = Unsave
-	Zs[key].className = 'active'
-	tooltest = Toolbar(e, Util.dom('.tool', E), Util.dom('.toolv', E))
-	return Key = key, e
+	Zs[Key = key].className = 'active'
+	return e
+}
+
+function Rename(key, rekey)
+{
+	Es[rekey] = Es[key], delete Es[key]
+	Z.removeChild(Zs[key]), delete Zs[key]
+	Zonest(rekey).scrollIntoView()
+	key == Key && (Zs[Key = rekey].className = 'active')
 }
 
 function Save(key)
 {
-	Es[key] || Load(key)
-	var e = Es[key], z = Zs[key], out = e.save()
-	if (e.zonest.name == key.substr(key.indexOf('!') + 1))
-		Unsave()
-	else
-	{
-		var key0 = key, key = Date.now() + '!' + e.zonest.name
-		delete Es[key0], delete Zs[key0], Z.removeChild(z)
-		Es[key] = e, Zonest(key).scrollIntoView()
-		key0 == Key && (Zs[Key = key].className = 'active')
-	}
-	localStorage.setItem(key, out)
-	key0 && localStorage.removeItem(key0)
+	var e = Es[key] || Load(key)
+	Saver.save(key, e.zonest, Rename)
 	e.dom.focus()
-}
-
-function Unsave()
-{
-	for (var k in Es)
-	{
-		var n = Zs[k].firstChild.textContent
-		if (n[0] != '*' != !Es[k].unsave)
-			Util.text(Zs[k].firstChild, Es[k].unsave ? '* ' + n : n.substr(2))
-	}
+	Unsave()
 }
 
 function SaveAll()
 {
-	for (var k in Es)
-		if (Es[k].unsave)
-			Save(k)
+	for (var key in Es)
+		Es[k].unsave && Save(key)
 }
 
 function Remove(key)
 {
 	var z = Zs[key], e = Es[key]
-	if ( !confirm('Remove ' + key.substr(key.indexOf('!') + 1) + ' ?'))
+	if ( !confirm('Remove ' + (Saver.Name(key) || 'unnamed') + ' ?'))
 		return
+	Saver.remove(key)
 	delete Es[key], delete Zs[key], Z.removeChild(z)
 	if (key == Key)
 		Key = null, E.removeChild(e.dom), tooltest = null,
 		Util.dom('.tool', E).innerHTML = Util.dom('.toolv', E).innerHTML = ''
-	localStorage.removeItem(key)
+}
 
+function Unsave()
+{
+	for (var key in Es)
+		if (Zs[key].firstChild.style.display != 'inline' != !Es[key].unsave)
+			Zs[key].firstChild.style.display = Es[key].unsave ? 'inline' : ''
 }
 
 onbeforeunload = function ()
 {
-	for (var k in Es)
-		if (Es[k].unsave)
-			return Zs[k].firstChild.textContent + ' unsaved !'
+	for (var key in Es)
+		if (Es[key].unsave)
+			return (Saver.Name(key) || 'unnamed') + ' unsaved !'
 }
 
 Util.dom('#split *').onclick = function ()
