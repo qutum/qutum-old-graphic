@@ -89,49 +89,57 @@ function sencN(s, n)
 	// Webkit localStorage can't save \0 and Firefox \ud800-\udfff \ufffe \uffff
 {
 	if (n >> 13 == n >> 31) // 14bit
-		s.push(String.fromCharCode(n << 1 & 0x7ffe | 1))
+		s.push(String.fromCharCode((n & 0x3fff) + 1))
 	else if (n >> 27 == n >> 31) // 28bit
-		s.push(String.fromCharCode(n & 0x3fff | 0x8000, n >> 13 & 0x7ffe | 1))
+		s.push(String.fromCharCode((n & 0x3fff) + 0x4001, (n >> 14 & 0x3fff) + 1))
+	else if (n == (n|0))
+		s.push(String.fromCharCode((n & 0x3fff) + 0x8001, (n >> 14 & 0x3fff) + 1, (n >> 28 & 15) + 1))
 	else
-		throw 'number overflow'
+		throw 'invalid number'
 }
 function sencS(s, str)
 {
 	var n = str.length
 	if (n >> 13 == n >> 31) // 14bit
-		s.push(String.fromCharCode(n << 1 & 0x7ffe | 1), str)
+		s.push(String.fromCharCode((n & 0x3fff) + 1), str)
 	else if (n >> 27 == n >> 31) // 28bit
-		s.push(String.fromCharCode(n & 0x3fff | 0x8000, n >> 13 & 0x7ffe | 1), str)
+		s.push(String.fromCharCode((n & 0x3fff) + 0x4001, (n >> 14 & 0x3fff) + 1), str)
 	else
 		throw 'string too long'
 }
-function sdecN(s, stay)
+function sdecN(s)
 {
-	var x = s.x, l = s.charCodeAt(x)
-	if (l < 32768)
-		s.x = x + 1, l = l << 17 >> 18
-	else if ((h = s.charCodeAt(x + 1)) == h)
-		s.x = x + 2, l = h >> 1 << 18 >> 4 | l & 0x3fff
-	else
-		throw 'eof'
-	return l
+	var x = s.x, a = s.charCodeAt(x), b, c
+	if (a <= 0x4000)
+		return s.x = x + 1, a-1 << 18 >> 18
+	else if ((b = s.charCodeAt(x + 1)) == b && a <= 0x8000)
+		return s.x = x + 2, b-1 << 18 >> 4 | a-0x4001
+	else if ((c = s.charCodeAt(x + 2)) == c)
+		if (a <= 0xc000)
+			return s.x = x + 3, c-1 << 28 | (b-1 & 0x3fff) << 14 | a-0x8001
+		else
+			throw 'invalid number'
+	throw 'eof'
 }
 function sdecN14(s)
 {
-	return s.charCodeAt(s.x) << 17 >> 18
+	return s.charCodeAt(s.x)-1 << 18 >> 18
 }
 function sdecS(s)
 {
-	var x = s.x, l = s.charCodeAt(x)
-	if (l < 32768)
-		x = x + 1, l = l << 17 >> 18
-	else if ((h = s.charCodeAt(x + 1)) == h)
-		x = x + 2, l = h >> 1 << 18 >> 4 | l & 0x3fff
+	var x = s.x, a = s.charCodeAt(x)
+	if (a < 0x4000)
+		x = x + 1, a = a-1
+	else if ((b = s.charCodeAt(x + 1)) == b)
+		if (a <= 0x8000)
+			x = x + 2, a = b-1 << 18 >> 4 | a-0x4001
+		else
+			throw 'string too long'
 	else
 		throw 'eof'
-	if ((s.x = x + l) > s.length)
+	if ((s.x = x + a) > s.length)
 		throw 'eof'
-	return s.substr(x, l)
+	return s.substr(x, a)
 }
 
 function senc(d, s, us, el)
