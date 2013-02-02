@@ -60,10 +60,6 @@ function Tool()
 	Util.text(Util.add(imp, 'div'), 'Import')
 	Util.on(imps, 'change', null, ImportAll, [ imps ])
 	Util.on(imp, 'click', imps, imps.click)
-	var exp = Util.add(ZT, 'a')
-	Util.text(exp, '{{')
-	Util.text(Util.add(exp, 'div'), 'Export all')
-	Util.on(exp, 'click', null, ExportAll)
 }
 
 function New(Els)
@@ -131,11 +127,12 @@ onbeforeunload = function ()
 
 function Import(file)
 {
-	var els = [], key = New(els)
-	Filer.load(key, file, Es[key].zonest, els, function (ok, err)
+	var els = [], key = New(els), e = Es[key]
+	Filer.load(key, file, e.zonest, els, function (ok, err)
 	{
 		if (ok)
-			Save(key)
+			Save(key), e.zonest.show(4), e.show(true, true)
+
 		else
 			Remove(key, true), alert('Import ' + file.name + ' Error: ' + err)
 	})
@@ -151,10 +148,10 @@ function ImportAll(files)
 		Import(s[i])
 }
 
-function Export(key, forAll)
+function Export(key)
 {
 	var e = Es[key] || Load(key), z = Zs[key]
-	if (forAll || !z.exp.getAttribute('href'))
+	if ( !z.exp.getAttribute('href'))
 		Filer.save(key, e.zonest, function (ok, enc)
 		{
 			if (ok)
@@ -164,12 +161,6 @@ function Export(key, forAll)
 		})
 	else
 		z.exp.removeAttribute('href')
-}
-
-function ExportAll(key)
-{
-	for (var key in Zs)
-		Export(key, true) // TODO bug: no show
 }
 
 function Remove(key, force)

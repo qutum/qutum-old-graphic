@@ -313,19 +313,20 @@ function FilerDec(bytes) // only for little endian
 	if (n % 2)
 		throw 'unknown format'
 	n /= 2
+	var S = {} // can't change Uint16Array on Firefox
 	var s = new Uint16Array(bytes), x = 1
 	if (s[0] != 0x0a51) // 10 Q
 		throw 'unknown format'
-	s.num = function ()
+	S.num = function ()
 	{
 		x += 2
 		return s[x-1] << 16 | s[x-2]
 	}
-	s.peek = function ()
+	S.peek = function ()
 	{
 		return s[x+1] << 16 | s[x]
 	}
-	s.str = function ()
+	S.str = function ()
 	{
 		x += 2
 		var v = s[x-1] << 16 | s[x-2]
@@ -335,12 +336,12 @@ function FilerDec(bytes) // only for little endian
 			throw 'eof'
 		return String.fromCharCode.apply(null, new Uint16Array(bytes, x+x-v-v, v))
 	}
-	s.finish = function ()
+	S.finish = function ()
 	{
 		if (x != n)
 			throw 'unexpected end'
 	}
-	return s
+	return S
 }
 
 })()
