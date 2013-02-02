@@ -312,6 +312,7 @@ function FilerDec(bytes) // only for little endian
 	var n = bytes.byteLength
 	if (n % 2)
 		throw 'unknown format'
+	n /= 2
 	var s = new Uint16Array(bytes), x = 1
 	if (s[0] != 0x0a51) // 10 Q
 		throw 'unknown format'
@@ -330,14 +331,13 @@ function FilerDec(bytes) // only for little endian
 		var v = s[x-1] << 16 | s[x-2]
 		if (v >> 27 != 0)
 			throw 'string too long'
-		x += v
-		if (x + x > n)
+		if ((x += v) > n)
 			throw 'eof'
-		return String.fromCharCode.apply(null, new Uint16Array(bytes, x+x-v-v, v+v))
+		return String.fromCharCode.apply(null, new Uint16Array(bytes, x+x-v-v, v))
 	}
 	s.finish = function ()
 	{
-		if (x + x != n)
+		if (x != n)
 			throw 'unexpected end'
 	}
 	return s
