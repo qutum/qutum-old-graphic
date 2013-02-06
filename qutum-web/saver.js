@@ -10,11 +10,9 @@
 //////////////////////////////// saver ////////////////////////////////
 ////////////////////////////////       ////////////////////////////////
 
-Saver = function ()
-{
-}
+Saver = {
 
-Saver.all = function (onKey)
+all: function (onKey)
 {
 	for (var i = 0; i < localStorage.length; i++)
 	{
@@ -24,27 +22,27 @@ Saver.all = function (onKey)
 			name = key.substr(name + 1), onKey && onKey(key, name)
 	}
 	return i
-}
+},
 
-Saver.Name = function (key)
+name: function (key)
 {
 	var name = key.indexOf('!')
 	Assert(name >= 0)
 	return key.substr(name + 1)
-}
+},
 
-Saver.New = function ()
+New: function ()
 {
 	var key = Date.now() + '!'
 	if (localStorage.getItem(key))
 		throw 'duplicate'
 	return key
-}
+},
 
-Saver.save = function (key, zonest, onRename)
+save: function (key, zonest, onRename)
 {
-	var name = Saver.Name(key)
-	var enc = SaverEnc()
+	var name = Saver.name(key)
+	var enc = saverEnc()
 	save(enc, zonest, {}, 0)
 	enc = enc.finish()
 	var rekey
@@ -57,46 +55,46 @@ Saver.save = function (key, zonest, onRename)
 		localStorage.removeItem(key)
 	zonest.edit.unsave = 0
 	return rekey
-}
+},
 
-Saver.load = function (key, zonest, els)
+load: function (key, zonest, els)
 {
 	var dec = localStorage.getItem(key)
 	if ( !dec)
 		return
-	var name = Saver.Name(key)
+	var name = Saver.name(key)
 	els[0] = null
-	dec = SaverDec(dec)
+	dec = saverDec(dec)
 	load(dec, zonest, els)
 	dec.finish()
 	zonest.Name(name)
-}
+},
 
-Saver.remove = function (key)
+remove: function (key)
 {
-	Saver.Name(key)
+	Saver.name(key)
 	localStorage.removeItem(key)
+},
+
 }
 
 ////////////////////////////////       ////////////////////////////////
 //////////////////////////////// filer ////////////////////////////////
 ////////////////////////////////       ////////////////////////////////
 
-Filer = function ()
-{
-}
+Filer = {
 
-Filer.save = function (key, zonest, onFinish)
+save: function (key, zonest, onFinish)
 {
-	Saver.Name(key)
-	var enc = FilerEnc()
+	Saver.name(key)
+	var enc = filerEnc()
 	save(enc, zonest, {}, 0)
 	enc = enc.finish(onFinish)
-}
+},
 
-Filer.load = function (key, file, zonest, els, onFinish)
+load: function (key, file, zonest, els, onFinish)
 {
-	Saver.Name(key)
+	Saver.name(key)
 	var name = file.name, namedot = name.lastIndexOf('.')
 	namedot >= 0 && (name = name.substr(0, namedot))
 	var r = new FileReader()
@@ -106,7 +104,7 @@ Filer.load = function (key, file, zonest, els, onFinish)
 		try
 		{
 			els[0] = null
-			var dec = FilerDec(r.result)
+			var dec = filerDec(r.result)
 			load(dec, zonest, els)
 			dec.finish()
 			zonest.Name(name)
@@ -118,6 +116,8 @@ Filer.load = function (key, file, zonest, els, onFinish)
 		}
 	}
 	r.readAsArrayBuffer(file)
+},
+
 }
 
 ////////////////////////////////       ////////////////////////////////
@@ -189,7 +189,8 @@ function load(dec, d, els)
 		}
 		else
 			throw 'invalid format'
-	dec.num()
+	if (dec.num())
+		throw 'invaid format'
 	return q
 }
 
@@ -197,7 +198,7 @@ function load(dec, d, els)
 //////////////////////////////// codec ////////////////////////////////
 ////////////////////////////////       ////////////////////////////////
 
-function SaverEnc()
+function saverEnc()
 {
 	var s = [ '\u0a51' ], x = 1 // 10 Q
 	s.num = function (n) // Webkit localStorage denies \0 and Firefox \ud800-\udfff \ufffe \uffff
@@ -230,7 +231,7 @@ function SaverEnc()
 	return s
 }
 
-function SaverDec(s)
+function saverDec(s)
 {
 	s = new String(s)
 	if (s[0] != '\u0a51') // 10 Q
@@ -278,7 +279,7 @@ function SaverDec(s)
 	return s
 }
 
-function FilerEnc() // only for little endian
+function filerEnc() // only for little endian
 {
 	var s = [], x = 0
 	s[x++] = 0x0a51 // 10 Q
@@ -307,7 +308,7 @@ function FilerEnc() // only for little endian
 	return s
 }
 
-function FilerDec(bytes) // only for little endian
+function filerDec(bytes) // only for little endian
 {
 	var n = bytes.byteLength
 	if (n % 2)

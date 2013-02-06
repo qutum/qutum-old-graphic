@@ -78,18 +78,18 @@ layout: function (force)
 	if (this.zone.detail <= 2)
 		return this.xys = null
 
-	var xys = this.xys = [], zone = this.zone, base = this.base, agent = this.agent,
-		bz = this.bz, az = this.az, bx, by, b5, bq, ax, ay, aw, a5, aq, x, y
-	bx = base.offsetX(zone), b5 = bx + base.w / 2
-	bq = base.w ? 1 : 0
-	if (base != zone)
-		by = this.err ? base.offsetY(zone) + base.h - bq : bz.y + bz.h - 1
+	var xys = this.xys = []
+	var zone = this.zone, x, y
+	var base = this.base, bz = this.bz, bx, by, b5, bq
+	var agent = this.agent, az = this.az, ax, ay, aw, a5, aq
 	x = agent.offsetX(zone), y = agent.offsetY(zone)
 	if (this.err || base == zone)
 		ax = x, ay = y, aw = agent.w, a5 = ax + aw / 2
 	else
 		ax = az.x, ay = az.y, aw = az.w, a5 = ax + aw / 2
 	aq = agent.w ? 1 : 0
+	bx = base.offsetX(zone), b5 = bx + base.w / 2
+	bq = base.w ? 1 : 0
 	if (b5 < ax && bx + base.w < a5)
 		bx += base.w - bq, aw = 0 // right of base, left of agent
 	else if (a5 < bx && ax + aw < b5)
@@ -98,56 +98,52 @@ layout: function (force)
 		bx += bq, aw = 0 // left of base, left of agent
 	else
 		bx += base.w - bq // right of base, right of agent
+	by = base == zone ? ay : this.err ? base.offsetY(zone) + base.h - bq : bz.y + bz.h - 1
 	if (this.err)
-		xys.push(ax, ay, bx, base == zone ? ay : by)
+		xys.push(ax, ay, bx, by)
 	else
 	{
 		ax = aw ? x - aq : x + aq, ay = y + aq
-		xys.push(x = aw ? ax + agent.w : ax, y = ay)
+		x = aw ? ax + agent.w : ax, y = ay, xys.push(x, y)
 		var za = agent.za, a = agent, r
-		for (; a != za; a = a.zone)
-			ax -= a.x, ay -= a.y
+		while (a != za) // i.e. a is input
+			ax -= a.x, ay -= a.y, a = a.zone
 		while (a != az || base == zone)
 		{
 			Up: if (a.detail >= 2)
 			{
 				r = a.row
-				Hori: if (a != za || agent == za)
-					if (aw)
-					{
-						for (var D = r.length - 1; a != r[D]; D--)
-							if (r[D].y - a.y <= y - ay)
-								break Hori
-						break Up
-					}
-					else
-					{
-						for (var D = 0; a != r[D]; D++)
-							if (r[D].y - a.y <= y - ay)
-								break Hori
-						break Up
-					}
-				xys.push(x, y = ay - a.y + r.y - S - SS * a.x / r.w)
+				if (a != za || agent == za)
+				Hori: {
+					for (var D = aw ? r.length - 1 : 0; a != r[D]; D += aw ? -1 : 1)
+						if (r[D].y - a.y <= y - ay)
+							break Hori
+					break Up
+				}
+				y = ay - a.y + r.y - S - SS * a.x / r.w, xys.push(x, y)
 			}
 			if (a == az)
 				break; // base == zone
-			ax -= a.x, ay -= a.y
-			a = a.zone
+			ax -= a.x, ay -= a.y, a = a.zone
 			if (a.detail >= 2)
 				x = S + S * (y - ay) / a.h,
-				xys.push(x = aw ? ax + a.w + x : ax - x, y)
+				x = aw ? ax + a.w + x : ax - x, xys.push(x, y)
 		}
 		if (base == zone)
 			by = y
+		// a == az
 		else if ((r = a.row) == bz.row)
 		{
 			ax = x
-			if (ax == a.x + aq)
-				xys.push(ax -= S + S, y)
+			if (a == za && agent != za)
+				y -= SS * a.x / r.w, xys.push(ax, y),
+				ax = a.x + aq - S, xys.push(ax, y)
+			else if (ax == a.x + aq)
+				ax -= S + S, xys.push(ax, y)
 			if (r[r.indexOf(a) - 1] == bz && base == bz)
 				xys.push(ax, by)
 			else
-				xys.push(ax, ay = r.y + r.h + S + SS * bx / r.w, bx, ay)
+				ay = r.y + r.h + S + SS * bx / r.w, xys.push(ax, ay, bx, ay)
 		}
 		else
 		{
@@ -163,7 +159,7 @@ layout: function (force)
 					else
 						ax = d.x + d.w + S + S * ax / zone.w
 				xys.push(ax, ay)
-				xys.push(ax, ay = r.y - S - SS * ax / zone.w)
+				ay = r.y - S - SS * ax / zone.w, xys.push(ax, ay)
 			}
 			if (ax - bx < -2 || ax - bx > 2)
 				xys.push(bx, ay)

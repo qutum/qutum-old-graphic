@@ -411,14 +411,14 @@ _show: function (draw, X, Y, W, H)
 		return
 	draw.translate(-X, -Y)
 
-	var edit = this.edit, io = this.io, R, r, D, d, x, y, rh, dw, dh
+	var edit = this.edit, io = this.io, R, r, D, d, x, y
 
 	draw.fillStyle = io < 0 ? '#fbf6ff' : io > 0 ? '#f3f8ff' : '#f9fff9'
 	if (this.detail > 2 && this.ox > 0)
 		for (R = this.searchRow(Y), R ^= R >> 31, y = 0; (r = this.rows[R]) && y < Y + H; R++)
 		{
 			draw.fillRect(0, y, w, -y + (y = r.y))
-			rh = r.h
+			var rh = r.h, dw, dh
 			D = r.searchDatumX(X), D ^= D >> 31
 			for (x = 0; (d = r[D]) && x < X + W; D++)
 				draw.fillRect(x, y, -x + (x = d.x), rh), // left
@@ -472,8 +472,12 @@ _show: function (draw, X, Y, W, H)
 		draw.translate(X, Y)
 
 	if (this.detail >= 3)
+	{
+		var hit
 		for (var w, x = 0; w = this.ws[x]; x++)
-			w._show(draw, X, Y, W, H)
+			w == edit.hit ? hit = w : w._show(draw, X, Y, W, H)
+		hit && hit._show(draw, X, Y, W, H)
+	}
 },
 
 hit: function (xy, wire)
