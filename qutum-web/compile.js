@@ -286,7 +286,7 @@ function matchWire(bz, b, az, a)
 				a.show(-1), a.edit.errorN++
 			else if ( !a.ps[ab.id])
 				a.err || (a.err = [ 'to match ', b ]),
-				a.err.push(',\n  must have a wire matching ', bp.base, ' of ', ab),
+				a.err.push(',\n  must have a wire matching ', bp.base, ' to match ', ab),
 				a.show(-1), a.edit.errorN++
 		}
 	if ( !n)

@@ -170,6 +170,17 @@ shortest: function (xs, ys, Xs, Ys)
 	return dx != null
 },
 
+arrow: function (draw, x, y, X, Y, size)
+{
+	x -= X, y -= Y
+	var xy = Math.sqrt(x * x + y * y)
+	if (xy >= 1)
+		x *= size / xy, y *= size / xy, draw.beginPath(),
+		draw.moveTo(X + x + x - y, Y + y + y + x),
+		draw.lineTo(X + x + x + y, Y + y + y - x),
+		draw.lineTo(X, Y), draw.fill()
+},
+
 }
 
 })()

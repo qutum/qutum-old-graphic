@@ -191,18 +191,10 @@ _show: function ()
 				else if (drag == com.earlyRow || drag == com.laterRow)
 					draw.strokeRect(Dx - h.w / 2, Dy, h.w, 0)
 			var xy
-			if (drag == com.base
-					&& (x = Dx - dx, y = Dy - dy, xy = Math.sqrt(x * x + y * y)) >= 1)
-				x *= 5 / xy, y *= 5 / xy, draw.beginPath(),
-				draw.moveTo(dx + x + x - y, dy + y + y + x),
-				draw.lineTo(dx + x + x + y, dy + y + y - x),
-				draw.lineTo(dx, dy), draw.fill() // arrow
-			else if (drag == com.agent
-					&& (x = dx - Dx, y = dy - Dy, xy = Math.sqrt(x * x + y * y)) >= 1)
-				x *= 5 / xy, y *= 5 / xy, draw.beginPath(),
-				draw.moveTo(Dx + x + x - y, Dy + y + y + x),
-				draw.lineTo(Dx + x + x + y, Dy + y + y - x),
-				draw.lineTo(Dx, Dy), draw.fill() // arrow
+			if (drag == com.base)
+				Util.arrow(draw, Dx, Dy, dx, dy, 5)
+			else if (drag == com.agent)
+				Util.arrow(draw, dx, dy, Dx, Dy, 5)
 			draw.lineWidth = 5, draw.lineCap = 'round', draw.globalAlpha = 0.375
 			draw.beginPath(), draw.moveTo(dx, dy), draw.lineTo(Dx, Dy)
 			draw.stroke(), draw.globalAlpha = 1
@@ -250,9 +242,10 @@ _showErr: function (err, X, Y, W, H)
 				draw.strokeStyle = '#c90', draw.beginPath()
 				draw.strokeRect(Xs[0] - 1, Ys[0] - 1, Xs[1] - Xs[0] + 2, Ys[2] - Ys[0] + 2)
 				draw.stroke(), draw.globalAlpha = 1
-				draw.strokeStyle = '#c00', draw.beginPath()
+				draw.fillStyle = draw.strokeStyle = '#c00', draw.beginPath()
 				Util.shortest(xs, ys, Xs, Ys)
 				draw.moveTo(xs[0], ys[0]), draw.lineTo(Xs[0], Ys[0]), draw.stroke()
+				Util.arrow(draw, xs[0], ys[0], Xs[0], Ys[0], 3.5)
 			}
 },
 
