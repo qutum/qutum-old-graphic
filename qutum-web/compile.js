@@ -66,8 +66,8 @@ function datumError1(d)
 	if (d.tv > 0)
 		if ( !d.io)
 			return 'veto must be input or output'
-		else if ( !d.name)
-			return 'veto must have name'
+		else if (d.io > 0 && !d.name)
+			return 'veto output must have name' // unnamed veto input have no unity
 		else if (d.zone && d.zone.gene)
 			return 'veto must be inside agent'
 	if (d.uNext != d && d.zone.us[d.unity] != d)
@@ -90,14 +90,16 @@ function wire1(w)
 
 function wireError1(w)
 {
-	var base = w.base, agent = w.agent
+	var base = w.base, agent = w.agent, zone = w.zone
+	if (base.tv < 0 && !base.name) --TODO ? veto ?
+		return 'trial base must have name'
+	if (agent.tv < 0 && w.base == zone)
+		return "trial agent must not be cycle"
 	if (base.tv > 0 || base.zv)
 		return 'base must not be veto or inside'
-	if (agent.tv > 0 || agent.zv)
-		return 'agent must not be veto or inside'
-	var zone = w.zone, za = agent.za, a, z
-	if (agent.tv < 0 && w.base == zone)
-		return "trial's base must not be cycle"
+	if (agent.tv > 0 && agent.name || agent.zv)
+		return 'agent must not be named veto or inside'
+	var za = agent.za, a, z
 	if (base != zone && base.zb != w.bz)
 		return "wire must not cross base zone edge"
 	if (za.deep <= zone.deep)
