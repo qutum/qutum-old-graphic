@@ -33,7 +33,7 @@ function datum1(d)
 	d.yield && (d.yield = -1) // old yield
 	d.us || (d.us = {})
 	d.ps || (d.ps = {})
-	d.uNext == d || d.yield && d.zone.us[d.unity] || (d.zone.us[d.unity] = d)
+	d.uNext == d || d.zone.us[d.unity] || (d.zone.us[d.unity] = d)
 	if (d.ox > 0)
 	{
 		for (var R = 0, el = 0, r; r = d.rows[R]; R++)
@@ -91,7 +91,7 @@ function wire1(w)
 function wireError1(w)
 {
 	var base = w.base, agent = w.agent, zone = w.zone
-	if (base.tv < 0 && !base.name) --TODO ? veto ?
+	if (base.tv < 0 && !base.name) // TODO ? veto ?
 		return 'trial base must have name'
 	if (agent.tv < 0 && w.base == zone)
 		return "trial agent must not be cycle"
