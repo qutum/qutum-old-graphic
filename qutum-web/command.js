@@ -152,27 +152,27 @@ output: function (inner, test)
 },
 
 
-early: function (e, test)
+early: function (d, test)
 {
 	var now = this.edit.now, z = now.zone
 	if ( !now.row) return now.deep ? 'must not be zonest' : 'must be datum'
 	if (now.layer) return 'can not change layer 2'
-	if (test && !e) return
-	if (e == now) return 'no change'
-	if ( !e.deep) return 'must be datum'
-	if (e.zone != z) return 'must be same zone'
-	if (e.io != now.io) return now.io < 0 ? 'must be input' : now.io > 0 ? 'must be output'
+	if (test && !d) return
+	if (d == now) return 'no change'
+	if ( !d.deep) return 'must be datum'
+	if (d.zone != z) return 'must be same zone'
+	if (d.io != now.io) return now.io < 0 ? 'must be input' : now.io > 0 ? 'must be output'
 		: 'must be hub'
-	if (e.layer) return 'can not change layer 2'
-	var rs = z.rows, R = rs.indexOf(e.row), D = e.row.indexOf(e)
+	if (d.layer) return 'can not change layer 2'
+	var rs = z.rows, R = rs.indexOf(d.row), D = d.row.indexOf(d)
 	if (D >= 1)
-		if (e.row[D - 1].yield) return 'can not change yield'
-		else if (e.row[D - 1] == now) return 'no change'
+		if (d.row[D - 1].yield) return 'can not change yield'
+		else if (d.row[D - 1] == now) return 'no change'
 	if ( !test && this.edit.drag) return 'not available while dragging'
 	if (test) return
 	var R0 = rs.indexOf(now.row), D0 = now.row.indexOf(now)
 	var unrow = R != R0 && now.row.length == 1
-	R == R0 && D > D0 && D--, e = null
+	R == R0 && D > D0 && D--, d = null
 	this.go(function ()
 	{
 		rs[R0].splice(D0, 1), rs[R].splice(D, 0, now), now.row = rs[R]
@@ -187,26 +187,26 @@ early: function (e, test)
 	})
 },
 
-later: function (l, test)
+later: function (d, test)
 {
 	var now = this.edit.now, z = now.zone
 	if ( !now.row) return now.deep ? 'must not be zonest' : 'must be datum'
 	if (now.layer) return 'can not change layer 2'
-	if (test && !l) return
-	if (l == now) return 'no change'
-	if ( !l.deep) return 'must be datum'
-	if (l.zone != z) return 'must be same zone'
-	if (l.io != now.io) return now.io < 0 ? 'must be input' : now.io > 0 ? 'must be output'
+	if (test && !d) return
+	if (d == now) return 'no change'
+	if ( !d.deep) return 'must be datum'
+	if (d.zone != z) return 'must be same zone'
+	if (d.io != now.io) return now.io < 0 ? 'must be input' : now.io > 0 ? 'must be output'
 		: 'must be hub'
-	if (l.layer) return 'can not change layer 2'
-	if (l.yield) return 'can not change yield'
-	var rs = z.rows, R = rs.indexOf(l.row), D = l.row.indexOf(l) + 1
-	if (l.row[D] == now) return 'no change'
+	if (d.layer) return 'can not change layer 2'
+	if (d.yield) return 'can not change yield'
+	var rs = z.rows, R = rs.indexOf(d.row), D = d.row.indexOf(d) + 1
+	if (d.row[D] == now) return 'no change'
 	if ( !test && this.edit.drag) return 'not available while dragging'
 	if (test) return
 	var R0 = rs.indexOf(now.row), D0 = now.row.indexOf(now)
 	var unrow = R != R0 && rs[R0].length == 1
-	R == R0 && D > D0 && D--, l = null
+	R == R0 && D > D0 && D--, d = null
 	this.go(function ()
 	{
 		rs[R0].splice(D0, 1), rs[R].splice(D, 0, now), now.row = rs[R]
@@ -221,24 +221,24 @@ later: function (l, test)
 	})
 },
 
-earlyRow: function (e, test)
+earlyRow: function (d, test)
 {
 	var now = this.edit.now, z = now.zone
 	if ( !now.row) return now.deep ? 'must not be zonest' : 'must be datum'
 	if (now.layer) return 'can not change layer 2'
 	if (now.io) return 'must be hub'
-	if (test && !e) return
-	if ( !e.deep) return 'must be datum'
-	if ( !(e.io >= 0)) return 'must not be input'
-	if (e.zone != z) return 'must be same zone'
+	if (test && !d) return
+	if ( !d.deep) return 'must be datum'
+	if ( !(d.io >= 0)) return 'must not be input'
+	if (d.zone != z) return 'must be same zone'
 	var unrow = now.row.length == 1
-	if (unrow && e.row == now.row) return 'no change'
-	var rs = z.rows, R = rs.indexOf(e.row)
+	if (unrow && d.row == now.row) return 'no change'
+	var rs = z.rows, R = rs.indexOf(d.row)
 	if (unrow && rs[R - 1] == now.row) return 'no change'
 	if ( !test && this.edit.drag) return 'not available while dragging'
 	if (test) return
 	var R0 = rs.indexOf(now.row), D0 = now.row.indexOf(now)
-	unrow && R > R0 && R--, e = null
+	unrow && R > R0 && R--, d = null
 	this.go(function ()
 	{
 		if (unrow)
@@ -257,25 +257,25 @@ earlyRow: function (e, test)
 	})
 },
 
-laterRow: function (l, test)
+laterRow: function (d, test)
 {
 	var now = this.edit.now, z = now.zone
 	if ( !now.row) return now.deep ? 'must not be zonest' : 'must be datum'
 	if (now.layer) return 'can not change layer 2'
 	if (now.io) return 'must be hub'
-	if (test && !l) return
-	if ( !l.deep) return 'must be datum'
-	if ( !(l.io <= 0)) return 'must not be output'
-	if (l.zone != z) return 'must be same zone'
+	if (test && !d) return
+	if ( !d.deep) return 'must be datum'
+	if ( !(d.io <= 0)) return 'must not be output'
+	if (d.zone != z) return 'must be same zone'
 	var unrow = now.row.length == 1
-	if (unrow && l.row == now.row) return 'no change'
-	var rs = z.rows, R = rs.indexOf(l.row) + 1
+	if (unrow && d.row == now.row) return 'no change'
+	var rs = z.rows, R = rs.indexOf(d.row) + 1
 	if (unrow && rs[R] == now.row) return 'no change'
 	if ( !test && this.edit.drag) return 'not available while dragging'
 	if (test) return
 	var R0 = rs.indexOf(now.row), D0 = now.row.indexOf(now)
 	var unrow = now.row.length == 1
-	unrow && R > R0 && R--, l = null
+	unrow && R > R0 && R--, d = null
 	this.go(function ()
 	{
 		if (unrow)
