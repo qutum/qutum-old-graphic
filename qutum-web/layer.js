@@ -6,7 +6,7 @@
 //
 (function(){
 
-Layer = function (zonest, els)
+Layer = function (zonest, dxs)
 {
 	var In = input(zonest, 'in', -1)
 	var data = output(In, 'data', -2), next = output(In, 'next', -3)
@@ -48,20 +48,20 @@ Layer = function (zonest, els)
 	next = output(s, next, -86), s.agent(new Wire, next, false)
 	output(next, data, -87), output(next, output(s, 'nextable', -88), -89)
 
-	function input(z, nameU, uEl)
+	function input(z, nameU, udx)
 	{
-		var d = new Datum(-1, 2, nameU.deep ? nameU.u : uEl)
-		d.addTo(z, 0, z.ox < 0 ? 0 : z.rows[0].length)
+		var d = new Datum(-1, 2, nameU.deep ? nameU.u : udx)
+		d.addTo(z, 0, z.or < 0 ? 0 : z.rows[0].length)
 		nameU.deep ? d.unityTo(nameU) : d.Name(nameU)
-		d.el = uEl, els[uEl] = d
+		d.dx = udx, dxs[udx] = d
 		return d
 	}
-	function output(z, nameU, uEl)
+	function output(z, nameU, udx)
 	{
-		var d = new Datum(1, 2, nameU.deep ? nameU.u : uEl)
-		d.addTo(z, 1, z.ox < 0 ? 0 : z.rows[1].length)
+		var d = new Datum(1, 2, nameU.deep ? nameU.u : udx)
+		d.addTo(z, 1, z.or < 0 ? 0 : z.rows[1].length)
 		nameU.deep ? d.unityTo(nameU) : d.Name(nameU)
-		d.el = uEl, els[uEl] = d
+		d.dx = udx, dxs[udx] = d
 		return d
 	}
 }

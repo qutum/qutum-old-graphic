@@ -41,10 +41,10 @@ cycle: null, // cycle base
 layer: 0, // 0 for layer 1, 2 for layer 2
 row: null, // null for zonest
 rows: null, // []
-ox: -1, // -1: no inner datum, >=1: output row index, == rows.length - 1
+or: -1, // -1: no inner datum, >=1: output row index, == rows.length - 1
 ws: null, // [ Wire inside this ]
 
-el: NaN, // small early, big later, asynchronous update
+dx: NaN, // small early, big later, asynchronous update
 mustRun: false, // must run or may run, as zoner agent
 yield: 0, // 0 nonyield >0 yield <0 old yield while compiling
 us: null, // { unity: Datum }
@@ -89,12 +89,12 @@ addTo: function (z, R, D) // D < 0 to add row
 		this.id = this.edit.newId++
 	if (this.io && !this.unity)
 		this.unity = this.edit.newUnity++
-	if (z.ox < 0)
+	if (z.or < 0)
 		z.rows[0] = Row(z, []), z.rows[1] = Row(z, []),
-		z.ox = 1
+		z.or = 1
 	if (D < 0)
 		z.rows.splice(R, 0, this.row = Row(z, [ this ])),
-		z.ox++, D = 0
+		z.or++, D = 0
 	else
 		(this.row = z.rows[R]).splice(D, 0, this)
 	if ( !this.zone)
@@ -140,10 +140,10 @@ unadd: function (R, D)
 	var z = this.zone, unrow = false
 	this.row.splice(D, 1)
 	if ( !this.io && !this.row.length)
-		z.rows.splice(R, 1), z.ox--, unrow = true // hub all nonyield
+		z.rows.splice(R, 1), z.or--, unrow = true // hub all nonyield
 	this.row = null
-	if (z.ox == 1 && z.rows[0].length + z.rows[1].length == 0)
-		z.rows = [], z.ox = -1
+	if (z.or == 1 && z.rows[0].length + z.rows[1].length == 0)
+		z.rows = [], z.or = -1
 	this.showing = 0, z.show(3)
 	var p = this.navPrev, n = this.navNext
 	this.edit.now == this && this.edit.Now(p, false)
@@ -239,7 +239,7 @@ breakRow: function (R, D)
 	this.rows.splice(R + 1, 0, r1)
 	for (var D = r1.length - 1; D >= 0; D--)
 		r1[D].row = r1
-	this.ox++
+	this.or++
 	this.show(3)
 },
 
@@ -253,7 +253,7 @@ mergeRow: function (R)
 	r0.push.apply(r0, r1)
 	for (var D = r1.length - 1; D >= 0; D--)
 		r1[D].row = r0
-	this.ox--
+	this.or--
 	this.show(3)
 	return n0
 },
@@ -352,7 +352,7 @@ layout: function (force)
 		return true
 	}
 	var nr = this.nameR, nh = this.nameH
-	if (this.ox < 0)
+	if (this.or < 0)
 	{
 		this.W = Math.max(SIZE0, nr), this.H = Math.max(SIZE0, nh)
 		this.nameY = 2
@@ -385,8 +385,8 @@ layout: function (force)
 		this.nameY = h + 2
 		h = Math.max(h + nh, r.H + SPACE)
 		for (var R = 1; r = rs[R]; R++)
-			r.layout(R < this.ox ? 2 : 3, 0, w, h),
-			h += R < this.ox ? r.H + SPACE : r.H
+			r.layout(R < this.or ? 2 : 3, 0, w, h),
+			h += R < this.or ? r.H + SPACE : r.H
 		this.W = w, this.H = h
 		for (var W = 0; w = ws[W]; W++)
 			w.layout(true)
@@ -414,7 +414,7 @@ _show: function (draw, X, Y, W, H)
 	var edit = this.edit, io = this.io, R, r, D, d, x, y
 
 	draw.fillStyle = io < 0 ? '#fbf6ff' : io > 0 ? '#f3f8ff' : '#f9fff9'
-	if (this.detail > 2 && this.ox > 0)
+	if (this.detail > 2 && this.or > 0)
 		for (R = this.searchRow(Y), R ^= R >> 31, y = 0; (r = this.rows[R]) && y < Y + H; R++)
 		{
 			draw.fillRect(0, y, w, -y + (y = r.Y))
@@ -441,7 +441,7 @@ _show: function (draw, X, Y, W, H)
 	if (this.yield)
 		draw.fillStyle = c, draw.beginPath(),
 		draw.moveTo(0, 0), draw.lineTo(-3, 0), draw.lineTo(0, 6), draw.fill()
-	if (this.detail == 2 && this.ox > 0)
+	if (this.detail == 2 && this.or > 0)
 		draw.lineWidth = 2, draw.strokeStyle = this.derr ? '#f00' : c,
 		draw.strokeRect((w >> 1) - 3, this.nameH || h >> 1, 6, 0)
 
@@ -524,7 +524,7 @@ searchRow: function (y)
 {
 	if (y < 0)
 		return -1
-	var low = 0, high = this.ox, s = this.rows
+	var low = 0, high = this.or, s = this.rows
 	while (low <= high)
 	{
 		var mid = low + high >>> 1, r = s[mid]

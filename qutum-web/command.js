@@ -87,7 +87,7 @@ input: function (inner, test)
 	if (test) return
 	var d = new Datum(-1), R, D
 	if (z == now || now.io >= 0 || now.layer)
-		R = 0, D = z.ox < 0 ? 0 : z.rows[R].length
+		R = 0, D = z.or < 0 ? 0 : z.rows[R].length
 	else
 		R = z.rows.indexOf(now.row), D = now.row.indexOf(now) + 1
 	while (D > 0 && z.rows[R][D - 1].yield)
@@ -112,7 +112,7 @@ hub: function (inner, test)
 	if (test) return
 	var d = new Datum(0), R, D
 	if (z == now || now.io)
-		z.ox <= 1 ? (R = 1, D = -1) : (R = z.ox - 1, D = z.rows[R].length),
+		z.or <= 1 ? (R = 1, D = -1) : (R = z.or - 1, D = z.rows[R].length),
 		D >= 4 && (R++, D = -1)
 	else
 		R = z.rows.indexOf(now.row), D = now.row.indexOf(now) + 1
@@ -136,7 +136,7 @@ output: function (inner, test)
 	if (test) return
 	var d = new Datum(1), R, D
 	if (z == now || now.io <= 0 || now.layer)
-		R = z.ox < 0 ? 1 : z.ox, D = z.ox < 0 ? 0 : z.rows[R].length
+		R = z.or < 0 ? 1 : z.or, D = z.or < 0 ? 0 : z.rows[R].length
 	else
 		R = z.rows.indexOf(now.row), D = now.row.indexOf(now) + 1
 	while (D > 0 && z.rows[R][D - 1].yield)
@@ -176,12 +176,12 @@ early: function (e, test)
 	this.go(function ()
 	{
 		rs[R0].splice(D0, 1), rs[R].splice(D, 0, now), now.row = rs[R]
-		unrow && (z.ox--, rs.splice(R0, 1))
+		unrow && (z.or--, rs.splice(R0, 1))
 		z.show(-1), this.edit.Now(now)
 	},
 	function ()
 	{
-		unrow && (z.ox++, rs.splice(R0, 0, Row(z, [])))
+		unrow && (z.or++, rs.splice(R0, 0, Row(z, [])))
 		rs[R].splice(D, 1), rs[R0].splice(D0, 0, now), now.row = rs[R0]
 		z.show(-1), this.edit.Now(now)
 	})
@@ -210,12 +210,12 @@ later: function (l, test)
 	this.go(function ()
 	{
 		rs[R0].splice(D0, 1), rs[R].splice(D, 0, now), now.row = rs[R]
-		unrow && (z.ox--, rs.splice(R0, 1))
+		unrow && (z.or--, rs.splice(R0, 1))
 		z.show(-1), this.edit.Now(now)
 	},
 	function ()
 	{
-		unrow && (z.ox++, rs.splice(R0, 0, Row(z, [])))
+		unrow && (z.or++, rs.splice(R0, 0, Row(z, [])))
 		rs[R].splice(D, 1), rs[R0].splice(D0, 0, now), now.row = rs[R0]
 		z.show(-1), this.edit.Now(now)
 	})
@@ -244,7 +244,7 @@ earlyRow: function (e, test)
 		if (unrow)
 			rs.splice(R, 0, rs.splice(R0, 1)[0])
 		else
-			z.ox++, rs[R0].splice(D0, 1), rs.splice(R, 0, now.row = Row(z, [ now ]))
+			z.or++, rs[R0].splice(D0, 1), rs.splice(R, 0, now.row = Row(z, [ now ]))
 		z.show(-1), this.edit.Now(now)
 	},
 	function ()
@@ -252,7 +252,7 @@ earlyRow: function (e, test)
 		if (unrow)
 			rs.splice(R0, 0, rs.splice(R, 1)[0])
 		else
-			z.ox--, rs.splice(R, 1), rs[R0].splice(D0, 0, now), now.row = rs[R0]
+			z.or--, rs.splice(R, 1), rs[R0].splice(D0, 0, now), now.row = rs[R0]
 		z.show(-1), this.edit.Now(now)
 	})
 },
@@ -281,7 +281,7 @@ laterRow: function (l, test)
 		if (unrow)
 			rs.splice(R, 0, rs.splice(R0, 1)[0])
 		else
-			z.ox++, rs[R0].splice(D0, 1), rs.splice(R, 0, now.row = Row(z, [ now ]))
+			z.or++, rs[R0].splice(D0, 1), rs.splice(R, 0, now.row = Row(z, [ now ]))
 		z.show(-1), this.edit.Now(now)
 	},
 	function ()
@@ -289,7 +289,7 @@ laterRow: function (l, test)
 		if (unrow)
 			rs.splice(R0, 0, rs.splice(R, 1)[0])
 		else
-			z.ox--, rs.splice(R, 1), rs[R0].splice(D0, 0, now), now.row = rs[R0]
+			z.or--, rs.splice(R, 1), rs[R0].splice(D0, 0, now), now.row = rs[R0]
 		z.show(-1), this.edit.Now(now)
 	})
 },
@@ -556,7 +556,7 @@ removeDatum: function (test)
 	this.go(function ()
 	{
 		unrow = now.unadd(R, D)
-		this.edit.Now(z.ox < 0 ? z :
+		this.edit.Now(z.or < 0 ? z :
 			rs[R][D] || rs[R + 1] && rs[R + 1][0] || rs[R][D - 1] || ArrayLast(rs[R - 1]))
 	},
 	function ()
@@ -571,7 +571,7 @@ removeLeftDatum: function (test)
 	if ( !now.row) return now.deep ? 'must not be zonest' : 'must be datum'
 	if (now.layer) return 'can not change layer 2'
 	var z = now.zone, R = z.rows.indexOf(now.row), D = now.row.indexOf(now)
-	if (R > 1 && R < z.ox && D == 0)
+	if (R > 1 && R < z.or && D == 0)
 	{
 		if (this.edit.drag) return 'not available while dragging'
 		if (test) return
@@ -609,7 +609,7 @@ removeRightDatum: function (test)
 	if ( !now.row) return now.deep ? 'must not be zonest' : 'must be datum'
 	if (now.layer) return 'can not change layer 2'
 	var z = now.zone, R = z.rows.indexOf(now.row), D = now.row.indexOf(now)
-	if (R > 0 && R < z.ox - 1 && D == now.row.length - 1)
+	if (R > 0 && R < z.or - 1 && D == now.row.length - 1)
 	{
 		if (this.edit.drag) return 'not available while dragging'
 		if (test) return

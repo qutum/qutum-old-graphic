@@ -69,14 +69,14 @@ function zonest(key)
 	return Z.appendChild(z)
 }
 
-function New(Els)
+function New(dxs)
 {
 	var key = Saver.New()
-	zonest(key).scrollIntoView(), load(key, Els), save(key)
+	zonest(key).scrollIntoView(), load(key, dxs), save(key)
 	return key
 }
 
-function load(key, Els)
+function load(key, Dxs)
 {
 	if (Key)
 		Es[Key].dom.style.display = 'none', Zs[Key].className = ''
@@ -85,9 +85,9 @@ function load(key, Els)
 		e.dom.style.display = '', e.show()
 	else
 	{
-		var els = Els || []
-		e = Es[key] = new Edit(Util.add(E, 'div', 'edit'), els)
-		Saver.load(key, e.zonest, els)
+		var dxs = Dxs || []
+		e = Es[key] = new Edit(Util.add(E, 'div', 'edit'), dxs)
+		Saver.load(key, e.zonest, dxs)
 		e.onUnsave = unsave
 	}
 	toolbar = Toolbar(e, Util.dom('.tool', E), Util.dom('.toolv', E))
@@ -134,8 +134,8 @@ onbeforeunload = function ()
 
 function Import(file)
 {
-	var els = [], key = New(els), e = Es[key]
-	Filer.load(key, file, e.zonest, els, function (ok, err)
+	var dxs = [], key = New(dxs), e = Es[key]
+	Filer.load(key, file, e.zonest, dxs, function (ok, err)
 	{
 		if (ok)
 			save(key), e.zonest.show(4), e.show(true)

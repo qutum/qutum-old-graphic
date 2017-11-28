@@ -34,11 +34,11 @@ function datum1(d)
 	d.us || (d.us = {})
 	d.ps || (d.ps = {})
 	d.uNext == d || d.zone.us[d.unity] || (d.zone.us[d.unity] = d)
-	if (d.ox > 0)
+	if (d.or > 0)
 	{
-		for (var R = 0, el = 0, r; r = d.rows[R]; R++)
+		for (var R = 0, dx = 0, r; r = d.rows[R]; R++)
 			for (var D = 0, dd; dd = r[D]; D++)
-				dd.el = ++el, datum1(dd)
+				dd.dx = ++dx, datum1(dd)
 		for (var W = 0, w; w = d.ws[W]; W++)
 			wire1(w)
 	}
@@ -104,7 +104,7 @@ function wireError1(w)
 		return "wire must not cross base zone edge"
 	if (za.deep <= zone.deep)
 		return 'zoner agent must be inside wire zone'
-	if (base != zone && w.bz.el >= w.az.el) // NaN
+	if (base != zone && w.bz.dx >= w.az.dx) // NaN
 		return 'must wire early to later'
 	if ( !zone.gene)
 		if (base != zone && !base.io)
@@ -180,10 +180,10 @@ function datumPass2(d, p)
 
 function datum3(d, Mn)
 {
-	for (var R = d.ox, r; r = d.rows[R]; R--)
+	for (var R = d.or, r; r = d.rows[R]; R--)
 		for (var D = r.length - 1, dd; dd = r[D]; D--)
 			d.mn = Math.max(datum3(dd, Mn), d.mn)
-	if (d.ox > 0 && !d.tv)
+	if (d.or > 0 && !d.tv)
 		for (var W = 0, w; w = d.bs[W]; W++)
 			if ( !w.err && !w.yield && (d.mn >= Mn || w.base.mn >= Mn))
 				match(w.base, w.base, d, d, false, Mn)
@@ -194,7 +194,7 @@ function datum3(d, Mn)
 // im is input match considering Datum.gzb always false
 function match(bz, b, az, a, im, Mn)
 {
-	if (a.ox < 0)
+	if (a.or < 0)
 		return false
 	Assert( !a.gene, 'never match a gene')
 	var change = false
@@ -207,7 +207,7 @@ function match(bz, b, az, a, im, Mn)
 			if (bi && !bi.err && b != bz)
 				matchWire(bz, bi, az, ai)
 		}
-	for (var r = a.rows[a.ox], D = 0, ao; ao = r[D]; D++)
+	for (var r = a.rows[a.or], D = 0, ao; ao = r[D]; D++)
 		if (ao.tv >= 0 && ao.name && ao.yield >= 0) // skip trial and no unity and old yield
 		{
 			var bo = searchBaseUnity(b, a, ao, Mn)
@@ -256,8 +256,8 @@ function searchBaseUnity(b, a, ad, Mn)
 		bd = new Datum(ad.io)
 		bd.yield = 1
 		ad.tv > 0 && (bd.tv = 1)
-		var r = bd.io < 0 ? 0 : b.ox < 0 ? 1 : b.ox
-		bd.addTo(b, r, b.ox < 0 ? 0 : b.rows[r].length)
+		var r = bd.io < 0 ? 0 : b.or < 0 ? 1 : b.or
+		bd.addTo(b, r, b.or < 0 ? 0 : b.rows[r].length)
 		ad.uNext == ad && (a.us[ad.unity] = ad), b.us[ad.unity] = bd
 		bd.unityTo(ad)
 		bd.us = {}, bd.ps = {}
@@ -312,7 +312,7 @@ function datum4(d)
 	for (var R = 0, r; r = d.rows[R]; R++)
 		for (var D = r.length - 1, dd; dd = r[D]; D--)
 			if (dd.yield < 0)
-				dd.unadd(R, D) // ox may < 0
+				dd.unadd(R, D) // .or may < 0
 			else
 				datum4(dd), dd.err && (d.derr = true)
 	for (var W = d.ws.length - 1, w; w = d.ws[W]; W--)

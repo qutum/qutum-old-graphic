@@ -6,7 +6,7 @@
 //
 (function(){
 
-Edit = function (dom, els)
+Edit = function (dom, dxs)
 {
 	this.dom = dom, dom.tabIndex >= 1 || (dom.tabIndex = 1)
 	var whole = this.whole = Util.add(dom, 'div', 'whole')
@@ -38,7 +38,7 @@ Edit = function (dom, els)
 	z.edit = this, z.X = z.Y = Datum.SPACE + 4 >> 1
 	z.addTo(null, 0, 0)
 	this.Now(this.now = this.hit = this.nav = this.foc = z)
-	Layer(z, els)
+	Layer(z, dxs)
 	this.compile()
 	z.show(4)
 	this.com = new Command(this)
@@ -345,23 +345,23 @@ focZone: function (test)
 focInner: function (test)
 {
 	var foc = this.foc
-	return foc.ox > 0 && (test || this.Now(foc.rows[0][0] || foc.rows[1][0])) // not wire
+	return foc.or > 0 && (test || this.Now(foc.rows[0][0] || foc.rows[1][0])) // not wire
 },
 focInput: function (test)
 {
 	var foc = this.foc
-	return foc.ox > 0 && foc.rows[0][0] && (test || this.Now(foc.rows[0][0])) // not wire
+	return foc.or > 0 && foc.rows[0][0] && (test || this.Now(foc.rows[0][0])) // not wire
 },
 focHub: function (test)
 {
 	var foc = this.foc
-	return foc.ox > 1 && foc.rows[1][0] && (test || this.Now(foc.rows[1][0])) // not wire
+	return foc.or > 1 && foc.rows[1][0] && (test || this.Now(foc.rows[1][0])) // not wire
 },
 focOutput: function (test)
 {
 	var foc = this.foc
-	return foc.ox > 0 && foc.rows[foc.ox][0]
-		&& (test || this.Now(foc.rows[foc.ox][0])) // not wire
+	return foc.or > 0 && foc.rows[foc.or][0]
+		&& (test || this.Now(foc.rows[foc.or][0])) // not wire
 },
 focUnity: function (prev, test)
 {

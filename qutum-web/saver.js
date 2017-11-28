@@ -57,15 +57,15 @@ save: function (key, zonest, onRename)
 	return rekey
 },
 
-load: function (key, zonest, els)
+load: function (key, zonest, dxs)
 {
 	var dec = localStorage.getItem(key)
 	if ( !dec)
 		return
 	var name = Saver.name(key)
-	els[0] = null
+	dxs[0] = null
 	dec = saverDec(dec)
-	load(dec, zonest, els)
+	load(dec, zonest, dxs)
 	dec.finish()
 	zonest.Name(name)
 },
@@ -92,7 +92,7 @@ save: function (key, zonest, onFinish)
 	enc = enc.finish(onFinish)
 },
 
-load: function (key, file, zonest, els, onFinish)
+load: function (key, file, zonest, dxs, onFinish)
 {
 	Saver.name(key)
 	var name = file.name, namedot = name.lastIndexOf('.')
@@ -103,9 +103,9 @@ load: function (key, file, zonest, els, onFinish)
 	{
 		try
 		{
-			els[0] = null
+			dxs[0] = null
 			var dec = filerDec(r.result)
-			load(dec, zonest, els)
+			load(dec, zonest, dxs)
 			dec.finish()
 			zonest.Name(name)
 			onFinish(true)
@@ -124,32 +124,32 @@ load: function (key, file, zonest, els, onFinish)
 //////////////////////////////// codec ////////////////////////////////
 ////////////////////////////////       ////////////////////////////////
 
-function save(enc, d, us, el)
+function save(enc, d, us, dx)
 {
-	d.el = ++el
-	var uel = 0
+	d.dx = ++dx
+	var udx = 0
 	if (d.unity < 0)
-		uel = d.unity;
+		udx = d.unity;
 	else if (d.io && d.uNext != d)
-		(uel = us[d.unity]) || (us[d.unity] = el)
-	enc.num((d.tv < 0 ? 8 : d.tv ? 16 : 0) | (uel && 32) |
+		(udx = us[d.unity]) || (us[d.unity] = dx)
+	enc.num((d.tv < 0 ? 8 : d.tv ? 16 : 0) | (udx && 32) |
 		(d.io < 0 ? 1 : d.io > 0 ? 3 : d.row && d == d.row[0] ? 34 : 2))
-	if (uel)
-		enc.num(uel)
+	if (udx)
+		enc.num(udx)
 	else
 		enc.str(d.zone ? d.name : '')
 	for (var R = 0, r; r = d.rows[R]; R++)
 		for (var D = 0, dd; dd = r[D]; D++)
-			dd.yield || dd.layer || (el = save(enc, dd, us, el))
+			dd.yield || dd.layer || (dx = save(enc, dd, us, dx))
 	for (var W = 0, w; w = d.ws[W]; W++)
 		if ( !w.yield)
-			enc.num(4), enc.num(w.base.el), enc.num(w.agent.el)
+			enc.num(4), enc.num(w.base.dx), enc.num(w.agent.dx)
 	enc.num(0)
-	return el
+	return dx
 }
-function load(dec, d, els)
+function load(dec, d, dxs)
 {
-	d.el = els.push(d)
+	d.dx = dxs.push(d)
 	var q = dec.num(), u
 	d.Tv(q & 8 ? -1 : q & 16 ? 1 : 0)
 	if (d.io == 0 || ~q & 32)
@@ -160,7 +160,7 @@ function load(dec, d, els)
 		else if (name)
 			throw 'invalid name'
 	}
-	else if (u = els[dec.num()])
+	else if (u = dxs[dec.num()])
 		d.unityTo(u)
 	else
 		throw 'invalid unity'
@@ -168,20 +168,20 @@ function load(dec, d, els)
 		if (q < Q)
 			throw 'invalid format'
 		else if (q == 1)
-			load(dec, new Datum(-1).addTo(d, 0, d.ox < 0 ? 0 : d.rows[0].length), els)
+			load(dec, new Datum(-1).addTo(d, 0, d.or < 0 ? 0 : d.rows[0].length), dxs)
 		else if (q == 2)
 			if (xx & 32)
-				load(dec, new Datum(0).addTo(d, d.ox < 0 ? 1 : d.ox, -1), els)
+				load(dec, new Datum(0).addTo(d, d.or < 0 ? 1 : d.or, -1), dxs)
 			else
 				load(dec, new Datum(0).addTo(d,
-					d.ox <= 1 ? 1 : d.ox - 1, d.ox <= 1 ? 0 : d.rows[d.ox - 1].length), els)
+					d.or <= 1 ? 1 : d.or - 1, d.or <= 1 ? 0 : d.rows[d.or - 1].length), dxs)
 		else if (q == 3)
 			load(dec, new Datum(1).addTo(d,
-				d.ox < 0 ? 1 : d.ox, d.ox < 0 ? 0 : d.rows[d.ox].length), els)
+				d.or < 0 ? 1 : d.or, d.or < 0 ? 0 : d.rows[d.or].length), dxs)
 		else if (q == 4)
 		{
 			dec.num()
-			var b = els[dec.num()], a = els[dec.num()]
+			var b = dxs[dec.num()], a = dxs[dec.num()]
 			if ( !b || !a || b == a)
 				throw 'invalid wire'
 			if (b.agent(new Wire, a))
