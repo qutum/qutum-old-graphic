@@ -26,15 +26,15 @@ edit: null, // null for unadd
 id: 0,
 zone: null, // null for zonest
 deep: 1, // zone.deep + 1
-io: 0, // <0 input >0 output 0 nonput
+io: 0, // <0 input >0 output 0 hub
 unity: 0, // >0 for layer 1 <0 for layer 2
 uNext: null, // next unity
 uPrev: null, // previous unity
 gene: false,
 tv: 0, // <0 trial >0 veto 0 neither
 zv: false, // outside zone is veto
-zb: null, // innermost outside nonput or input zones, or this, as zoner base
-za: null, // innermost outside nonput or output zones, or this, as zoner agent
+zb: null, // innermost outside hub or input zones, or this, as zoner base
+za: null, // innermost outside hub or output zones, or this, as zoner agent
 bs: null, // [ base wire ]
 as: null, // [ agent wire ]
 cycle: null, // cycle base
@@ -140,7 +140,7 @@ unadd: function (R, D)
 	var z = this.zone, unrow = false
 	this.row.splice(D, 1)
 	if ( !this.io && !this.row.length)
-		z.rows.splice(R, 1), z.ox--, unrow = true // nonput all nonyield
+		z.rows.splice(R, 1), z.ox--, unrow = true // hub all nonyield
 	this.row = null
 	if (z.ox == 1 && z.rows[0].length + z.rows[1].length == 0)
 		z.rows = [], z.ox = -1

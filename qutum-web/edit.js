@@ -352,7 +352,7 @@ focInput: function (test)
 	var foc = this.foc
 	return foc.ox > 0 && foc.rows[0][0] && (test || this.Now(foc.rows[0][0])) // not wire
 },
-focDatum: function (test)
+focHub: function (test)
 {
 	var foc = this.foc
 	return foc.ox > 1 && foc.rows[1][0] && (test || this.Now(foc.rows[1][0])) // not wire
@@ -501,7 +501,7 @@ key: function (e)
 
 	case 13.5: this.nowOk(true); break; // enter
 	case 105: case 73: this.com.input(k == 73); break // i I
-	case 100: case 68: this.com.datum(k == 68); break // d D
+	case 104: case 72: this.com.hub(k == 72); break // h H
 	case 111: case 79: this.com.output(k == 79); break // o O
 	case 101: this.Drag(this.com.early); break; // e
 	case 108: this.Drag(this.com.later); break; // l

@@ -102,7 +102,7 @@ input: function (inner, test)
 	})
 },
 
-datum: function (inner, test)
+hub: function (inner, test)
 {
 	var now = this.edit.now, z = !inner && now.zone || now
 	if ( !now.deep) return 'must be datum'
@@ -162,7 +162,7 @@ early: function (e, test)
 	if ( !e.deep) return 'must be datum'
 	if (e.zone != z) return 'must be same zone'
 	if (e.io != now.io) return now.io < 0 ? 'must be input' : now.io > 0 ? 'must be output'
-		: 'must be nonput'
+		: 'must be hub'
 	if (e.layer) return 'can not change layer 2'
 	var rs = z.rows, R = rs.indexOf(e.row), D = e.row.indexOf(e)
 	if (D >= 1)
@@ -197,7 +197,7 @@ later: function (l, test)
 	if ( !l.deep) return 'must be datum'
 	if (l.zone != z) return 'must be same zone'
 	if (l.io != now.io) return now.io < 0 ? 'must be input' : now.io > 0 ? 'must be output'
-		: 'must be nonput'
+		: 'must be hub'
 	if (l.layer) return 'can not change layer 2'
 	if (l.yield) return 'can not change yield'
 	var rs = z.rows, R = rs.indexOf(l.row), D = l.row.indexOf(l) + 1
@@ -226,7 +226,7 @@ earlyRow: function (e, test)
 	var now = this.edit.now, z = now.zone
 	if ( !now.row) return now.deep ? 'must not be zonest' : 'must be datum'
 	if (now.layer) return 'can not change layer 2'
-	if (now.io) return 'must be nonput'
+	if (now.io) return 'must be hub'
 	if (test && !e) return
 	if ( !e.deep) return 'must be datum'
 	if ( !(e.io >= 0)) return 'must not be input'
@@ -262,7 +262,7 @@ laterRow: function (l, test)
 	var now = this.edit.now, z = now.zone
 	if ( !now.row) return now.deep ? 'must not be zonest' : 'must be datum'
 	if (now.layer) return 'can not change layer 2'
-	if (now.io) return 'must be nonput'
+	if (now.io) return 'must be hub'
 	if (test && !l) return
 	if ( !l.deep) return 'must be datum'
 	if ( !(l.io <= 0)) return 'must not be output'
@@ -512,7 +512,7 @@ breakRow: function (test)
 {
 	var now = this.edit.now
 	if ( !now.row) return now.deep ? 'must not be zonest' : 'must be datum'
-	if (now.io) return 'must be nonput'
+	if (now.io) return 'must be hub'
 	var D = now.row.indexOf(now)
 	if (D <= 0) return 'must not be first of row'
 	if (this.edit.drag) return 'not available while dragging'

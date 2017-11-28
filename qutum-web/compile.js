@@ -53,7 +53,7 @@ function datumError1(d)
 		return 'can not change layer 2'
 	if (d.zv)
 		return d.io < 0 ? 'input must not be inside veto' :
-			d.io ? 'output must not be inside veto' : 'nonput must not be inside veto'
+			d.io ? 'output must not be inside veto' : 'hub must not be inside veto'
 	if (d.zone && !d.zone.gene)
 		if ( !d.io)
 			return 'agent can only have input and output inside'
