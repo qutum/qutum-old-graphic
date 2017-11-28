@@ -25,10 +25,10 @@ yield: 0, // 0 nonyield >0 yield <0 yield while compiling
 err: '',
 showing: false,
 xys: null, // [ x, y, ... ] relative to zone
-x: 0, // minimal x
-y: 0, // minimal y
-w: 0,
-h: 0,
+X: 0, // minimal x
+Y: 0, // minimal y
+W: 0,
+H: 0,
 navPrev: null,
 navNext: null,
 
@@ -149,8 +149,8 @@ layout: function (force)
 		{
 			ax = x, ay = r.Y - S - SS * a.X / zone.W
 			xys.push(ax, ay)
-			var i = zone.rows.indexOf(r)
-			while ((r = zone.rows[--i]) != bz.row)
+			for (var i = zone.rows.indexOf(r)-1, j = zone.rows.indexOf(bz.row);
+				r = zone.rows[i], j < i; i--)
 			{
 				d = r[r.searchDatumX(ax)]
 				if (d && ax > d.X - S && ax < d.X + d.W + S)
