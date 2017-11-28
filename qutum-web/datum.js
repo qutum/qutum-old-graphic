@@ -6,12 +6,12 @@
 //
 (function () {
 
-Datum = function (io, layer, layerU)
+Datum = function (io, layer, layerNk)
 {
 	this.io = io
 	if (layer)
-		this.layer = layer, this.unity = layerU
-	this.uNext = this.uPrev = this
+		this.layer = layer, this.nk = layerNk
+	this.nNext = this.nPrev = this
 	this.rows = []
 	this.ws = []
 	this.bs = []
@@ -27,9 +27,9 @@ id: 0,
 zone: null, // null for zonest
 deep: 1, // zone.deep + 1
 io: 0, // <0 input >0 output 0 hub
-unity: 0, // >0 for layer 1 <0 for layer 2
-uNext: null, // next unity
-uPrev: null, // previous unity
+nk: 0, // >0 for layer 1 <0 for layer 2
+nNext: null, // next namesake
+nPrev: null, // previous namesake
 gene: false,
 tv: 0, // <0 trial >0 veto 0 neither
 zv: false, // outside zone is veto
@@ -47,7 +47,7 @@ ws: null, // [ Wire inside this ]
 dx: NaN, // small early, big later, asynchronous update
 mustRun: false, // must run or may run, as zoner agent
 yield: 0, // 0 nonyield >0 yield <0 old yield while compiling
-us: null, // { unity: Datum }
+ns: null, // { namesake: Datum }
 gzb: false, // gene, or has base and all zoner base zoner bases are gene
 ps: null, // wired passes from base or base base, { base.id: outermost wire }
 pdeep0: 0, // outermost zone deep of passes
@@ -87,8 +87,8 @@ addTo: function (z, R, D) // D < 0 to add row
 	this.edit = z.edit
 	if ( !this.id)
 		this.id = this.edit.newId++
-	if (this.io && !this.unity)
-		this.unity = this.edit.newUnity++
+	if (this.io && !this.nk)
+		this.nk = this.edit.newNk++
 	if (z.or < 0)
 		z.rows[0] = Row(z, []), z.rows[1] = Row(z, []),
 		z.or = 1
@@ -120,8 +120,8 @@ addTo: function (z, R, D) // D < 0 to add row
 
 _addTo: function (deep)
 {
-	var u = this.edit.us[this.unity]
-	u && this.unityTo(u)
+	var n = this.edit.ns[this.nk]
+	n && this.namesakeTo(n)
 	for (var W = 0, w; w = this.bs[W]; W++)
 		if (w.zone.deep < deep)
 			w.base.as.push(w), w.addTo()
@@ -155,7 +155,7 @@ unadd: function (R, D)
 
 _unadd: function (deep)
 {
-	this.uNext != this && this.unityTo(this, true)
+	this.nNext != this && this.namesakeTo(this, true)
 	for (var s = this.bs, W = 0, Q = 0, w; w = s[Q] = s[W]; W++, Q++)
 		if (w.zone.deep < deep)
 			ArrayRem(w.base.as, w), w.unadd(), w.yield && Q--
@@ -176,11 +176,11 @@ Name: function (v)
 		v = v.substr(1)
 	if (this.name == v)
 		return
-	for (var d = this.uNext; d != this; d = d.uNext)
+	for (var d = this.nNext; d != this; d = d.nNext)
 		if (v)
 			w = d._Name(v, w)
 		else
-			throw 'empty unity name'
+			throw 'fatal: namesake no name'
 	this._Name(v, w)
 },
 
@@ -258,45 +258,45 @@ mergeRow: function (R)
 	return n0
 },
 
-unityTo: function (u, keepUnity)
+namesakeTo: function (n, keepNk)
 {
-	if (this.io != u.io || !u.io)
+	if (this.io != n.io || !n.io)
 		throw 'must be input or output both'
-	if (u == this == (this.uNext == this) && this.unity == u.unity)
+	if (n == this == (this.nNext == this) && this.nk == n.nk)
 		return
-	if ( !u.name && !this.name)
-		throw 'unity must have name'
-	if (this.uNext != this)
-		this.uNext.uPrev = this.uPrev,
-		this.uPrev.uNext = this.uNext,
-		this.uNext == this.uPrev ? delete this.edit.us[this.unity] :
-			this.edit.us[this.unity] == this && (this.edit.us[this.unity] = this.uNext)
-	if (u == this)
-		this.uNext = this.uPrev = this,
-		!keepUnity && (this.unity = this.edit.newUnity++)
+	if ( !n.name && !this.name)
+		throw 'namesake must have name'
+	if (this.nNext != this)
+		this.nNext.nPrev = this.nPrev,
+		this.nPrev.nNext = this.nNext,
+		this.nNext == this.nPrev ? delete this.edit.ns[this.nk] :
+			this.edit.ns[this.nk] == this && (this.edit.ns[this.nk] = this.nNext)
+	if (n == this)
+		this.nNext = this.nPrev = this,
+		!keepNk && (this.nk = this.edit.newNk++)
 	else
 	{
-		u.uNext == u && (this.edit.us[u.unity] = u)
-		this.uPrev = u.uPrev, u.uPrev.uNext = this
-		this.uNext = u, u.uPrev = this
-		this.unity = u.unity
-		u.name ? this._Name(u.name) : u.Name(this.name)
+		n.nNext == n && (this.edit.ns[n.nk] = n)
+		this.nPrev = n.nPrev, n.nPrev.nNext = this
+		this.nNext = n, n.nPrev = this
+		this.nk = n.nk
+		n.name ? this._Name(n.name) : n.Name(this.name)
 	}
 },
 
-uNonyield: function ()
+nNonyield: function ()
 {
 	if ( !this.yield)
-		return this // use self rather than edit.us
-	var uu = this.edit.us[this.unity], u = uu
-	if ( !uu)
+		return this // use self rather than edit.ns
+	var nn = this.edit.ns[this.nk], n = nn
+	if ( !nn)
 		return null
-	while (u.yield)
-		if ((u = u.uNext) == uu)
+	while (n.yield)
+		if ((n = n.nNext) == nn)
 			return null
-	if (u != uu)
-		this.edit.us[this.unity] = u
-	return u
+	if (n != nn)
+		this.edit.ns[this.nk] = n
+	return n
 },
 
 ////////////////////////////////      ////////////////////////////////
@@ -445,7 +445,7 @@ _show: function (draw, X, Y, W, H)
 		draw.lineWidth = 2, draw.strokeStyle = this.derr ? '#f00' : c,
 		draw.strokeRect((w >> 1) - 3, this.nameH || h >> 1, 6, 0)
 
-	if (this.uNext != this && this.unity == edit.nav.unity)
+	if (this.nNext != this && this.nk == edit.nav.nk)
 		draw.fillStyle = io < 0 ? '#ecf' : '#cce3ff',
 		draw.fillRect(2, this.nameY, this.nameR - 4, edit.nameH + 1)
 	if (this.tv)

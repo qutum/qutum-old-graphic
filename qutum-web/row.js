@@ -30,7 +30,7 @@ function layoutW ()
 // mode 0: hide, 1: top, 2: middle, 3: bottom
 function layout(mode, left, right, y)
 {
-	var n = this.length, space = (right - left - this.W) / (n + 1) + SPACE | 0,
+	var space = (right - left - this.W) / (this.length + 1) + SPACE | 0,
 		w = 0, h = 0, i, d
 	if (mode <= 0)
 		for (i = 0; d = this[i]; i++)

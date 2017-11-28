@@ -48,19 +48,19 @@ Layer = function (zonest, dxs)
 	next = output(s, next, -86), s.agent(new Wire, next, false)
 	output(next, data, -87), output(next, output(s, 'nextable', -88), -89)
 
-	function input(z, nameU, udx)
+	function input(z, nk, udx)
 	{
-		var d = new Datum(-1, 2, nameU.deep ? nameU.u : udx)
+		var d = new Datum(-1, 2, nk.deep ? nk.nk : udx)
 		d.addTo(z, 0, z.or < 0 ? 0 : z.rows[0].length)
-		nameU.deep ? d.unityTo(nameU) : d.Name(nameU)
+		nk.deep ? d.namesakeTo(nk) : d.Name(nk)
 		d.dx = udx, dxs[udx] = d
 		return d
 	}
-	function output(z, nameU, udx)
+	function output(z, nk, udx)
 	{
-		var d = new Datum(1, 2, nameU.deep ? nameU.u : udx)
+		var d = new Datum(1, 2, nk.deep ? nk.nk : udx)
 		d.addTo(z, 1, z.or < 0 ? 0 : z.rows[1].length)
-		nameU.deep ? d.unityTo(nameU) : d.Name(nameU)
+		nk.deep ? d.namesakeTo(nk) : d.Name(nk)
 		d.dx = udx, dxs[udx] = d
 		return d
 	}

@@ -124,14 +124,14 @@ load: function (key, file, zonest, dxs, onFinish)
 //////////////////////////////// codec ////////////////////////////////
 ////////////////////////////////       ////////////////////////////////
 
-function save(enc, d, us, dx)
+function save(enc, d, ns, dx)
 {
 	d.dx = ++dx
 	var udx = 0
-	if (d.unity < 0)
-		udx = d.unity;
-	else if (d.io && d.uNext != d)
-		(udx = us[d.unity]) || (us[d.unity] = dx)
+	if (d.nk < 0)
+		udx = d.nk;
+	else if (d.io && d.nNext != d)
+		(udx = ns[d.nk]) || (ns[d.nk] = dx)
 	enc.num((d.tv < 0 ? 8 : d.tv ? 16 : 0) | (udx && 32) |
 		(d.io < 0 ? 1 : d.io > 0 ? 3 : d.row && d == d.row[0] ? 34 : 2))
 	if (udx)
@@ -140,7 +140,7 @@ function save(enc, d, us, dx)
 		enc.str(d.zone ? d.name : '')
 	for (var R = 0, r; r = d.rows[R]; R++)
 		for (var D = 0, dd; dd = r[D]; D++)
-			dd.yield || dd.layer || (dx = save(enc, dd, us, dx))
+			dd.yield || dd.layer || (dx = save(enc, dd, ns, dx))
 	for (var W = 0, w; w = d.ws[W]; W++)
 		if ( !w.yield)
 			enc.num(4), enc.num(w.base.dx), enc.num(w.agent.dx)
@@ -150,7 +150,7 @@ function save(enc, d, us, dx)
 function load(dec, d, dxs)
 {
 	d.dx = dxs.push(d)
-	var q = dec.num(), u
+	var q = dec.num(), n
 	d.Tv(q & 8 ? -1 : q & 16 ? 1 : 0)
 	if (d.io == 0 || ~q & 32)
 	{
@@ -160,10 +160,10 @@ function load(dec, d, dxs)
 		else if (name)
 			throw 'invalid name'
 	}
-	else if (u = dxs[dec.num()])
-		d.unityTo(u)
+	else if (n = dxs[dec.num()])
+		d.namesakeTo(n)
 	else
-		throw 'invalid unity'
+		throw 'invalid namesake'
 	for (var Q = q = xx = 0; q = (xx = dec.peek()) & 7; Q = q)
 		if (q < Q)
 			throw 'invalid format'

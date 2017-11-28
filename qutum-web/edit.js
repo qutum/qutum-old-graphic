@@ -33,7 +33,7 @@ Edit = function (dom, dxs)
 	Util.on(naming, 'input', this, this.Name, [ null, true ])
 	Util.on(naming, 'change', this, this.Name, [ null, true ])
 
-	this.us = {}
+	this.ns = {}
 	var z = this.zonest = new Datum(0)
 	z.edit = this, z.X = z.Y = Datum.SPACE + 4 >> 1
 	z.addTo(null, 0, 0)
@@ -48,7 +48,7 @@ Edit.prototype =
 {
 
 newId: 1, // new datum id
-newUnity: 1, // new unity
+newNk: 1, // new namesake
 zonest: null,
 now: null, // being edited
 hit: null, // hit by mouse pointer or changed now
@@ -72,7 +72,7 @@ showTime: 0, // to show in milliseconds
 layouting: false, // to layout while showing
 scrolling: false, // to scroll while showing
 
-us: null, // { unity:Datum }
+ns: null, // { namesake:Datum }
 com: null, // commands
 unsave: 0, // >0 saved and redos <0 saved and undos
 fatal: false, // fatal error
@@ -152,7 +152,7 @@ _show: function ()
 				drag == com.later ? (Xs[0] += h.W + Datum.SPACE / 2, Ys[0] += h.H >> 1) :
 				drag == com.earlyRow ? (Xs[0] += h.W >> 1, Ys[0] -= Datum.SPACE / 2) :
 				drag == com.laterRow ? (Xs[0] += h.W >> 1, Ys[0] += h.H + Datum.SPACE / 2) :
-				drag == com.unity ? Ys[0] += h.nameY + (this.nameH >> 1) :
+				drag == com.namesake ? Ys[0] += h.nameY + (this.nameH >> 1) :
 				(Xs[1] = Xs[0] + h.W, Ys[1] = Ys[0] += drag == com.base ? h.H : 0)
 			else
 				xys = h.xys, Xs[1] = (Xs[0] = h.zone.offsetX()) + xys[xys.length -2],
@@ -363,10 +363,10 @@ focOutput: function (test)
 	return foc.or > 0 && foc.rows[foc.or][0]
 		&& (test || this.Now(foc.rows[foc.or][0])) // not wire
 },
-focUnity: function (prev, test)
+focNamesake: function (prev, test)
 {
 	var foc = this.foc
-	return foc.deep && foc.uNext != foc && (test || this.Now(prev ? foc.uPrev : foc.uNext))
+	return foc.deep && foc.nNext != foc && (test || this.Now(prev ? foc.nPrev : foc.nNext))
 },
 focBase: function (next, test)
 {
@@ -493,7 +493,7 @@ key: function (e)
 	case 44: this.focInput(); break // ,
 	case 96: this.focDatum(); break // `
 	case 46: this.focOutput(); break // .
-	case 58: case 59: this.focUnity(k == 58); break // ;
+	case 58: case 59: this.focNamesake(k == 58); break // ;
 	case 91: case 123: this.focBase(k == 91); break // [ {
 	case 93: case 125: this.focAgent(k == 93); break // ] }
 	case 45: case 95: this.focFold(); break // - _
@@ -507,7 +507,7 @@ key: function (e)
 	case 108: this.Drag(this.com.later); break; // l
 	case 69: this.Drag(this.com.earlyRow); break; // E
 	case 76: this.Drag(this.com.laterRow); break; // L
-	case 117: this.Drag(this.com.unity); break; // u
+	case 110: this.Drag(this.com.namesake); break; // n
 	case 98: this.Drag(this.com.base); break; // b
 	case 97: this.Drag(this.com.agent); break; // a
 	case 116: case 63: this.com.trialVeto(-1); break // t ?

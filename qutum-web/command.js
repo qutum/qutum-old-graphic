@@ -57,21 +57,21 @@ Name: function (v, test)
 		v = v.substr(1)
 	if ( !now.deep) return 'must be datum'
 	if (m == v) return 'no change'
-	if (now.layer || now.unity < 0) return 'can not change layer 2'
+	if (now.layer || now.nk < 0) return 'can not change layer 2'
 	if ( !v && now.yield) return 'can not change yield'
-	var d = now.uNonyield()
+	var d = now.nNonyield()
 	if ( !d) return 'can not change yield'
 	if (test) return
-	var u = v && m || d.uNext.uNonyield()
+	var n = v && m || d.nNext.nNonyield()
 	this.go(function ()
 	{
-		v || d.io == 0 || d.unityTo(d), d.Name(v)
+		v || d.io == 0 || d.namesakeTo(d), d.Name(v)
 		now.edit || (now = d)
 		this.edit.Now(now)
 	},
 	function ()
 	{
-		v && m || d.io == 0 || d.unityTo(u), d.Name(m)
+		v && m || d.io == 0 || d.namesakeTo(n), d.Name(m)
 		now.edit || (now = d)
 		this.edit.Now(now)
 	})
@@ -294,30 +294,30 @@ laterRow: function (d, test)
 	})
 },
 
-unity: function (u, test)
+namesake: function (n, test)
 {
 	var now = this.edit.now, m = now.name
 	if ( !now.io) return 'must be input or output'
 	if (now.layer) return 'can not change layer 2'
 	if (now.yield) return 'can not change yield'
-	if (test && !u) return
-	var um = u.name
-	if (u.io != now.io) return now.io < 0 ? 'must be input' : 'must be output'
-	if (u != now && u.unity == now.unity) return 'already same unity'
+	if (test && !n) return
+	var um = n.name
+	if (n.io != now.io) return now.io < 0 ? 'must be input' : 'must be output'
+	if (n != now && n.nk == now.nk) return 'already be namesake'
 	if ( !m && !um) return 'must have name'
-	u = u.uNonyield()
-	if ( !u) return 'can not change yield'
+	n = n.nNonyield()
+	if ( !n) return 'can not change yield'
 	if ( !test && this.edit.drag) return 'not available while dragging'
 	if (test) return
-	var nowu = now.uNext.uNonyield()
+	var nown = now.nNext.nNonyield()
 	this.go(function ()
 	{
-		now.unityTo(u), this.edit.Now(now)
+		now.namesakeTo(n), this.edit.Now(now)
 	},
 	function ()
 	{
-		now.unityTo(nowu), now.Name(m)
-		um || (u.unityTo(u), u.Name(um)) // unity self if no name
+		now.namesakeTo(nown), now.Name(m)
+		um || (n.namesakeTo(n), n.Name(um)) // namesake self if no name
 		this.edit.Now(now)
 	})
 },

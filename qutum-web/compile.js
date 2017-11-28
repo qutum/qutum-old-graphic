@@ -31,9 +31,9 @@ function datum1(d)
 	d.zv = d.zone != null && (d.zone.tv > 0 || d.zone.zv)
 	d.cycle = null
 	d.yield && (d.yield = -1) // old yield
-	d.us || (d.us = {})
+	d.ns || (d.ns = {})
 	d.ps || (d.ps = {})
-	d.uNext == d || d.zone.us[d.unity] || (d.zone.us[d.unity] = d)
+	d.nNext == d || d.zone.ns[d.nk] || (d.zone.ns[d.nk] = d)
 	if (d.or > 0)
 	{
 		for (var R = 0, dx = 0, r; r = d.rows[R]; R++)
@@ -67,11 +67,11 @@ function datumError1(d)
 		if ( !d.io)
 			return 'veto must be input or output'
 		else if (d.io > 0 && !d.name)
-			return 'veto output must have name' // unnamed veto input have no unity
+			return 'veto output must have name' // unnamed veto input have no namesake
 		else if (d.zone && d.zone.gene)
 			return 'veto must be inside agent'
-	if (d.uNext != d && d.zone.us[d.unity] != d)
-		return 'unity must be different in same zone'
+	if (d.nNext != d && d.zone.ns[d.nk] != d)
+		return 'namesake must be in different zone'
 	if (d.io < 0)
 		if (d.bs.length && d.zone.io < 0 && !d.zone.bs.length)
 			return 'input inside input having no base must not have base'
@@ -199,18 +199,18 @@ function match(bz, b, az, a, im, Mn)
 	Assert( !a.gene, 'never match a gene')
 	var change = false
 	for (var r = a.rows[0], D = 0, ai; ai = r[D]; D++)
-		if (ai.name && ai.yield >= 0) // skip no unity and old yield
+		if (ai.name && ai.yield >= 0) // skip no namesake and old yield
 		{
-			var bi = searchBaseUnity(b, a, ai, Mn)
+			var bi = searchBaseNk(b, a, ai, Mn)
 			if (bi && !bi.err)
 				change = match(ai, ai, bi, bi, true, Mn) || bi.mn > Mn || change
 			if (bi && !bi.err && b != bz)
 				matchWire(bz, bi, az, ai)
 		}
 	for (var r = a.rows[a.or], D = 0, ao; ao = r[D]; D++)
-		if (ao.tv >= 0 && ao.name && ao.yield >= 0) // skip trial and no unity and old yield
+		if (ao.tv >= 0 && ao.name && ao.yield >= 0) // skip trial and no namesake and old yield
 		{
-			var bo = searchBaseUnity(b, a, ao, Mn)
+			var bo = searchBaseNk(b, a, ao, Mn)
 			if (bo && !bo.err && (im || !ao.gzb))
 				change = match(bz, bo, az, ao, im, Mn) || bo.mn > Mn || change
 			if (bo && !bo.err)
@@ -220,10 +220,10 @@ function match(bz, b, az, a, im, Mn)
 	return change
 }
 
-// search the ad unity in base b or b cycle
-function searchBaseUnity(b, a, ad, Mn)
+// search the ad namesake in base b or b cycle
+function searchBaseNk(b, a, ad, Mn)
 {
-	var bd = b.us[ad.unity]
+	var bd = b.ns[ad.nk]
 	if (bd && bd.yield >= 0)
 	{
 		if (bd.tv <= 0 && ad.tv > 0 && !ad.err)
@@ -237,14 +237,14 @@ function searchBaseUnity(b, a, ad, Mn)
 	if (ad.tv > 0 && (b.gene || b.layer))
 		return null // don't yield veto inside gene or layer 2
 	var err
-// TODO must check this ? search ad unity in cycle base ?
+// TODO must check this ? search ad namesake in cycle base ?
 //	for (var z = b; z.io > 0; z = z.zone)
-//		if (z.unity == ad.unity)
+//		if (z.nk == ad.nk)
 //		{
 //			if (b.cycle == z.zone)
 //				return z // not yield
 //			err = 'yield zone must be cycle agent of zone of\n\
-//  innermost zone of same unity inside zoner base'
+//  innermost zone of same namesake inside zoner base'
 //			break;
 //		}
 	if (bd) // old yield
@@ -258,9 +258,9 @@ function searchBaseUnity(b, a, ad, Mn)
 		ad.tv > 0 && (bd.tv = 1)
 		var r = bd.io < 0 ? 0 : b.or < 0 ? 1 : b.or
 		bd.addTo(b, r, b.or < 0 ? 0 : b.rows[r].length)
-		ad.uNext == ad && (a.us[ad.unity] = ad), b.us[ad.unity] = bd
-		bd.unityTo(ad)
-		bd.us = {}, bd.ps = {}
+		ad.nNext == ad && (a.ns[ad.nk] = ad), b.ns[ad.nk] = bd
+		bd.namesakeTo(ad)
+		bd.ns = {}, bd.ps = {}
 		bd.mn = Mn + 1
 	}
 	if ((bd.layer = b.layer))
@@ -276,12 +276,12 @@ function matchWire(bz, b, az, a)
 {
 	if (a.err || NoKey(a.ps))
 		return
-	var bdeep = b.deep + a.padeep0 - a.deep, n = 0, bp
+	var bdeep = b.deep + a.padeep0 - a.deep, bnum = 0, bp
 	for (var P in b.ps)
 		if (bp = b.ps[P], bp.agent.za.deep > bdeep) // also bp.agent == b
 		{
-			n++
-			var ab = bp.zone.deep < bz.deep ? bp.base : searchZoneUnity(bz, bp.base, az)
+			bnum++
+			var ab = bp.zone.deep < bz.deep ? bp.base : searchZoneNk(bz, bp.base, az)
 			if ( !ab)
 				a.err || (a.err = [ 'to match ', b ]),
 				a.err.push(',\n  must have a wire matching ', bp.base),
@@ -291,20 +291,20 @@ function matchWire(bz, b, az, a)
 				a.err.push(',\n  must have a wire matching ', bp.base, ' to match ', ab),
 				a.show(-1), a.edit.errorN++
 		}
-	if ( !n)
+	if ( !bnum)
 		a.err || (a.err = [ 'to match ', b ]),
 		a.err.push(',\n  must have no base'),
 		a.show(-1), a.edit.errorN++
 // TODO must check this ?
-//	B: { var awb = searchZoneUnity(bz, b, az)
+//	B: { var awb = searchZoneNk(bz, b, az)
 //		if (ArrayFind(a.ps, 'b', awb) != null)
 //			break B // base outside cycle agent and agent inside cycle agent
 }
 
-// for each d and outside zones inside z, find their unities inside z2, return d unity
-function searchZoneUnity(z, d, z2)
+// for each d and outside zones inside z, find their unities inside z2, return d namesake
+function searchZoneNk(z, d, z2)
 {
-	return d == z ? z2 : (z = searchZoneUnity(z, d.zone, z2)) && z.us[d.unity]
+	return d == z ? z2 : (z = searchZoneNk(z, d.zone, z2)) && z.ns[d.nk]
 }
 
 function datum4(d)
@@ -318,7 +318,7 @@ function datum4(d)
 	for (var W = d.ws.length - 1, w; w = d.ws[W]; W--)
 		if (w.yield < 0)
 			w.base.unagent(w)
-	NoKey(d.us) || (d.us = null)
+	NoKey(d.ns) || (d.ns = null)
 	NoKey(d.ps) || (d.ps = null)
 	var e = datumRun4(d)
 	if ( !d.err)
@@ -337,12 +337,12 @@ function datumRun4(d)
 				if ( !dd.mustRun)
 					break Must
 		d.mustRun = true
-		var n = 0
+		var num = 0
 		for (var W = 0, w; w = d.bs[W]; W++)
 			if ( !w.err)
-				if (n++, w.base == w.zone || w.base.zb.io || w.base.zb.mustRun)
+				if (num++, w.base == w.zone || w.base.zb.io || w.base.zb.mustRun)
 					break Must
-		d.mustRun = n == 0
+		d.mustRun = num == 0
 	}
 	if (d.io > 0 && d.tv <= 0 && !d.mustRun)
 		return d.mustRun = true, 'output must run : not be trial,\

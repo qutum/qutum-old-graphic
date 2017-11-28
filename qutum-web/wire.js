@@ -192,7 +192,7 @@ _show: function (draw, X, Y, W, H)
 		draw.lineWidth = this.yield ? 1.125 : 2
 	draw.beginPath()
 	draw.moveTo(s[0] - X, s[1] - Y)
-	for (var i = 2, n = s.length; i < n; )
+	for (var i = 2; i < s.length; )
 		draw.lineTo(s[i++] - X, s[i++] - Y)
 	draw.stroke()
 },
@@ -205,7 +205,7 @@ hit: function (x, y)
 	if ( !(s = this.xys))
 		return null
 	var x1 = s[0], y1 = s[1], x2, y2, p, q
-	for (var i = 2, n = s.length; i < n; )
+	for (var i = 2; i < s.length; )
 	{
 		x2 = s[i++], y2 = s[i++]
 		if (y1 == y2 ? y > y1 -3 && y < y1 +3 && (x >= x1 && x <= x2 || x >= x2 && x <= x1)
