@@ -60,10 +60,10 @@ nameR: 0, // with left and right margin of around 3px each
 nameH: 0, // with top and bottom margin of around 3px each
 err: null, // '' or [ '' or Datum... ]
 derr: false, // error inside
-x: 0,
-y: 0,
-w: 0,
-h: 0,
+X: 0,
+Y: 0,
+W: 0,
+H: 0,
 detail: 2, // 1: hide, 2: only this, 3: this and inners
 showing: 0,
 navPrev: null,
@@ -348,20 +348,20 @@ layout: function (force)
 			r.layout(0, 0, 0, 0)
 		for (var W = 0; w = ws[W]; W++)
 			w.layout(true)
-		this.w = this.h = 0
+		this.W = this.H = 0
 		return true
 	}
 	var nr = this.nameR, nh = this.nameH
 	if (this.ox < 0)
 	{
-		this.w = Math.max(SIZE0, nr), this.h = Math.max(SIZE0, nh)
+		this.W = Math.max(SIZE0, nr), this.H = Math.max(SIZE0, nh)
 		this.nameY = 2
 	}
 	else if (this.detail == 2)
 	{
-		this.w = Math.max(SIZE0, nr), this.h = Math.max(SIZE0, nh + 6)
+		this.W = Math.max(SIZE0, nr), this.H = Math.max(SIZE0, nh + 6)
 		this.nameY = 2
-		w2 = this.w >> 1, h2 = nh || this.h >> 1
+		w2 = this.W >> 1, h2 = nh || this.H >> 1
 		rs[0].layout(0, w2, w2, 0)
 		for (var R = 1; r = rs[R]; R++)
 			r.layout(0, w2, w2, h2)
@@ -379,15 +379,15 @@ layout: function (force)
 			w = Math.max(w, r.layoutW())
 		r = rs[0]
 		if (r.length && nr > NAME_WIDTH)
-			r.layout(1, 0, w, 0), h = r.h + 3
+			r.layout(1, 0, w, 0), h = r.H + 3
 		else
 			r.layout(1, nr, w, 0), h = 0
 		this.nameY = h + 2
-		h = Math.max(h + nh, r.h + SPACE)
+		h = Math.max(h + nh, r.H + SPACE)
 		for (var R = 1; r = rs[R]; R++)
 			r.layout(R < this.ox ? 2 : 3, 0, w, h),
-			h += R < this.ox ? r.h + SPACE : r.h
-		this.w = w, this.h = h
+			h += R < this.ox ? r.H + SPACE : r.H
+		this.W = w, this.H = h
 		for (var W = 0; w = ws[W]; W++)
 			w.layout(true)
 	}
@@ -406,7 +406,7 @@ show: function (x)
 // X Y W H is draw area based on this datum
 _show: function (draw, X, Y, W, H)
 {
-	var w = this.w, h = this.h
+	var w = this.W, h = this.H
 	if (X >= w || Y >= h || X + W <= 0 || Y + H <= 0 || !w)
 		return
 	draw.translate(-X, -Y)
@@ -417,16 +417,16 @@ _show: function (draw, X, Y, W, H)
 	if (this.detail > 2 && this.ox > 0)
 		for (R = this.searchRow(Y), R ^= R >> 31, y = 0; (r = this.rows[R]) && y < Y + H; R++)
 		{
-			draw.fillRect(0, y, w, -y + (y = r.y))
-			var rh = r.h, dw, dh
+			draw.fillRect(0, y, w, -y + (y = r.Y))
+			var rh = r.H, dw, dh
 			D = r.searchDatumX(X), D ^= D >> 31
 			for (x = 0; (d = r[D]) && x < X + W; D++)
-				draw.fillRect(x, y, -x + (x = d.x), rh), // left
-				draw.fillRect(x, y, dw = d.w, d.y - y), // top
-				draw.fillRect(x, dh = d.y + d.h, dw, y + rh - dh), // bottom
+				draw.fillRect(x, y, -x + (x = d.X), rh), // left
+				draw.fillRect(x, y, dw = d.W, d.Y - y), // top
+				draw.fillRect(x, dh = d.Y + d.H, dw, y + rh - dh), // bottom
 				x += dw
 			if (D)
-				d = r[D - 1], draw.fillRect(dw = d.x + d.w, y, w - dw, rh)
+				d = r[D - 1], draw.fillRect(dw = d.X + d.W, y, w - dw, rh)
 			y += rh
 		}
 	else
@@ -458,9 +458,9 @@ _show: function (draw, X, Y, W, H)
 
 	draw.translate(X, Y)
 	for (R = 0; r = this.rows[R]; R++)
-		if (Y - r.y < r.h && Y + H > r.y)
+		if (Y - r.Y < r.H && Y + H > r.Y)
 			for (D = 0; d = r[D]; D++)
-				d._show(draw, X - d.x, Y - d.y, W, H)
+				d._show(draw, X - d.X, Y - d.Y, W, H)
 	if (this == edit.hit && (this != edit.now || edit.drag))
 		draw.translate(-X, -Y),
 		draw.strokeStyle = this.err ? '#f66' : io < 0 ? '#d8f' : io > 0 ? '#8bf' : '#7d7',
@@ -482,16 +482,16 @@ _show: function (draw, X, Y, W, H)
 
 hit: function (xy, wire)
 {
-	var d = this, x = xy[0] - d.x, y = xy[1] - d.y
-	if (x < 0 || y < 0 || x >= this.w || y >= this.h)
+	var d = this, x = xy[0] - d.X, y = xy[1] - d.Y
+	if (x < 0 || y < 0 || x >= this.W || y >= this.H)
 		return null
-	xy[0] = d.x, xy[1] = d.y
+	xy[0] = d.X, xy[1] = d.Y
 	for (;;)
 	{
 		if (wire !== false && d.detail >= 3)
 			for (var W = 0, w; w = d.ws[W]; W++)
 				if (w.hit(x, y))
-					return xy[0] += w.x, xy[1] += w.y, w
+					return xy[0] += w.X, xy[1] += w.Y, w
 		var i = d.searchRow(y)
 		if (i < 0)
 			break;
@@ -500,8 +500,8 @@ hit: function (xy, wire)
 		if (i < 0)
 			break;
 		d = r[i]
-		x -= d.x, y -= d.y
-		xy[0] += d.x, xy[1] += d.y
+		x -= d.X, y -= d.Y
+		xy[0] += d.X, xy[1] += d.Y
 	}
 	return d
 },
@@ -509,14 +509,14 @@ hit: function (xy, wire)
 offsetX: function (z)
 {
 	for (var x = 0, d = this; d != z; d = d.zone)
-		x += d.x
+		x += d.X
 	return x
 },
 
 offsetY: function (z)
 {
 	for (var y = 0, d = this; d != z; d = d.zone)
-		y += d.y
+		y += d.Y
 	return y
 },
 
@@ -528,9 +528,9 @@ searchRow: function (y)
 	while (low <= high)
 	{
 		var mid = low + high >>> 1, r = s[mid]
-		if (y < r.y)
+		if (y < r.Y)
 			high = mid - 1
-		else if (y >= r.y + r.h)
+		else if (y >= r.Y + r.H)
 			low = mid + 1
 		else
 			return mid

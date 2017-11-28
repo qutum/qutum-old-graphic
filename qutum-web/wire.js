@@ -84,30 +84,30 @@ layout: function (force)
 	var agent = this.agent, az = this.az, ax, ay, aw, a5, aq
 	x = agent.offsetX(zone), y = agent.offsetY(zone)
 	if (this.err || base == zone)
-		ax = x, ay = y, aw = agent.w, a5 = ax + aw / 2
+		ax = x, ay = y, aw = agent.W, a5 = ax + aw / 2
 	else
-		ax = az.x, ay = az.y, aw = az.w, a5 = ax + aw / 2
-	aq = agent.w ? 1 : 0
-	bx = base.offsetX(zone), b5 = bx + base.w / 2
-	bq = base.w ? 1 : 0
-	if (b5 < ax && bx + base.w < a5)
-		bx += base.w - bq, aw = 0 // right of base, left of agent
+		ax = az.X, ay = az.Y, aw = az.W, a5 = ax + aw / 2
+	aq = agent.W ? 1 : 0
+	bx = base.offsetX(zone), b5 = bx + base.W / 2
+	bq = base.W ? 1 : 0
+	if (b5 < ax && bx + base.W < a5)
+		bx += base.W - bq, aw = 0 // right of base, left of agent
 	else if (a5 < bx && ax + aw < b5)
 		bx += bq // left of base, right of agent
-	else if ((b5 < a5) == (base.w < aw))
+	else if ((b5 < a5) == (base.W < aw))
 		bx += bq, aw = 0 // left of base, left of agent
 	else
-		bx += base.w - bq // right of base, right of agent
-	by = base == zone ? ay : this.err ? base.offsetY(zone) + base.h - bq : bz.y + bz.h - 1
+		bx += base.W - bq // right of base, right of agent
+	by = base == zone ? ay : this.err ? base.offsetY(zone) + base.H - bq : bz.Y + bz.H - 1
 	if (this.err)
 		xys.push(ax, ay, bx, by)
 	else
 	{
 		ax = aw ? x - aq : x + aq, ay = y + aq
-		x = aw ? ax + agent.w : ax, y = ay, xys.push(x, y)
+		x = aw ? ax + agent.W : ax, y = ay, xys.push(x, y)
 		var za = agent.za, a = agent, r
 		while (a != za) // i.e. a is input
-			ax -= a.x, ay -= a.y, a = a.zone
+			ax -= a.X, ay -= a.Y, a = a.zone
 		while (a != az || base == zone)
 		{
 			Up: if (a.detail >= 2)
@@ -116,18 +116,18 @@ layout: function (force)
 				if (a != za || agent == za)
 				Hori: {
 					for (var D = aw ? r.length - 1 : 0; a != r[D]; D += aw ? -1 : 1)
-						if (r[D].y - a.y <= y - ay)
+						if (r[D].Y - a.Y <= y - ay)
 							break Hori
 					break Up
 				}
-				y = ay - a.y + r.y - S - SS * a.x / r.w, xys.push(x, y)
+				y = ay - a.Y + r.Y - S - SS * a.X / r.W, xys.push(x, y)
 			}
 			if (a == az)
 				break; // base == zone
-			ax -= a.x, ay -= a.y, a = a.zone
+			ax -= a.X, ay -= a.Y, a = a.zone
 			if (a.detail >= 2)
-				x = S + S * (y - ay) / a.h,
-				x = aw ? ax + a.w + x : ax - x, xys.push(x, y)
+				x = S + S * (y - ay) / a.H,
+				x = aw ? ax + a.W + x : ax - x, xys.push(x, y)
 		}
 		if (base == zone)
 			by = y
@@ -136,30 +136,30 @@ layout: function (force)
 		{
 			ax = x
 			if (a == za && agent != za)
-				y -= SS * a.x / r.w, xys.push(ax, y),
-				ax = a.x + aq - S, xys.push(ax, y)
-			else if (ax == a.x + aq)
+				y -= SS * a.X / r.W, xys.push(ax, y),
+				ax = a.X + aq - S, xys.push(ax, y)
+			else if (ax == a.X + aq)
 				ax -= S + S, xys.push(ax, y)
 			if (r[r.indexOf(a) - 1] == bz && base == bz)
 				xys.push(ax, by)
 			else
-				ay = r.y + r.h + S + SS * bx / r.w, xys.push(ax, ay, bx, ay)
+				ay = r.Y + r.H + S + SS * bx / r.W, xys.push(ax, ay, bx, ay)
 		}
 		else
 		{
-			ax = x, ay = r.y - S - SS * a.x / zone.w
+			ax = x, ay = r.Y - S - SS * a.X / zone.W
 			xys.push(ax, ay)
 			var i = zone.rows.indexOf(r)
 			while ((r = zone.rows[--i]) != bz.row)
 			{
 				d = r[r.searchDatumX(ax)]
-				if (d && ax > d.x - S && ax < d.x + d.w + S)
-					if (ax < d.x + d.w / 2)
-						ax = d.x - S - S * ax / zone.w
+				if (d && ax > d.X - S && ax < d.X + d.W + S)
+					if (ax < d.X + d.W / 2)
+						ax = d.X - S - S * ax / zone.W
 					else
-						ax = d.x + d.w + S + S * ax / zone.w
+						ax = d.X + d.W + S + S * ax / zone.W
 				xys.push(ax, ay)
-				ay = r.y - S - SS * ax / zone.w, xys.push(ax, ay)
+				ay = r.Y - S - SS * ax / zone.W, xys.push(ax, ay)
 			}
 			if (ax - bx < -2 || ax - bx > 2)
 				xys.push(bx, ay)
@@ -171,8 +171,8 @@ layout: function (force)
 		y = xys[i--], x = xys[i--],
 		x < x0 ? x0 = x : x > x9 && (x9 = x),
 		y < y0 ? y0 = y : y > y9 && (y9 = y)
-	this.x = x0 - 2, this.y = y0 - 2
-	this.w = x9 - x0 + 4, this.h = y9 - y0 + 4
+	this.X = x0 - 2, this.Y = y0 - 2
+	this.W = x9 - x0 + 4, this.H = y9 - y0 + 4
 },
 
 // X Y W H is draw area based on zone
@@ -200,7 +200,7 @@ _show: function (draw, X, Y, W, H)
 hit: function (x, y)
 {
 	var s
-	if (x < this.x || x >= this.x + this.w || y < this.y || y >= this.y + this.h)
+	if (x < this.X || x >= this.X + this.W || y < this.Y || y >= this.Y + this.H)
 		return null
 	if ( !(s = this.xys))
 		return null
@@ -223,14 +223,14 @@ hit: function (x, y)
 offsetX: function (z)
 {
 	for (var x = 0, d = this; d != z; d = d.zone)
-		x += d.x
+		x += d.X
 	return x
 },
 
 offsetY: function (z)
 {
 	for (var y = 0, d = this; d != z; d = d.zone)
-		y += d.y
+		y += d.Y
 	return y
 },
 

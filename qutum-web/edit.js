@@ -35,7 +35,7 @@ Edit = function (dom, els)
 
 	this.us = {}
 	var z = this.zonest = new Datum(0)
-	z.edit = this, z.x = z.y = Datum.SPACE + 4 >> 1
+	z.edit = this, z.X = z.Y = Datum.SPACE + 4 >> 1
 	z.addTo(null, 0, 0)
 	this.Now(this.now = this.hit = this.nav = this.foc = z)
 	Layer(z, els)
@@ -124,8 +124,8 @@ _show: function ()
 		var re = false, time = Date.now(), drag = this.drag, z = this.zonest, h = this.hit
 		if (this.layouting)
 			z.layoutDetail(), z.layout(false),
-			this.whole.style.width = z.x + z.w + z.x + 'px',
-			this.whole.style.height = z.y + z.h + z.y + 'px',
+			this.whole.style.width = z.X + z.W + z.X + 'px',
+			this.whole.style.height = z.Y + z.H + z.Y + 'px',
 			this.err.style.display = 'none',
 			this.layouting = false, this.scrolling = true
 		if (this.hitXY)
@@ -136,10 +136,10 @@ _show: function ()
 		{
 			var xys, xs = [], ys = [], Xs = [], Ys = []
 			if (n.deep)
-				xs[1] = (xs[0] = n.offsetX()) + n.w, ys[0] = ys[1] = n.offsetY(),
+				xs[1] = (xs[0] = n.offsetX()) + n.W, ys[0] = ys[1] = n.offsetY(),
 				drag == com.base ? null :
-				drag == com.agent ? ys[0] = ys[1] += n.h
-				: (xs[2] = xs[0], xs[3] = xs[1], ys[2] = ys[3] = ys[0] + n.h)
+				drag == com.agent ? ys[0] = ys[1] += n.H
+				: (xs[2] = xs[0], xs[3] = xs[1], ys[2] = ys[3] = ys[0] + n.H)
 			else
 				xs[0] = n.zone.offsetX(), ys[0] = n.zone.offsetY(), xys = n.xys,
 				drag == com.base ? (xs[0] += xys[0], ys[0] += xys[1]) :
@@ -148,12 +148,12 @@ _show: function ()
 					xs[0] += xys[0], ys[0] += xys[1])
 			if (h.deep)
 				Xs[0] = h.offsetX(), Ys[0] = h.offsetY(),
-				drag == com.early ? (Xs[0] -= Datum.SPACE / 2, Ys[0] += h.h >> 1) :
-				drag == com.later ? (Xs[0] += h.w + Datum.SPACE / 2, Ys[0] += h.h >> 1) :
-				drag == com.earlyRow ? (Xs[0] += h.w >> 1, Ys[0] -= Datum.SPACE / 2) :
-				drag == com.laterRow ? (Xs[0] += h.w >> 1, Ys[0] += h.h + Datum.SPACE / 2) :
+				drag == com.early ? (Xs[0] -= Datum.SPACE / 2, Ys[0] += h.H >> 1) :
+				drag == com.later ? (Xs[0] += h.W + Datum.SPACE / 2, Ys[0] += h.H >> 1) :
+				drag == com.earlyRow ? (Xs[0] += h.W >> 1, Ys[0] -= Datum.SPACE / 2) :
+				drag == com.laterRow ? (Xs[0] += h.W >> 1, Ys[0] += h.H + Datum.SPACE / 2) :
 				drag == com.unity ? Ys[0] += h.nameY + (this.nameH >> 1) :
-				(Xs[1] = Xs[0] + h.w, Ys[1] = Ys[0] += drag == com.base ? h.h : 0)
+				(Xs[1] = Xs[0] + h.W, Ys[1] = Ys[0] += drag == com.base ? h.H : 0)
 			else
 				xys = h.xys, Xs[1] = (Xs[0] = h.zone.offsetX()) + xys[xys.length -2],
 				Ys[1] = (Ys[0] = h.zone.offsetY()) + xys[xys.length -1],
@@ -164,13 +164,13 @@ _show: function ()
 			W = Math.max(dom.clientWidth, 1), H = Math.max(dom.clientHeight, 1)
 		if (this.scrolling)
 		{
-			x = X && z.x + z.w + z.x - W, y = Y && z.y + z.h + z.y - H
+			x = X && z.X + z.W + z.X - W, y = Y && z.Y + z.H + z.Y - H
 			if (x < X || y < Y)
 				return x < X && (dom.scrollLeft = x), y < Y && (dom.scrollTop = y), re = true
 			this.scrolling = false
 			var foc = this.foc, x = foc.offsetX(), y = foc.offsetY()
-			x = Math.min(x - 2, Math.max(X, x + 2 + foc.w - W))
-			y = Math.min(y - 2, Math.max(Y, y + 2 + foc.h - H))
+			x = Math.min(x - 2, Math.max(X, x + 2 + foc.W - W))
+			y = Math.min(y - 2, Math.max(Y, y + 2 + foc.H - H))
 			if (drag)
 				x = Math.min(Dx - 3, Math.max(x, Dx + 3 - W)),
 				y = Math.min(Dy - 3, Math.max(y, Dy + 3 - H))
@@ -178,7 +178,7 @@ _show: function ()
 				return dom.scrollLeft = x, dom.scrollTop = y, re = true
 		}
 		var draw = Util.draw(this.draw, X, Y, W, H)
-		z._show(draw, X - z.x, Y - z.y, W, H)
+		z._show(draw, X - z.X, Y - z.Y, W, H)
 		if (drag)
 		{
 			dx -= X, dy -= Y, Dx -= X, Dy -= Y
@@ -187,9 +187,9 @@ _show: function ()
 			draw.lineWidth = 2.5
 			if (h.deep)
 				if (drag == com.early || drag == com.later)
-					draw.strokeRect(Dx, Dy - h.h / 2, 0, h.h)
+					draw.strokeRect(Dx, Dy - h.H / 2, 0, h.H)
 				else if (drag == com.earlyRow || drag == com.laterRow)
-					draw.strokeRect(Dx - h.w / 2, Dy, h.w, 0)
+					draw.strokeRect(Dx - h.W / 2, Dy, h.W, 0)
 			var xy
 			if (drag == com.base)
 				Util.arrow(draw, Dx, Dy, dx, dy, 5)
@@ -215,7 +215,7 @@ _showErr: function (err, X, Y, W, H)
 		return
 	var z = this.zonest, draw = this.draw
 	var hx = this.hitX - Util.pageX(this.whole), hy = this.hitY - Util.pageY(this.whole)
-	if (hx < z.x || hx >= z.x + z.w || hy < z.y || hy >= z.y + z.h)
+	if (hx < z.X || hx >= z.X + z.W || hy < z.Y || hy >= z.Y + z.H)
 		return
 	this.err.style.display = '', this.err.innerHTML = ''
 	if (typeof err == 'string')
@@ -237,7 +237,7 @@ _showErr: function (err, X, Y, W, H)
 				xs[0] = xs[2] = n.offsetLeft + x - X, ys[0] = ys[1] = n.offsetTop + y - Y + 2
 				xs[1] = xs[3] = xs[0] + n.offsetWidth, ys[2] = ys[3] = ys[0] + n.offsetHeight - 2
 				Xs[0] = Xs[2] = e.offsetX() - X, Ys[0] = Ys[1] = e.offsetY() - Y
-				Xs[1] = Xs[3] = Xs[0] + e.w, Ys[2] = Ys[3] = Ys[0] + e.h
+				Xs[1] = Xs[3] = Xs[0] + e.W, Ys[2] = Ys[3] = Ys[0] + e.H
 				draw.lineWidth = 2, draw.lineCap = 'round', draw.globalAlpha = 0.75
 				draw.strokeStyle = '#c90', draw.beginPath()
 				draw.strokeRect(Xs[0] - 1, Ys[0] - 1, Xs[1] - Xs[0] + 2, Ys[2] - Ys[0] + 2)
@@ -316,7 +316,7 @@ focUp: function (test)
 {
 	var foc = this.foc, r = foc.zone, d
 	if (foc.deep && r && (r = r.rows[r.rows.indexOf(foc.row) - 1]) && r.length)
-		return d = r.searchDatumX(foc.x + foc.w / 2),
+		return d = r.searchDatumX(foc.X + foc.W / 2),
 			test || this.Now(r[d ^ d >> 31] || ArrayLast(r))
 	return false
 },
@@ -324,7 +324,7 @@ focDown: function (test)
 {
 	var foc = this.foc, r = foc.zone, d
 	if (foc.deep && r && (r = r.rows[r.rows.indexOf(foc.row) + 1]) && r.length)
-		return d = r.searchDatumX(foc.x + foc.w / 2),
+		return d = r.searchDatumX(foc.X + foc.W / 2),
 			test || this.Now(r[d ^ d >> 31] || ArrayLast(r))
 	return false
 },
