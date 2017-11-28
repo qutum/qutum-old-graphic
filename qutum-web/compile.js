@@ -26,7 +26,7 @@ Compile.wire1 = wire1
 
 function datum1(d)
 {
-	if (d.gene != (d.gene = d.io >= 0 && ( !d.zone || d.zone.gene && d.bs.length == 0)))
+	if (d.kit != (d.kit = d.io >= 0 && ( !d.zone || d.zone.kit && d.bs.length == 0)))
 		d.show(-1)
 	d.zv = d.zone != null && (d.zone.tv > 0 || d.zone.zv)
 	d.cycle = null
@@ -54,29 +54,29 @@ function datumError1(d)
 	if (d.zv)
 		return d.io < 0 ? 'input must not be inside veto' :
 			d.io ? 'output must not be inside veto' : 'hub must not be inside veto'
-	if (d.zone && !d.zone.gene)
+	if (d.zone && !d.zone.kit)
 		if ( !d.io)
 			return 'agent can only have input and output inside'
 		else if ( !d.name && !d.tv)
 			return 'non trial inside agent must have name'
-	if (d.tv && d.gene)
-		return 'gene must not be trial or veto'
-	if (d.tv < 0 && !d.za.gene && !d.za.zone.gene)
-		return 'datum which zoner agent and zone is not gene must not be trial'
+	if (d.tv && d.kit)
+		return 'kit must not be trial or veto'
+	if (d.tv < 0 && !d.za.kit && !d.za.zone.kit)
+		return 'datum which zoner agent and zone is not kit must not be trial'
 	if (d.tv > 0)
 		if ( !d.io)
 			return 'veto must be input or output'
 		else if (d.io > 0 && !d.name)
 			return 'veto output must have name' // unnamed veto input have no namesake
-		else if (d.zone && d.zone.gene)
+		else if (d.zone && d.zone.kit)
 			return 'veto must be inside agent'
 	if (d.nNext != d && d.zone.ns[d.nk] != d)
-		return 'namesake must be in different zone'
+		return 'namesake must be in different datum'
 	if (d.io < 0)
 		if (d.bs.length && d.zone.io < 0 && !d.zone.bs.length)
 			return 'input inside input having no base must not have base'
-		else if ( !d.bs.length && d.zone.zone && d.zone.gene)
-			return "gene's input must have base"
+		else if ( !d.bs.length && d.zone.zone && d.zone.kit)
+			return "kit's input must have base"
 	return ''
 }
 
@@ -101,22 +101,22 @@ function wireError1(w)
 		return 'agent must not be named veto or inside'
 	var za = agent.za, a, z
 	if (base != zone && base.zb != w.bz)
-		return "wire must not cross base zone edge"
+		return "wire must not cross zoner base edge"
 	if (za.deep <= zone.deep)
 		return 'zoner agent must be inside wire zone'
 	if (base != zone && w.bz.dx >= w.az.dx) // NaN
 		return 'must wire early to later'
-	if ( !zone.gene)
+	if ( !zone.kit)
 		if (base != zone && !base.io)
-			return 'wire inside non gene must have input or output base'
+			return 'wire inside non kit must have input or output base'
 		else if ( !agent.io)
-			return 'wire inside non gene must have input or output agent'
+			return 'wire inside non kit must have input or output agent'
 	for (a = za.zone; a != zone; a = a.zone)
 		if (a.io < 0)
 			return 'wire must not cross input edge'
 	for (a = za.zone; a != zone; a = z, z = z.zone)
-		if (z = a.zone, !a.gene && z.gene)
-			return 'wire must not cross non gene edge from gene'
+		if (z = a.zone, !a.kit && z.kit)
+			return 'wire must not cross non kit edge from kit'
 	return ''
 }
 
@@ -126,25 +126,21 @@ function datum2(d)
 		if ( !w.err && !w.yield && w.base == w.zone)
 			d.cycle = w.base
 	d.pdeep0 = d.deep, d.padeep0 = d.deep
-	var gzb = 0
+	var kzb = 0
 	for (var W = d.bs.length - 1, w; w = d.bs[W]; W--)
 	{
 		if (w.err || w.yield)
 			continue;
 		var b = w.base, p, pp
-// TODO must only one base ?
-//		if (d.cycle && b != d.cycle)
-//			w.err = 'only one base allowed for cycle agent' // only the cycle wire is not error
-//			...
 		if (b == w.zone && b != d.cycle)
 		{
 			w.err = [ 'only one cycle ', d.cycle, ' allowed' ] // only the cycle wire is not error
 			w.showing = true, d.edit.show(true), d.edit.errorN++
 			continue;
 		}
-		gzb |= b.zb.gzb ? 1 : -1
+		kzb |= b.zb.kzb ? 1 : -1
 		if (b.zb.io >= 0 && b != w.zone && b.pdeep0 < w.bz.deep)
-			for (var PP in b.ps) // w.zone should be gene
+			for (var PP in b.ps) // w.zone should be kit
 				if (pp = b.ps[PP], pp.zone == w.zone)
 				{
 					p = new Wire
@@ -155,7 +151,7 @@ function datum2(d)
 				}
 		p || datumPass2(d, w)
 	}
-	d.gzb = gzb > 0 || d.gene || d.io < 0 && d.zone.gene
+	d.kzb = kzb > 0 || d.kit || d.io < 0 && d.zone.kit
 	for (var R = 0, r; r = d.rows[R]; R++)
 		for (var D = 0, dd; dd = r[D]; D++)
 			datum2(dd) // early before later, i.e. base base before agent agent
@@ -191,12 +187,12 @@ function datum3(d, Mn)
 }
 
 // base b inside bz matchs agent a inside az, return true if anything changes
-// im is input match considering Datum.gzb always false
+// im is input match considering Datum.kzb always false
 function match(bz, b, az, a, im, Mn)
 {
 	if (a.or < 0)
 		return false
-	Assert( !a.gene, 'never match a gene')
+	Assert( !a.kit, 'never match a kit')
 	var change = false
 	for (var r = a.rows[0], D = 0, ai; ai = r[D]; D++)
 		if (ai.name && ai.yield >= 0) // skip no namesake and old yield
@@ -211,7 +207,7 @@ function match(bz, b, az, a, im, Mn)
 		if (ao.tv >= 0 && ao.name && ao.yield >= 0) // skip trial and no namesake and old yield
 		{
 			var bo = searchBaseNk(b, a, ao, Mn)
-			if (bo && !bo.err && (im || !ao.gzb))
+			if (bo && !bo.err && (im || !ao.kzb))
 				change = match(bz, bo, az, ao, im, Mn) || bo.mn > Mn || change
 			if (bo && !bo.err)
 				matchWire(bz, bo, az, ao) // skip null bo since ao is veto
@@ -234,8 +230,8 @@ function searchBaseNk(b, a, ad, Mn)
 			bd.show(-1), b.edit.errorN++
 		return bd
 	}
-	if (ad.tv > 0 && (b.gene || b.layer))
-		return null // don't yield veto inside gene or layer 2
+	if (ad.tv > 0 && (b.kit || b.layer))
+		return null // don't yield veto inside kit or layer 2
 	var err
 // TODO must check this ? search ad namesake in cycle base ?
 //	for (var z = b; z.io > 0; z = z.zone)

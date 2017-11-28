@@ -30,7 +30,7 @@ io: 0, // <0 input >0 output 0 hub
 nk: 0, // >0 for layer 1 <0 for layer 2
 nNext: null, // next namesake
 nPrev: null, // previous namesake
-gene: false,
+kit: false,
 tv: 0, // <0 trial >0 veto 0 neither
 zv: false, // outside zone is veto
 zb: null, // innermost outside hub or input zones, or this, as zoner base
@@ -48,7 +48,7 @@ dx: NaN, // small early, big later, asynchronous update
 mustRun: false, // must run or may run, as zoner agent
 yield: 0, // 0 nonyield >0 yield <0 old yield while compiling
 ns: null, // { namesake: Datum }
-gzb: false, // gene, or has base and all zoner base zoner bases are gene
+kzb: false, // kit, or all zoner base zoner bases are kits
 ps: null, // wired passes from base or base base, { base.id: outermost wire }
 pdeep0: 0, // outermost zone deep of passes
 padeep0: 0, // outermost zone deep of passes which agents are this
@@ -79,7 +79,7 @@ addTo: function (z, R, D) // D < 0 to add row
 	{
 		this.id = this.edit.newId++
 		this.deep = 1
-		this.gene = true
+		this.kit = true
 		this.zb = this
 		this.za = this
 		return this // zonest
@@ -105,11 +105,11 @@ addTo: function (z, R, D) // D < 0 to add row
 			this.zb = this,
 			this.za = z.io < 0 ? z.za : z
 		else if (this.io > 0)
-			this.gene = z.gene,
+			this.kit = z.kit,
 			this.zb = z.io > 0 ? z.zb : z,
 			this.za = this
 		else
-			this.gene = z.gene,
+			this.kit = z.kit,
 			this.zb = this.za = this
 	}
 	this._addTo(this.deep)
@@ -435,7 +435,7 @@ _show: function (draw, X, Y, W, H)
 	var c = this.err ? '#f00' : io < 0 ? '#90c' : io > 0 ? '#06d' : '#080'
 	draw.strokeStyle = c
 	draw.lineWidth = this.yield ? 0.5 : 1, draw.strokeRect(0.5, 0.5, w - 1, h - 1)
-	if (this.gene)
+	if (this.kit)
 		draw.fillStyle = c, draw.beginPath(),
 		draw.moveTo(1, 1), draw.lineTo(4, 1), draw.lineTo(1, 6), draw.fill()
 	if (this.yield)
@@ -454,7 +454,7 @@ _show: function (draw, X, Y, W, H)
 	if (this.name)
 		draw.fillStyle = '#000',
 		draw.fillText(this.name, (this.tv && edit.nameTvW) + 3, this.nameY + edit.nameH)
-//	draw.fillStyle = '#777', draw.fillText(this.gzb ? '_' : '', -12, this.nameY + edit.nameH)
+//	draw.fillStyle = '#777', draw.fillText(this.kzb ? '_' : '', -12, this.nameY + edit.nameH)
 
 	draw.translate(X, Y)
 	for (R = 0; r = this.rows[R]; R++)
