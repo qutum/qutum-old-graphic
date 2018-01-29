@@ -138,12 +138,12 @@ _show: function ()
 			if (n.deep)
 				xs[1] = (xs[0] = n.offsetX()) + n.W, ys[0] = ys[1] = n.offsetY(),
 				drag == com.base ? null :
-				drag == com.agent ? ys[0] = ys[1] += n.H
+				drag == com.usage ? ys[0] = ys[1] += n.H
 				: (xs[2] = xs[0], xs[3] = xs[1], ys[2] = ys[3] = ys[0] + n.H)
 			else
 				xs[0] = n.zone.offsetX(), ys[0] = n.zone.offsetY(), xys = n.xys,
 				drag == com.base ? (xs[0] += xys[0], ys[0] += xys[1]) :
-				drag == com.agent ? (xs[0] += xys[xys.length -2], ys[0] += xys[xys.length -1])
+				drag == com.usage ? (xs[0] += xys[xys.length -2], ys[0] += xys[xys.length -1])
 				: (xs[1] = xs[0] + xys[xys.length -2], ys[1] = ys[0] + xys[xys.length -1],
 					xs[0] += xys[0], ys[0] += xys[1])
 			if (h.deep)
@@ -193,7 +193,7 @@ _show: function ()
 			var xy
 			if (drag == com.base)
 				Util.arrow(draw, Dx, Dy, dx, dy, 5)
-			else if (drag == com.agent)
+			else if (drag == com.usage)
 				Util.arrow(draw, dx, dy, Dx, Dy, 5)
 			draw.lineWidth = 5, draw.lineCap = 'round', draw.globalAlpha = 0.375
 			draw.beginPath(), draw.moveTo(dx, dy), draw.lineTo(Dx, Dy)
@@ -375,17 +375,17 @@ focBase: function (next, test)
 		return foc.bs[0] && (test || this.Now(foc.bs[0]))
 	if ( !next)
 		return test || this.Now(foc.base)
-	var s = foc.agent.bs
+	var s = foc.usage.bs
 	return test || this.Now(s[s.indexOf(foc) + 1] || s[0])
 },
-focAgent: function (next, test)
+focUsage: function (next, test)
 {
 	var foc = this.foc
 	if (foc.deep)
-		return foc.as[0] && (test || this.Now(foc.as[0]))
+		return foc.us[0] && (test || this.Now(foc.us[0]))
 	if ( !next)
-		return test || this.Now(foc.agent)
-	var s = foc.base.as
+		return test || this.Now(foc.usage)
+	var s = foc.base.us
 	return test || this.Now(s[s.indexOf(foc) + 1] || s[0])
 },
 focFold: function (test)
@@ -495,7 +495,7 @@ key: function (e)
 	case 46: this.focOutput(); break // .
 	case 58: case 59: this.focNamesake(k == 58); break // ;
 	case 91: case 123: this.focBase(k == 91); break // [ {
-	case 93: case 125: this.focAgent(k == 93); break // ] }
+	case 93: case 125: this.focUsage(k == 93); break // ] }
 	case 45: case 95: this.focFold(); break // - _
 	case 43: case 61: this.focUnfold(k == 43 ? 4 : 3); break // + =
 
@@ -509,7 +509,7 @@ key: function (e)
 	case 76: this.Drag(this.com.laterRow); break; // L
 	case 110: this.Drag(this.com.namesake); break; // n
 	case 98: this.Drag(this.com.base); break; // b
-	case 97: this.Drag(this.com.agent); break; // a
+	case 117: this.Drag(this.com.usage); break; // u
 	case 116: case 63: this.com.trialVeto(-1); break // t ?
 	case 118: case 33: this.com.trialVeto(1); break // v !
 	case 121: this.com.nonyield(); break // y

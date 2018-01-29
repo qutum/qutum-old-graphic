@@ -56,20 +56,20 @@ function datumError1(d)
 			d.io ? 'output must not be inside veto' : 'hub must not be inside veto'
 	if (d.zone && !d.zone.kit)
 		if ( !d.io)
-			return 'agent can only have input and output inside'
+			return 'usage can only have input and output inside'
 		else if ( !d.name && !d.tv)
-			return 'non trial inside agent must have name'
+			return 'non trial inside usage must have name'
 	if (d.tv && d.kit)
 		return 'kit must not be trial or veto'
-	if (d.tv < 0 && !d.za.kit && !d.za.zone.kit)
-		return 'datum which zoner agent and zone is not kit must not be trial'
+	if (d.tv < 0 && !d.zu.kit && !d.zu.zone.kit)
+		return 'datum which zoner usage and zone is not kit must not be trial'
 	if (d.tv > 0)
 		if ( !d.io)
 			return 'veto must be input or output'
 		else if (d.io > 0 && !d.name)
 			return 'veto output must have name' // unnamed veto input have no namesake
 		else if (d.zone && d.zone.kit)
-			return 'veto must be inside agent'
+			return 'veto must be inside usage'
 	if (d.nNext != d && d.zone.ns[d.nk] != d)
 		return 'namesake must be in different datum'
 	if (d.io < 0)
@@ -90,32 +90,32 @@ function wire1(w)
 
 function wireError1(w)
 {
-	var base = w.base, agent = w.agent, zone = w.zone
+	var base = w.base, usage = w.usage, zone = w.zone
 	if (base.tv < 0 && !base.name) // TODO ? veto ?
 		return 'trial base must have name'
-	if (agent.tv < 0 && w.base == zone)
-		return "trial agent must not be cycle"
+	if (usage.tv < 0 && w.base == zone)
+		return "trial usage must not be cycle"
 	if (base.tv > 0 || base.zv)
 		return 'base must not be veto or inside'
-	if (agent.tv > 0 && agent.name || agent.zv)
-		return 'agent must not be named veto or inside'
-	var za = agent.za, a, z
+	if (usage.tv > 0 && usage.name || usage.zv)
+		return 'usage must not be named veto or inside'
+	var zu = usage.zu, u, z
 	if (base != zone && base.zb != w.bz)
 		return "wire must not cross zoner base edge"
-	if (za.deep <= zone.deep)
-		return 'zoner agent must be inside wire zone'
-	if (base != zone && w.bz.dx >= w.az.dx) // NaN
+	if (zu.deep <= zone.deep)
+		return 'zoner usage must be inside wire zone'
+	if (base != zone && w.bz.dx >= w.uz.dx) // NaN
 		return 'must wire early to later'
 	if ( !zone.kit)
 		if (base != zone && !base.io)
 			return 'wire inside non kit must have input or output base'
-		else if ( !agent.io)
-			return 'wire inside non kit must have input or output agent'
-	for (a = za.zone; a != zone; a = a.zone)
-		if (a.io < 0)
+		else if ( !usage.io)
+			return 'wire inside non kit must have input or output usage'
+	for (u = zu.zone; u != zone; u = u.zone)
+		if (u.io < 0)
 			return 'wire must not cross input edge'
-	for (a = za.zone; a != zone; a = z, z = z.zone)
-		if (z = a.zone, !a.kit && z.kit)
+	for (u = zu.zone; u != zone; u = z, z = z.zone)
+		if (z = u.zone, !u.kit && z.kit)
 			return 'wire must not cross non kit edge from kit'
 	return ''
 }
@@ -145,7 +145,7 @@ function datum2(d)
 				{
 					p = new Wire
 					p.zone = pp.zone, p.base = pp.base, p.bz = pp.bz
-					p.agent = d, p.az = w.az
+					p.usage = d, p.uz = w.uz
 					p.yield = 1
 					datumPass2(d, p)
 				}
@@ -154,7 +154,7 @@ function datum2(d)
 	d.kzb = kzb > 0 || d.kit || d.io < 0 && d.zone.kit
 	for (var R = 0, r; r = d.rows[R]; R++)
 		for (var D = 0, dd; dd = r[D]; D++)
-			datum2(dd) // early before later, i.e. base base before agent agent
+			datum2(dd) // early before later, i.e. base base before usage usage
 	d.mn = 0
 }
 
@@ -163,13 +163,13 @@ function datumPass2(d, p)
 	d.ps[p.base.id] = p
 	var deep = p.zone.deep, pp
 	deep < d.pdeep0 && (d.pdeep0 = deep)
-	deep < d.padeep0 && (d.padeep0 = deep) // p.agent == d
+	deep < d.padeep0 && (d.padeep0 = deep) // p.usage == d
 	for (var PP in p.base.ps)
 		if (pp = p.base.ps[PP], pp.zone.deep <= deep)
 		{
 			if ( !d.ps[pp.base.id])
 				d.ps[pp.base.id] = pp, pp.zone.deep < d.pdeep0 && (d.pdeep0 = pp.zone.deep)
-			else if (pp.agent.za.deep > d.ps[pp.base.id].agent.za.deep)
+			else if (pp.usage.zu.deep > d.ps[pp.base.id].usage.zu.deep)
 				d.ps[pp.base.id] = pp // same zone.deep
 		}
 }
@@ -186,38 +186,38 @@ function datum3(d, Mn)
 	return d.mn > Mn ? d.mn : 0
 }
 
-// base b inside bz matchs agent a inside az, return true if anything changes
+// base b inside bz matchs usage u inside uz, return true if anything changes
 // im is input match considering Datum.kzb always false
-function match(bz, b, az, a, im, Mn)
+function match(bz, b, uz, u, im, Mn)
 {
-	if (a.or < 0)
+	if (u.or < 0)
 		return false
-	Assert( !a.kit, 'never match a kit')
+	Assert( !u.kit, 'never match a kit')
 	var change = false
-	for (var r = a.rows[0], D = 0, ai; ai = r[D]; D++)
+	for (var r = u.rows[0], D = 0, ai; ai = r[D]; D++)
 		if (ai.name && ai.yield >= 0) // skip no namesake and old yield
 		{
-			var bi = searchBaseNk(b, a, ai, Mn)
+			var bi = searchBaseNk(b, u, ai, Mn)
 			if (bi && !bi.err)
 				change = match(ai, ai, bi, bi, true, Mn) || bi.mn > Mn || change
 			if (bi && !bi.err && b != bz)
-				matchWire(bz, bi, az, ai)
+				matchWire(bz, bi, uz, ai)
 		}
-	for (var r = a.rows[a.or], D = 0, ao; ao = r[D]; D++)
+	for (var r = u.rows[u.or], D = 0, ao; ao = r[D]; D++)
 		if (ao.tv >= 0 && ao.name && ao.yield >= 0) // skip trial and no namesake and old yield
 		{
-			var bo = searchBaseNk(b, a, ao, Mn)
+			var bo = searchBaseNk(b, u, ao, Mn)
 			if (bo && !bo.err && (im || !ao.kzb))
-				change = match(bz, bo, az, ao, im, Mn) || bo.mn > Mn || change
+				change = match(bz, bo, uz, ao, im, Mn) || bo.mn > Mn || change
 			if (bo && !bo.err)
-				matchWire(bz, bo, az, ao) // skip null bo since ao is veto
+				matchWire(bz, bo, uz, ao) // skip null bo since ao is veto
 		}
-	change && (b.mn = a.mn = Mn + 1)
+	change && (b.mn = u.mn = Mn + 1)
 	return change
 }
 
 // search the ad namesake in base b or b cycle
-function searchBaseNk(b, a, ad, Mn)
+function searchBaseNk(b, u, ad, Mn)
 {
 	var bd = b.ns[ad.nk]
 	if (bd && bd.yield >= 0)
@@ -239,7 +239,7 @@ function searchBaseNk(b, a, ad, Mn)
 //		{
 //			if (b.cycle == z.zone)
 //				return z // not yield
-//			err = 'yield zone must be cycle agent of zone of\n\
+//			err = 'yield zone must be cycle usage of zone of\n\
 //  innermost zone of same namesake inside zoner base'
 //			break;
 //		}
@@ -254,7 +254,7 @@ function searchBaseNk(b, a, ad, Mn)
 		ad.tv > 0 && (bd.tv = 1)
 		var r = bd.io < 0 ? 0 : b.or < 0 ? 1 : b.or
 		bd.addTo(b, r, b.or < 0 ? 0 : b.rows[r].length)
-		ad.nNext == ad && (a.ns[ad.nk] = ad), b.ns[ad.nk] = bd
+		ad.nNext == ad && (u.ns[ad.nk] = ad), b.ns[ad.nk] = bd
 		bd.namesakeTo(ad)
 		bd.ns = {}, bd.ps = {}
 		bd.mn = Mn + 1
@@ -268,33 +268,33 @@ function searchBaseNk(b, a, ad, Mn)
 	return bd
 }
 
-function matchWire(bz, b, az, a)
+function matchWire(bz, b, uz, u)
 {
-	if (a.err || NoKey(a.ps))
+	if (u.err || NoKey(u.ps))
 		return
-	var bdeep = b.deep + a.padeep0 - a.deep, bnum = 0, bp
+	var bdeep = b.deep + u.padeep0 - u.deep, bnum = 0, bp
 	for (var P in b.ps)
-		if (bp = b.ps[P], bp.agent.za.deep > bdeep) // also bp.agent == b
+		if (bp = b.ps[P], bp.usage.zu.deep > bdeep) // also bp.usage == b
 		{
 			bnum++
-			var ab = bp.zone.deep < bz.deep ? bp.base : searchZoneNk(bz, bp.base, az)
-			if ( !ab)
-				a.err || (a.err = [ 'to match ', b ]),
-				a.err.push(',\n  must have a wire matching ', bp.base),
-				a.show(-1), a.edit.errorN++
-			else if ( !a.ps[ab.id])
-				a.err || (a.err = [ 'to match ', b ]),
-				a.err.push(',\n  must have a wire matching ', bp.base, ' to match ', ab),
-				a.show(-1), a.edit.errorN++
+			var ub = bp.zone.deep < bz.deep ? bp.base : searchZoneNk(bz, bp.base, uz)
+			if ( !ub)
+				u.err || (u.err = [ 'to match ', b ]),
+				u.err.push(',\n  must have a wire matching ', bp.base),
+				u.show(-1), u.edit.errorN++
+			else if ( !u.ps[ub.id])
+				u.err || (u.err = [ 'to match ', b ]),
+				u.err.push(',\n  must have a wire matching ', bp.base, ' to match ', ub),
+				u.show(-1), u.edit.errorN++
 		}
 	if ( !bnum)
-		a.err || (a.err = [ 'to match ', b ]),
-		a.err.push(',\n  must have no base'),
-		a.show(-1), a.edit.errorN++
+		u.err || (u.err = [ 'to match ', b ]),
+		u.err.push(',\n  must have no base'),
+		u.show(-1), u.edit.errorN++
 // TODO must check this ?
-//	B: { var awb = searchZoneNk(bz, b, az)
-//		if (ArrayFind(a.ps, 'b', awb) != null)
-//			break B // base outside cycle agent and agent inside cycle agent
+//	B: { var awb = searchZoneNk(bz, b, uz)
+//		if (ArrayFind(u.ps, 'b', awb) != null)
+//			break B // base outside cycle usage and usage inside cycle usage
 }
 
 // for each d and outside zones inside z, find their unities inside z2, return d namesake
@@ -313,7 +313,7 @@ function datum4(d)
 				datum4(dd), dd.err && (d.derr = true)
 	for (var W = d.ws.length - 1, w; w = d.ws[W]; W--)
 		if (w.yield < 0)
-			w.base.unagent(w)
+			w.base.unusage(w)
 	NoKey(d.ns) || (d.ns = null)
 	NoKey(d.ps) || (d.ps = null)
 	var e = datumRun4(d)

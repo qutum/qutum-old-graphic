@@ -127,15 +127,15 @@ load: function (key, file, zonest, dxs, onFinish)
 function save(enc, d, ns, dx)
 {
 	d.dx = ++dx
-	var udx = 0
+	var ndx = 0
 	if (d.nk < 0)
-		udx = d.nk;
+		ndx = d.nk;
 	else if (d.io && d.nNext != d)
-		(udx = ns[d.nk]) || (ns[d.nk] = dx)
-	enc.num((d.tv < 0 ? 8 : d.tv ? 16 : 0) | (udx && 32) |
+		(ndx = ns[d.nk]) || (ns[d.nk] = dx)
+	enc.num((d.tv < 0 ? 8 : d.tv ? 16 : 0) | (ndx && 32) |
 		(d.io < 0 ? 1 : d.io > 0 ? 3 : d.row && d == d.row[0] ? 34 : 2))
-	if (udx)
-		enc.num(udx)
+	if (ndx)
+		enc.num(ndx)
 	else
 		enc.str(d.zone ? d.name : '')
 	for (var R = 0, r; r = d.rows[R]; R++)
@@ -143,7 +143,7 @@ function save(enc, d, ns, dx)
 			dd.yield || dd.layer || (dx = save(enc, dd, ns, dx))
 	for (var W = 0, w; w = d.ws[W]; W++)
 		if ( !w.yield)
-			enc.num(4), enc.num(w.base.dx), enc.num(w.agent.dx)
+			enc.num(4), enc.num(w.base.dx), enc.num(w.usage.dx)
 	enc.num(0)
 	return dx
 }
@@ -181,10 +181,10 @@ function load(dec, d, dxs)
 		else if (q == 4)
 		{
 			dec.num()
-			var b = dxs[dec.num()], a = dxs[dec.num()]
-			if ( !b || !a || b == a)
+			var b = dxs[dec.num()], u = dxs[dec.num()]
+			if ( !b || !u || b == u)
 				throw 'invalid wire'
-			if (b.agent(new Wire, a))
+			if (b.usage(new Wire, u))
 				throw 'duplicate wire'
 		}
 		else

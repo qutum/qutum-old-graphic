@@ -301,10 +301,10 @@ namesake: function (n, test)
 	if (now.layer) return 'can not change layer 2'
 	if (now.yield) return 'can not change yield'
 	if (test && !n) return
-	var um = n.name
+	var nm = n.name
 	if (n.io != now.io) return now.io < 0 ? 'must be input' : 'must be output'
 	if (n != now && n.nk == now.nk) return 'already be namesake'
-	if ( !m && !um) return 'must have name'
+	if ( !m && !nm) return 'must have name'
 	n = n.nNonyield()
 	if ( !n) return 'can not change yield'
 	if ( !test && this.edit.drag) return 'not available while dragging'
@@ -317,7 +317,7 @@ namesake: function (n, test)
 	function ()
 	{
 		now.namesakeTo(nown), now.Name(m)
-		um || (n.namesakeTo(n), n.Name(um)) // namesake self if no name
+		nm || (n.namesakeTo(n), n.Name(nm)) // namesake self if no name
 		this.edit.Now(now)
 	})
 },
@@ -327,20 +327,20 @@ base: function (b, test)
 	return this.edit.now.deep ? this.baseDatum(b, test) : this.baseWire(b, test)
 },
 
-agent: function (a, test)
+usage: function (u, test)
 {
-	return this.edit.now.deep ? this.agentDatum(a, test) : this.agentWire(a, test)
+	return this.edit.now.deep ? this.usageDatum(u, test) : this.usageWire(u, test)
 },
 
 baseDatum: function (b, test)
 {
 	var now = this.edit.now
 	if ( !now.deep) return 'must be datum'
-	if (now.za.zb.layer) return 'can not change layer 2'
+	if (now.zu.zb.layer) return 'can not change layer 2'
 	if (now.yield) return 'can not change yield'
 	if (test && !b) return
 	if ( !b.deep) return 'must be datum'
-	if (b.zb.za.layer) return 'can not change layer 2'
+	if (b.zb.zu.layer) return 'can not change layer 2'
 	if (b.yield) return 'can not change yield'
 	if (b == now) return 'must not be self'
 	if (ArrayFind(now.bs, 'base', b) != null) return 'already base'
@@ -349,36 +349,36 @@ baseDatum: function (b, test)
 	var w = new Wire, w0
 	this.go(function ()
 	{
-		w0 = b.agent(w, now), this.edit.Now(now)
+		w0 = b.usage(w, now), this.edit.Now(now)
 	},
 	function ()
 	{
-		w0 ? b.agent(w0, now) : b.unagent(w), this.edit.Now(now)
+		w0 ? b.usage(w0, now) : b.unusage(w), this.edit.Now(now)
 	})
 },
 
-agentDatum: function (a, test)
+usageDatum: function (u, test)
 {
 	var now = this.edit.now
 	if ( !now.deep) return 'must be datum'
-	if (now.zb.za.layer) return 'can not change layer 2'
+	if (now.zb.zu.layer) return 'can not change layer 2'
 	if (now.yield) return 'can not change yield'
-	if (test && !a) return
-	if ( !a.deep) return 'must be datum'
-	if (a.za.zb.layer) return 'can not change layer 2'
-	if (a.yield) return 'can not change yield'
-	if (a == now) return 'must not be self'
-	if (ArrayFind(now.as, 'agent', a) != null) return 'already agent'
+	if (test && !u) return
+	if ( !u.deep) return 'must be datum'
+	if (u.zu.zb.layer) return 'can not change layer 2'
+	if (u.yield) return 'can not change yield'
+	if (u == now) return 'must not be self'
+	if (ArrayFind(now.us, 'usage', u) != null) return 'already usage'
 	if ( !test && this.edit.drag) return 'not available while dragging'
 	if (test) return
 	var w = new Wire, w0
 	this.go(function ()
 	{
-		w0 = now.agent(w, a), this.edit.Now(now)
+		w0 = now.usage(w, u), this.edit.Now(now)
 	},
 	function ()
 	{
-		w0 ? now.agent(w0, a) : now.unagent(w), this.edit.Now(now)
+		w0 ? now.usage(w0, u) : now.unusage(w), this.edit.Now(now)
 	})
 },
 
@@ -387,53 +387,53 @@ baseWire: function (b, test)
 	var now = this.edit.now
 	if (now.deep) return 'must be wire'
 	if (now.zone.layer) return 'can not change layer 2'
-	if (now.yield || now.agent.yield) return 'can not change yield'
+	if (now.yield || now.usage.yield) return 'can not change yield'
 	if (test && !b) return
 	if ( !b.deep) return 'must be datum'
 	if (b.yield) return 'can not change yield'
-	if (b == now.agent) return 'must not be self'
-	if (ArrayFind(now.agent.bs, 'base', b) != null) return 'already base'
+	if (b == now.usage) return 'must not be self'
+	if (ArrayFind(now.usage.bs, 'base', b) != null) return 'already base'
 	if ( !test && this.edit.drag) return 'not available while dragging'
 	if (test) return
 	var w = new Wire, w0
 	this.go(function ()
 	{
-		now.base.unagent(now)
-		w0 = b.agent(w, now.agent)
+		now.base.unusage(now)
+		w0 = b.usage(w, now.usage)
 		this.edit.Now(w)
 	},
 	function ()
 	{
-		w0 ? b.agent(w0, now.agent) : b.unagent(w)
-		now.base.agent(now, now.agent, false)
+		w0 ? b.usage(w0, now.usage) : b.unusage(w)
+		now.base.usage(now, now.usage, false)
 		this.edit.Now(now)
 	})
 },
 
-agentWire: function (a, test)
+usageWire: function (u, test)
 {
 	var now = this.edit.now
 	if (now.deep) return 'must be wire'
 	if (now.zone.layer) return 'can not change layer 2'
 	if (now.yield || now.base.yield) return 'can not change yield'
-	if (test && !a) return
-	if ( !a.deep) return 'must be datum'
-	if (a.yield) return 'can not change yield'
-	if (a == now.base) return 'must not be self'
-	if (ArrayFind(now.base.as, 'agent', a) != null) return 'already base'
+	if (test && !u) return
+	if ( !u.deep) return 'must be datum'
+	if (u.yield) return 'can not change yield'
+	if (u == now.base) return 'must not be self'
+	if (ArrayFind(now.base.us, 'usage', u) != null) return 'already base'
 	if ( !test && this.edit.drag) return 'not available while dragging'
 	if (test) return
 	var w = new Wire, w0
 	this.go(function ()
 	{
-		now.base.unagent(now)
-		w0 = now.base.agent(w, a)
+		now.base.unusage(now)
+		w0 = now.base.usage(w, u)
 		this.edit.Now(w)
 	},
 	function ()
 	{
-		w0 ? now.base.agent(w0, a) : now.base.unagent(w)
-		now.base.agent(now, now.agent, false)
+		w0 ? now.base.usage(w0, u) : now.base.unusage(w)
+		now.base.usage(now, now.usage, false)
 		this.edit.Now(now)
 	})
 },
@@ -484,7 +484,7 @@ nonyieldDatum: function (test)
 
 nonyieldWire: function (test)
 {
-	var now = this.edit.now, bz, bzz, az, azz
+	var now = this.edit.now, bz, bzz, uz, uzz
 	if ( !now.yield) return 'must be yield'
 	if (this.edit.drag) return 'not available while dragging'
 	if (test) return
@@ -493,8 +493,8 @@ nonyieldWire: function (test)
 		now.yield = 0
 		for (bz = now.base; (bzz = bz).yield; bz = bz.zone)
 			bz.yield = 0, bz.show(-1)
-		for (az = now.agent; (azz = az).yield; az = az.zone)
-			az.yield = 0, az.show(-1)
+		for (uz = now.usage; (uzz = uz).yield; uz = uz.zone)
+			uz.yield = 0, uz.show(-1)
 		this.edit.Now(now), now.showing = true, edit.show(true)
 	},
 	function ()
@@ -502,8 +502,8 @@ nonyieldWire: function (test)
 		now.yield = 1
 		for (bz = now.base; bz != bzz; bz = bz.zone)
 			bz.yield = 1, bz.show(-1)
-		for (az = now.agent; az != azz; az = az.zone)
-			az.yield = 1, az.show(-1)
+		for (uz = now.usage; uz != uzz; uz = uz.zone)
+			uz.yield = 1, uz.show(-1)
 		this.edit.Now(now), now.showing = true, edit.show(true)
 	})
 },
@@ -651,12 +651,12 @@ removeWire: function (test)
 	if (test) return
 	this.go(function ()
 	{
-		this.edit.Now(now.keyPrev || now.agent)
-		now.base.unagent(now)
+		this.edit.Now(now.keyPrev || now.usage)
+		now.base.unusage(now)
 	},
 	function ()
 	{
-		now.base.agent(now, now.agent, false)
+		now.base.usage(now, now.usage, false)
 		this.edit.Now(now)
 	})
 },

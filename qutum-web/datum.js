@@ -15,7 +15,7 @@ Datum = function (io, layer, layerNk)
 	this.rows = []
 	this.ws = []
 	this.bs = []
-	this.as = []
+	this.us = []
 }
 var SIZE0 = Datum.SIZE0 = 20, SPACE = Datum.SPACE = 20, NAME_WIDTH = Datum.NAME_WIDTH = 50
 
@@ -33,10 +33,10 @@ nPrev: null, // previous namesake
 kit: false,
 tv: 0, // <0 trial >0 veto 0 neither
 zv: false, // outside zone is veto
-zb: null, // innermost outside hub or input zones, or this, as zoner base
-za: null, // innermost outside hub or output zones, or this, as zoner agent
+zb: null, // innermost outside hub or input zones, or this, us zoner base
+zu: null, // innermost outside hub or output zones, or this, us zoner usage
 bs: null, // [ base wire ]
-as: null, // [ agent wire ]
+us: null, // [ usage wire ]
 cycle: null, // cycle base
 layer: 0, // 0 for layer 1, 2 for layer 2
 row: null, // null for zonest
@@ -45,13 +45,13 @@ or: -1, // -1: no inner datum, >=1: output row index, == rows.length - 1
 ws: null, // [ Wire inside this ]
 
 dx: NaN, // small early, big later, asynchronous update
-mustRun: false, // must run or may run, as zoner agent
+mustRun: false, // must run or may run, us zoner usage
 yield: 0, // 0 nonyield >0 yield <0 old yield while compiling
 ns: null, // { namesake: Datum }
 kzb: false, // kit, or all zoner base zoner bases are kits
 ps: null, // wired passes from base or base base, { base.id: outermost wire }
 pdeep0: 0, // outermost zone deep of passes
-padeep0: 0, // outermost zone deep of passes which agents are this
+padeep0: 0, // outermost zone deep of passes which usages are this
 mn: 0, // match iteration
 
 name: '',
@@ -81,7 +81,7 @@ addTo: function (z, R, D) // D < 0 to add row
 		this.deep = 1
 		this.kit = true
 		this.zb = this
-		this.za = this
+		this.zu = this
 		return this // zonest
 	}
 	this.edit = z.edit
@@ -103,14 +103,14 @@ addTo: function (z, R, D) // D < 0 to add row
 		this.deep = z.deep + 1
 		if (this.io < 0)
 			this.zb = this,
-			this.za = z.io < 0 ? z.za : z
+			this.zu = z.io < 0 ? z.zu : z
 		else if (this.io > 0)
 			this.kit = z.kit,
 			this.zb = z.io > 0 ? z.zb : z,
-			this.za = this
+			this.zu = this
 		else
 			this.kit = z.kit,
-			this.zb = this.za = this
+			this.zb = this.zu = this
 	}
 	this._addTo(this.deep)
 	this.showing = 0 // drop last showing to force layout for redo
@@ -124,10 +124,10 @@ _addTo: function (deep)
 	n && this.namesakeTo(n)
 	for (var W = 0, w; w = this.bs[W]; W++)
 		if (w.zone.deep < deep)
-			w.base.as.push(w), w.addTo()
-	for (var W = 0, w; w = this.as[W]; W++)
+			w.base.us.push(w), w.addTo()
+	for (var W = 0, w; w = this.us[W]; W++)
 		if (w.zone.deep < deep)
-			w.agent.bs.push(w), w.addTo()
+			w.usage.bs.push(w), w.addTo()
 	for (var R = 0, r; r = this.rows[R]; R++)
 		for (var D = 0, d; d = r[D]; D++)
 			d._addTo(deep)
@@ -158,11 +158,11 @@ _unadd: function (deep)
 	this.nNext != this && this.namesakeTo(this, true)
 	for (var s = this.bs, W = 0, Q = 0, w; w = s[Q] = s[W]; W++, Q++)
 		if (w.zone.deep < deep)
-			ArrayRem(w.base.as, w), w.unadd(), w.yield && Q--
+			ArrayRem(w.base.us, w), w.unadd(), w.yield && Q--
 	s.length = Q
-	for (var s = this.as, W = 0, Q = 0, w; w = s[Q] = s[W]; W++, Q++)
+	for (var s = this.us, W = 0, Q = 0, w; w = s[Q] = s[W]; W++, Q++)
 		if (w.zone.deep < deep)
-			ArrayRem(w.agent.bs, w), w.unadd(), w.yield && Q--
+			ArrayRem(w.usage.bs, w), w.unadd(), w.yield && Q--
 	s.length = Q
 	for (var R = 0, r; r = this.rows[R]; R++)
 		for (var D = 0, d; d = r[D]; D++)
@@ -209,27 +209,27 @@ Tv: function (tv)
 },
 
 // replace is true by default, return exist
-agent: function (w, a, replace)
+usage: function (w, u, replace)
 {
 	if (replace !== false)
-		for (var W = this.as.length - 1, w0; w0 = this.as[W]; W--)
-			if (w0.agent == a)
+		for (var W = this.us.length - 1, w0; w0 = this.us[W]; W--)
+			if (w0.usage == u)
 			{
-				this.as[W] = w, a.bs[a.bs.indexOf(w0)] = w,
-				w0.unadd(), w.zone ? w.addTo() : w.addTo(this, a)
+				this.us[W] = w, u.bs[u.bs.indexOf(w0)] = w,
+				w0.unadd(), w.zone ? w.addTo() : w.addTo(this, u)
 				return w0
 			}
-	this.as.push(w), a.bs.push(w)
-	w.zone ? w.addTo() : w.addTo(this, a)
+	this.us.push(w), u.bs.push(w)
+	w.zone ? w.addTo() : w.addTo(this, u)
 	return null
 },
 
-unagent: function (w)
+unusage: function (w)
 {
-	var x = this.as.indexOf(w), a = w.agent
+	var x = this.us.indexOf(w), u = w.usage
 	if (x < 0)
 		return
-	this.as.splice(x, 1), ArrayRem(a.bs, w)
+	this.us.splice(x, 1), ArrayRem(u.bs, w)
 	w.unadd()
 },
 

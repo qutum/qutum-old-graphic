@@ -16,10 +16,10 @@ Wire.prototype =
 
 edit: null,
 base: null,
-agent: null,
-zone: null, // common zone of bz and az, should be cycle zone or base.zb.zone
+usage: null,
+zone: null, // common zone of bz and uz, should be cycle zone or base.zb.zone
 bz: null, // outermost zone of base, or base, should be cycle zone or base.zb
-az: null, // outermost zone of agent, or agent, be or inside wire zone
+uz: null, // outermost zone of usage, or usage, be or inside wire zone
 yield: 0, // 0 nonyield >0 yield <0 yield while compiling
 
 err: '',
@@ -32,22 +32,22 @@ H: 0,
 navPrev: null,
 navNext: null,
 
-addTo: function (b, a)
+addTo: function (b, u)
 {
-	if (b || a)
+	if (b || u)
 	{
-		if (b == a)
+		if (b == u)
 			throw 'wire self'
-		var d = b.deep - a.deep
-		var bzz = b, bz = b, azz = a, az = a
+		var d = b.deep - u.deep
+		var bzz = b, bz = b, uzz = u, uz = u
 		while (d > 0)
 			bz = bzz, bzz = bz.zone, --d
 		while (d < 0)
-			az = azz, azz = az.zone, ++d
-		while (bzz != azz)
-			bz = bzz, bzz = bz.zone, az = azz, azz = az.zone
-		this.base = b, this.agent = a
-		this.bz = bz, this.az = az
+			uz = uzz, uzz = uz.zone, ++d
+		while (bzz != uzz)
+			bz = bzz, bzz = bz.zone, uz = uzz, uzz = uz.zone
+		this.base = b, this.usage = u
+		this.bz = bz, this.uz = uz
 		this.edit = bzz.edit
 		this.zone = bzz, bzz.ws.push(this)
 		this.yield || Compile.wire1(this) // skip layout if error
@@ -81,73 +81,73 @@ layout: function (force)
 	var xys = this.xys = []
 	var zone = this.zone, x, y
 	var base = this.base, bz = this.bz, bx, by, b5, bq
-	var agent = this.agent, az = this.az, ax, ay, aw, a5, aq
-	x = agent.offsetX(zone), y = agent.offsetY(zone)
+	var usage = this.usage, uz = this.uz, ax, ay, aw, a5, aq
+	x = usage.offsetX(zone), y = usage.offsetY(zone)
 	if (this.err || base == zone)
-		ax = x, ay = y, aw = agent.W, a5 = ax + aw / 2
+		ax = x, ay = y, aw = usage.W, a5 = ax + aw / 2
 	else
-		ax = az.X, ay = az.Y, aw = az.W, a5 = ax + aw / 2
-	aq = agent.W ? 1 : 0
+		ax = uz.X, ay = uz.Y, aw = uz.W, a5 = ax + aw / 2
+	aq = usage.W ? 1 : 0
 	bx = base.offsetX(zone), b5 = bx + base.W / 2
 	bq = base.W ? 1 : 0
 	if (b5 < ax && bx + base.W < a5)
-		bx += base.W - bq, aw = 0 // right of base, left of agent
+		bx += base.W - bq, aw = 0 // right of base, left of usage
 	else if (a5 < bx && ax + aw < b5)
-		bx += bq // left of base, right of agent
+		bx += bq // left of base, right of usage
 	else if ((b5 < a5) == (base.W < aw))
-		bx += bq, aw = 0 // left of base, left of agent
+		bx += bq, aw = 0 // left of base, left of usage
 	else
-		bx += base.W - bq // right of base, right of agent
+		bx += base.W - bq // right of base, right of usage
 	by = base == zone ? ay : this.err ? base.offsetY(zone) + base.H - bq : bz.Y + bz.H - 1
 	if (this.err)
 		xys.push(ax, ay, bx, by)
 	else
 	{
 		ax = aw ? x - aq : x + aq, ay = y + aq
-		x = aw ? ax + agent.W : ax, y = ay, xys.push(x, y)
-		var za = agent.za, a = agent, r
-		while (a != za) // i.e. a is input
-			ax -= a.X, ay -= a.Y, a = a.zone
-		while (a != az || base == zone)
+		x = aw ? ax + usage.W : ax, y = ay, xys.push(x, y)
+		var zu = usage.zu, u = usage, r
+		while (u != zu) // i.e. u is input
+			ax -= u.X, ay -= u.Y, u = u.zone
+		while (u != uz || base == zone)
 		{
-			Up: if (a.detail >= 2)
+			Up: if (u.detail >= 2)
 			{
-				r = a.row
-				if (a != za || agent == za)
+				r = u.row
+				if (u != zu || usage == zu)
 				Hori: {
-					for (var D = aw ? r.length - 1 : 0; a != r[D]; D += aw ? -1 : 1)
-						if (r[D].Y - a.Y <= y - ay)
+					for (var D = aw ? r.length - 1 : 0; u != r[D]; D += aw ? -1 : 1)
+						if (r[D].Y - u.Y <= y - ay)
 							break Hori
 					break Up
 				}
-				y = ay - a.Y + r.Y - S - SS * a.X / r.W, xys.push(x, y)
+				y = ay - u.Y + r.Y - S - SS * u.X / r.W, xys.push(x, y)
 			}
-			if (a == az)
+			if (u == uz)
 				break; // base == zone
-			ax -= a.X, ay -= a.Y, a = a.zone
-			if (a.detail >= 2)
-				x = S + S * (y - ay) / a.H,
-				x = aw ? ax + a.W + x : ax - x, xys.push(x, y)
+			ax -= u.X, ay -= u.Y, u = u.zone
+			if (u.detail >= 2)
+				x = S + S * (y - ay) / u.H,
+				x = aw ? ax + u.W + x : ax - x, xys.push(x, y)
 		}
 		if (base == zone)
 			by = y
-		// a == az
-		else if ((r = a.row) == bz.row)
+		// u == uz
+		else if ((r = u.row) == bz.row)
 		{
 			ax = x
-			if (a == za && agent != za)
-				y -= SS * a.X / r.W, xys.push(ax, y),
-				ax = a.X + aq - S, xys.push(ax, y)
-			else if (ax == a.X + aq)
+			if (u == zu && usage != zu)
+				y -= SS * u.X / r.W, xys.push(ax, y),
+				ax = u.X + aq - S, xys.push(ax, y)
+			else if (ax == u.X + aq)
 				ax -= S + S, xys.push(ax, y)
-			if (r[r.indexOf(a) - 1] == bz && base == bz)
+			if (r[r.indexOf(u) - 1] == bz && base == bz)
 				xys.push(ax, by)
 			else
 				ay = r.Y + r.H + S + SS * bx / r.W, xys.push(ax, ay, bx, ay)
 		}
 		else
 		{
-			ax = x, ay = r.Y - S - SS * a.X / zone.W
+			ax = x, ay = r.Y - S - SS * u.X / zone.W
 			xys.push(ax, ay)
 			for (var i = zone.rows.indexOf(r)-1, j = zone.rows.indexOf(bz.row);
 				r = zone.rows[i], j < i; i--)

@@ -45,23 +45,23 @@ Layer = function (zonest, dxs)
 	next = output(s, next, -82), output(next, data, -83)
 	s = output(al, 'list.cycle', -84)
 	output(s, data, -85)
-	next = output(s, next, -86), s.agent(new Wire, next, false)
+	next = output(s, next, -86), s.usage(new Wire, next, false)
 	output(next, data, -87), output(next, output(s, 'nextable', -88), -89)
 
-	function input(z, nk, udx)
+	function input(z, nk, ndx)
 	{
-		var d = new Datum(-1, 2, nk.deep ? nk.nk : udx)
+		var d = new Datum(-1, 2, nk.deep ? nk.nk : ndx)
 		d.addTo(z, 0, z.or < 0 ? 0 : z.rows[0].length)
 		nk.deep ? d.namesakeTo(nk) : d.Name(nk)
-		d.dx = udx, dxs[udx] = d
+		d.dx = ndx, dxs[ndx] = d
 		return d
 	}
-	function output(z, nk, udx)
+	function output(z, nk, ndx)
 	{
-		var d = new Datum(1, 2, nk.deep ? nk.nk : udx)
+		var d = new Datum(1, 2, nk.deep ? nk.nk : ndx)
 		d.addTo(z, 1, z.or < 0 ? 0 : z.rows[1].length)
 		nk.deep ? d.namesakeTo(nk) : d.Name(nk)
-		d.dx = udx, dxs[udx] = d
+		d.dx = ndx, dxs[ndx] = d
 		return d
 	}
 }
