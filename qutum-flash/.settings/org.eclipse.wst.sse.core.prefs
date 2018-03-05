@@ -1,8 +1,0 @@
-#Tue May 11 02:45:14 HKT 2010
-eclipse.preferences.version=1
-instance/org.eclipse.core.net/org.eclipse.core.net.hasMigrated=true
-task-tags/enabled=true
-task-tags/ignored-contentTypes=org.eclipse.core.runtime.xml,org.eclipse.wst.dtd.core.dtdsource
-task-tags/taskPriorities=1,2
-task-tags/taskTags=TODO,FIX
-task-tags/use-project-settings=true
